@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Minus, Plus, Check, Dumbbell } from 'lucide-react';
+import { Minus, Plus, Check, Dumbbell, Sparkles } from 'lucide-react';
 import { Modal, ModalBody, ModalFooter } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { RPESlider } from './RPESlider';
@@ -19,6 +19,7 @@ interface SetInputModalProps {
   setNumber: number;
   totalSets?: number;
   previousSet?: { weight: number; reps: number; rpe?: number };
+  recommendedWeight?: number;
   targetReps?: string;
   targetRPE?: number;
 }
@@ -143,6 +144,7 @@ export function SetInputModal({
   setNumber,
   totalSets = 3,
   previousSet,
+  recommendedWeight = 0,
   targetReps,
   targetRPE = 8,
 }: SetInputModalProps) {
@@ -231,6 +233,23 @@ export function SetInputModal({
           unit="kg"
           size="lg"
         />
+
+        {/* Recommended weight badge */}
+        {recommendedWeight > 0 && weight !== recommendedWeight && (
+          <button
+            type="button"
+            onClick={() => setWeight(recommendedWeight)}
+            className={cn(
+              'w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg',
+              'bg-primary/10 border border-primary/20',
+              'text-primary text-sm font-semibold',
+              'hover:bg-primary/15 active:scale-[0.98] transition-all duration-150'
+            )}
+          >
+            <Sparkles className="w-4 h-4" />
+            Sugerido: {recommendedWeight} kg
+          </button>
+        )}
 
         {/* Reps Input */}
         <NumberInput

@@ -9,6 +9,7 @@ import WorkoutSummary from './pages/WorkoutSummary';
 import Templates from './pages/Templates';
 import TemplateEditor from './pages/TemplateEditor';
 import Schedule from './pages/Schedule';
+import History from './pages/History';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import { AppProvider, useApp } from './context/AppContext';
@@ -98,6 +99,8 @@ const AppContent: React.FC = () => {
         return <ExerciseLibrary />;
       case ROUTES.PROGRESS:
         return <Progress />;
+      case ROUTES.HISTORY:
+        return <History />;
       case ROUTES.ONBOARDING:
         return <Onboarding onComplete={handleOnboardingComplete} />;
       default:

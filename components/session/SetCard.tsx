@@ -9,6 +9,7 @@ interface SetCardProps {
   status: 'pending' | 'active' | 'completed';
   data?: { weight: number; reps: number; rpe: number };
   target?: { reps: string; rpe: number };
+  recommendedWeight?: number;
   setType?: SetType;
   onClick: () => void;
 }
@@ -40,6 +41,7 @@ export const SetCard: React.FC<SetCardProps> = ({
   status,
   data,
   target,
+  recommendedWeight = 0,
   setType,
   onClick,
 }) => {
@@ -121,6 +123,11 @@ export const SetCard: React.FC<SetCardProps> = ({
         </>
       ) : (
         <>
+          {recommendedWeight > 0 && (
+            <p className="text-xs font-bold text-gray-500 mb-0.5">
+              {recommendedWeight}<span className="text-gray-600 text-[9px] font-medium">kg</span>
+            </p>
+          )}
           {target && (
             <>
               <p className="text-sm font-semibold text-gray-600">

@@ -175,6 +175,7 @@ export function ExerciseCard({
                 setType={set.type}
                 data={set.completed ? { weight: set.weight, reps: set.reps, rpe: set.rpe || 0 } : undefined}
                 target={{ reps: set.targetReps, rpe: set.targetRPE }}
+                recommendedWeight={set.recommendedWeight}
                 onClick={() => onSetClick(idx)}
               />
             );

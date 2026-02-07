@@ -11,6 +11,7 @@ import { fetchTemplates, upsertTemplate, deleteTemplateFromDB } from '../service
 import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, upsertPersonalRecords } from '../services/workoutSessions';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { processQueue, getQueue } from '../services/offlineQueue';
+import { getRecommendedWeight, getWarmupWeight } from '../lib/weightRecommendation';
 
 interface RestTimerState {
   remaining: number;
@@ -373,20 +374,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       date: new Date().toISOString(),
       startTime: Date.now(),
       status: 'active' as const,
-      exercises: template.exercises.map(ex => ({
-        exerciseId: ex.exerciseId,
-        restTimer: ex.restTimer,
-        sets: Array.from({ length: ex.sets }).map((_, idx) => ({
-          id: `set-${Date.now()}-${idx}`,
-          type: idx === 0 ? 'warmup' : 'top',
-          weight: 0,
-          reps: 0,
-          completed: false,
-          targetReps: ex.targetReps,
-          targetRPE: ex.targetRPE,
-          recommendedWeight: 0
-        } as WorkoutSet))
-      }))
+      exercises: template.exercises.map(ex => {
+        const topWeight = getRecommendedWeight(ex.exerciseId, ex.targetReps, workoutHistory);
+        const warmupWeight = getWarmupWeight(topWeight);
+        return {
+          exerciseId: ex.exerciseId,
+          restTimer: ex.restTimer,
+          sets: Array.from({ length: ex.sets }).map((_, idx) => {
+            const isWarmup = idx === 0;
+            const recommended = isWarmup ? warmupWeight : topWeight;
+            return {
+              id: `set-${Date.now()}-${idx}`,
+              type: isWarmup ? 'warmup' : 'top',
+              weight: recommended,
+              reps: 0,
+              completed: false,
+              targetReps: ex.targetReps,
+              targetRPE: ex.targetRPE,
+              recommendedWeight: recommended,
+            } as WorkoutSet;
+          }),
+        };
+      })
     };
     setActiveWorkout(session);
     stopRestTimer();

@@ -11,6 +11,7 @@ export const ROUTES = {
   ONBOARDING: 'onboarding',
   SUMMARY: 'summary',
   SCHEDULE: 'schedule',
+  HISTORY: 'history',
 } as const;
 
 export type Route = (typeof ROUTES)[keyof typeof ROUTES];

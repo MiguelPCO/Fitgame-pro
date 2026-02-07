@@ -526,6 +526,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
           setNumber={selectedSetIndex + 1}
           totalSets={activeExerciseData.sets.length}
           previousSet={getSelectedSetData() || getSelectedSetPrevious()}
+          recommendedWeight={selectedSet.recommendedWeight}
           targetReps={selectedSet.targetReps}
           targetRPE={selectedSet.targetRPE}
         />

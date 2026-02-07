@@ -8,7 +8,8 @@ import {
   LogOut,
   Menu,
   ClipboardList,
-  CalendarDays
+  CalendarDays,
+  History
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import SyncIndicator from './SyncIndicator';
@@ -38,6 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
     { id: 'workout', label: 'Active Workout', icon: Dumbbell, highlight: true },
     { id: 'exercises', label: 'Exercises', icon: Users },
     { id: 'progress', label: 'Progress', icon: LineChart },
+    { id: 'history', label: 'Historial', icon: History },
     { id: 'onboarding', label: 'Plan Setup', icon: Settings },
   ];
 
