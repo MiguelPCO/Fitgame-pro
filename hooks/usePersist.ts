@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { logger } from '../lib/logger';
 
 /**
  * Hook to persist a value to localStorage whenever it changes.
@@ -22,7 +23,7 @@ export function loadFromStorage<T>(key: string, fallback: T): T {
     const item = localStorage.getItem(key);
     return item ? JSON.parse(item) : fallback;
   } catch (e) {
-    console.error(`Error loading ${key} from localStorage`, e);
+    logger.error(`Error loading ${key} from localStorage`, e);
     return fallback;
   }
 }
@@ -34,7 +35,7 @@ export function saveToStorage<T>(key: string, value: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch (e) {
-    console.error(`Error saving ${key} to localStorage`, e);
+    logger.error(`Error saving ${key} to localStorage`, e);
   }
 }
 
@@ -45,7 +46,7 @@ export function removeFromStorage(key: string): void {
   try {
     localStorage.removeItem(key);
   } catch (e) {
-    console.error(`Error removing ${key} from localStorage`, e);
+    logger.error(`Error removing ${key} from localStorage`, e);
   }
 }
 

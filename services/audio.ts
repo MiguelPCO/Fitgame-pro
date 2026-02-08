@@ -1,3 +1,5 @@
+import { logger } from '../lib/logger';
+
 let audioContext: AudioContext | null = null;
 
 /**
@@ -40,7 +42,7 @@ export function playNotificationSound(): void {
     osc.start();
     osc.stop(ctx.currentTime + 0.5);
   } catch (e) {
-    console.error('Audio play failed', e);
+    logger.error('Audio play failed', e);
   }
 }
 
@@ -53,7 +55,7 @@ export function triggerHapticFeedback(pattern: number[] = [200, 100, 200]): void
       navigator.vibrate(pattern);
     }
   } catch (e) {
-    console.error('Haptic feedback failed', e);
+    logger.error('Haptic feedback failed', e);
   }
 }
 

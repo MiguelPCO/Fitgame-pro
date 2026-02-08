@@ -1,6 +1,7 @@
 import { QueuedOperation } from '../types';
 import { STORAGE_KEYS } from '../lib/constants';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 type TableName = 'profiles' | 'templates' | 'workout_sessions' | 'personal_records';
 
@@ -87,13 +88,13 @@ async function executeOperation(op: QueuedOperation): Promise<boolean> {
     }
 
     if (result?.error) {
-      console.error(`Offline queue: failed ${op.action} on ${op.table}:`, result.error);
+      logger.error(`Offline queue: failed ${op.action} on ${op.table}:`, result.error);
       return false;
     }
 
     return true;
   } catch (err) {
-    console.error('Offline queue: network error:', err);
+    logger.error('Offline queue: network error:', err);
     return false;
   }
 }
@@ -124,7 +125,7 @@ export async function processQueue(): Promise<number> {
       remaining.push({ ...op, retries: op.retries + 1 });
     } else {
       // Drop after max retries
-      console.warn(`Offline queue: dropping operation after ${MAX_RETRIES} retries:`, op);
+      logger.warn(`Offline queue: dropping operation after ${MAX_RETRIES} retries:`, op);
     }
   }
 

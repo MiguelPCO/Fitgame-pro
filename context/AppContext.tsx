@@ -12,6 +12,7 @@ import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, upsertPe
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { processQueue, getQueue } from '../services/offlineQueue';
 import { getRecommendedWeight, getWarmupWeight } from '../lib/weightRecommendation';
+import { logger } from '../lib/logger';
 
 interface RestTimerState {
   remaining: number;
@@ -111,7 +112,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .single();
 
     if (error) {
-      console.error('Error loading profile:', error);
+      logger.error('Error loading profile:', error);
       return;
     }
 
@@ -302,7 +303,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .update({ weekly_schedule: schedule as any })
         .eq('id', userId);
 
-      if (error) console.error('Error saving schedule:', error);
+      if (error) logger.error('Error saving schedule:', error);
     }
   };
 
@@ -332,7 +333,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .update(updatePayload as any)
           .eq('id', userId);
 
-        if (error) console.error('Error updating profile:', error);
+        if (error) logger.error('Error updating profile:', error);
       }
     }
   };
@@ -487,7 +488,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .eq('id', userId);
 
       if (error) {
-        console.error('Error syncing XP to Supabase:', error);
+        logger.error('Error syncing XP to Supabase:', error);
       }
     }
   };

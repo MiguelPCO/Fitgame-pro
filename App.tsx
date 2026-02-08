@@ -13,6 +13,7 @@ import History from './pages/History';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import { AppProvider, useApp } from './context/AppContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ROUTES } from './lib/constants';
 
 const AppContent: React.FC = () => {
@@ -127,9 +128,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <AppContent />
+      </AppProvider>
+    </ErrorBoundary>
   );
 };
 

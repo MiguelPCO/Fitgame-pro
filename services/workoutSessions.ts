@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { WorkoutSession, ActiveExercise } from '../types';
+import { logger } from '../lib/logger';
 
 /**
  * Database workout session row type
@@ -62,46 +63,52 @@ export async function fetchWorkoutHistory(
   userId: string,
   limit: number = 50
 ): Promise<WorkoutSession[]> {
-  if (!isSupabaseConfigured() || !supabase) {
+  if (!isSupabaseConfigured() || !supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('workout_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      logger.error('Error fetching workout history:', error);
+      return [];
+    }
+
+    return (data as DBWorkoutSession[] || []).map(toWorkoutSession);
+  } catch (err) {
+    logger.error('Network error fetching workout history:', err);
     return [];
   }
-
-  const { data, error } = await supabase
-    .from('workout_sessions')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('status', 'completed')
-    .order('created_at', { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    console.error('Error fetching workout history:', error);
-    return [];
-  }
-
-  return (data as DBWorkoutSession[] || []).map(toWorkoutSession);
 }
 
 /**
  * Fetch all sessions (including active, completed, skipped)
  */
 export async function fetchAllSessions(userId: string): Promise<WorkoutSession[]> {
-  if (!isSupabaseConfigured() || !supabase) {
+  if (!isSupabaseConfigured() || !supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('workout_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      logger.error('Error fetching sessions:', error);
+      return [];
+    }
+
+    return (data as DBWorkoutSession[] || []).map(toWorkoutSession);
+  } catch (err) {
+    logger.error('Network error fetching sessions:', err);
     return [];
   }
-
-  const { data, error } = await supabase
-    .from('workout_sessions')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching sessions:', error);
-    return [];
-  }
-
-  return (data as DBWorkoutSession[] || []).map(toWorkoutSession);
 }
 
 /**
@@ -111,25 +118,28 @@ export async function saveCompletedSession(
   session: WorkoutSession,
   userId: string
 ): Promise<WorkoutSession | null> {
-  if (!isSupabaseConfigured() || !supabase) {
+  if (!isSupabaseConfigured() || !supabase) return null;
+
+  try {
+    const insert = toSessionInsert(session, userId);
+    insert.status = 'completed';
+
+    const { data, error } = await supabase
+      .from('workout_sessions')
+      .insert(insert as any)
+      .select()
+      .single();
+
+    if (error) {
+      logger.error('Error saving session:', error);
+      return null;
+    }
+
+    return toWorkoutSession(data as DBWorkoutSession);
+  } catch (err) {
+    logger.error('Network error saving session:', err);
     return null;
   }
-
-  const insert = toSessionInsert(session, userId);
-  insert.status = 'completed';
-
-  const { data, error } = await supabase
-    .from('workout_sessions')
-    .insert(insert as any)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error saving session:', error);
-    return null;
-  }
-
-  return toWorkoutSession(data as DBWorkoutSession);
 }
 
 /**
@@ -139,35 +149,38 @@ export async function updateSession(
   sessionId: string,
   updates: Partial<WorkoutSession>
 ): Promise<boolean> {
-  if (!isSupabaseConfigured() || !supabase) {
+  if (!isSupabaseConfigured() || !supabase) return false;
+
+  try {
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.duration !== undefined) dbUpdates.duration = updates.duration;
+    if (updates.muscleFocus !== undefined) dbUpdates.muscle_focus = updates.muscleFocus;
+    if (updates.exercises !== undefined) dbUpdates.exercises = JSON.parse(JSON.stringify(updates.exercises));
+    if (updates.status !== undefined) dbUpdates.status = updates.status;
+    if (updates.xpReward !== undefined) dbUpdates.xp_reward = updates.xpReward;
+    if (updates.startTime !== undefined) {
+      dbUpdates.start_time = updates.startTime ? new Date(updates.startTime).toISOString() : null;
+    }
+    if (updates.endTime !== undefined) {
+      dbUpdates.end_time = updates.endTime ? new Date(updates.endTime).toISOString() : null;
+    }
+
+    const { error } = await supabase
+      .from('workout_sessions')
+      .update(dbUpdates as any)
+      .eq('id', sessionId);
+
+    if (error) {
+      logger.error('Error updating session:', error);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    logger.error('Network error updating session:', err);
     return false;
   }
-
-  const dbUpdates: Record<string, unknown> = {};
-  if (updates.name !== undefined) dbUpdates.name = updates.name;
-  if (updates.duration !== undefined) dbUpdates.duration = updates.duration;
-  if (updates.muscleFocus !== undefined) dbUpdates.muscle_focus = updates.muscleFocus;
-  if (updates.exercises !== undefined) dbUpdates.exercises = JSON.parse(JSON.stringify(updates.exercises));
-  if (updates.status !== undefined) dbUpdates.status = updates.status;
-  if (updates.xpReward !== undefined) dbUpdates.xp_reward = updates.xpReward;
-  if (updates.startTime !== undefined) {
-    dbUpdates.start_time = updates.startTime ? new Date(updates.startTime).toISOString() : null;
-  }
-  if (updates.endTime !== undefined) {
-    dbUpdates.end_time = updates.endTime ? new Date(updates.endTime).toISOString() : null;
-  }
-
-  const { error } = await supabase
-    .from('workout_sessions')
-    .update(dbUpdates as any)
-    .eq('id', sessionId);
-
-  if (error) {
-    console.error('Error updating session:', error);
-    return false;
-  }
-
-  return true;
 }
 
 /**
@@ -177,40 +190,39 @@ export async function getLastSessionForExercise(
   userId: string,
   exerciseId: string
 ): Promise<{ weight: number; reps: number } | null> {
-  if (!isSupabaseConfigured() || !supabase) {
-    return null;
-  }
+  if (!isSupabaseConfigured() || !supabase) return null;
 
-  const { data, error } = await supabase
-    .from('workout_sessions')
-    .select('exercises')
-    .eq('user_id', userId)
-    .eq('status', 'completed')
-    .order('created_at', { ascending: false })
-    .limit(20);
+  try {
+    const { data, error } = await supabase
+      .from('workout_sessions')
+      .select('exercises')
+      .eq('user_id', userId)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(20);
 
-  if (error || !data) {
-    return null;
-  }
+    if (error || !data) return null;
 
-  // Find the most recent set for this exercise
-  for (const session of data) {
-    const exercises = session.exercises as unknown as ActiveExercise[];
-    const exercise = exercises.find(e => e.exerciseId === exerciseId);
+    for (const session of data) {
+      const exercises = session.exercises as unknown as ActiveExercise[];
+      const exercise = exercises.find(e => e.exerciseId === exerciseId);
 
-    if (exercise) {
-      const completedSets = exercise.sets.filter(s => s.completed && s.weight > 0);
-      if (completedSets.length > 0) {
-        // Return the heaviest completed set
-        const best = completedSets.reduce((max, set) =>
-          set.weight > max.weight ? set : max
-        );
-        return { weight: best.weight, reps: best.reps };
+      if (exercise) {
+        const completedSets = exercise.sets.filter(s => s.completed && s.weight > 0);
+        if (completedSets.length > 0) {
+          const best = completedSets.reduce((max, set) =>
+            set.weight > max.weight ? set : max
+          );
+          return { weight: best.weight, reps: best.reps };
+        }
       }
     }
-  }
 
-  return null;
+    return null;
+  } catch (err) {
+    logger.error('Network error fetching last session for exercise:', err);
+    return null;
+  }
 }
 
 /**
@@ -219,30 +231,31 @@ export async function getLastSessionForExercise(
 export async function getPersonalRecords(
   userId: string
 ): Promise<Map<string, { weight: number; reps: number; date: string }>> {
-  if (!isSupabaseConfigured() || !supabase) {
+  if (!isSupabaseConfigured() || !supabase) return new Map();
+
+  try {
+    const { data, error } = await supabase
+      .from('personal_records')
+      .select('exercise_id, weight, reps, achieved_at')
+      .eq('user_id', userId);
+
+    if (error || !data) return new Map();
+
+    const prs = new Map<string, { weight: number; reps: number; date: string }>();
+
+    for (const row of data) {
+      prs.set(row.exercise_id, {
+        weight: Number(row.weight),
+        reps: row.reps,
+        date: row.achieved_at,
+      });
+    }
+
+    return prs;
+  } catch (err) {
+    logger.error('Network error fetching personal records:', err);
     return new Map();
   }
-
-  const { data, error } = await supabase
-    .from('personal_records')
-    .select('exercise_id, weight, reps, achieved_at')
-    .eq('user_id', userId);
-
-  if (error || !data) {
-    return new Map();
-  }
-
-  const prs = new Map<string, { weight: number; reps: number; date: string }>();
-
-  for (const row of data) {
-    prs.set(row.exercise_id, {
-      weight: Number(row.weight),
-      reps: row.reps,
-      date: row.achieved_at,
-    });
-  }
-
-  return prs;
 }
 
 /**
@@ -252,26 +265,29 @@ export async function upsertPersonalRecords(
   userId: string,
   records: { exerciseId: string; weight: number; reps: number }[]
 ): Promise<boolean> {
-  if (!isSupabaseConfigured() || !supabase || records.length === 0) {
+  if (!isSupabaseConfigured() || !supabase || records.length === 0) return false;
+
+  try {
+    const rows = records.map(r => ({
+      user_id: userId,
+      exercise_id: r.exerciseId,
+      weight: r.weight,
+      reps: r.reps,
+      achieved_at: new Date().toISOString(),
+    }));
+
+    const { error } = await supabase
+      .from('personal_records')
+      .upsert(rows, { onConflict: 'user_id,exercise_id' });
+
+    if (error) {
+      logger.error('Error upserting personal records:', error);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    logger.error('Network error upserting personal records:', err);
     return false;
   }
-
-  const rows = records.map(r => ({
-    user_id: userId,
-    exercise_id: r.exerciseId,
-    weight: r.weight,
-    reps: r.reps,
-    achieved_at: new Date().toISOString(),
-  }));
-
-  const { error } = await supabase
-    .from('personal_records')
-    .upsert(rows, { onConflict: 'user_id,exercise_id' });
-
-  if (error) {
-    console.error('Error upserting personal records:', error);
-    return false;
-  }
-
-  return true;
 }
