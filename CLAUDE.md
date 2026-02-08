@@ -25,13 +25,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [x] Fase 3b: Session Summary (SessionStats, XPBreakdown, PRBadge, SessionSummary, confetti)
 - [x] Sprint Consolidación: PRs persistidos, Dashboard real, Progress real
 - [x] Fix: 0 errores TypeScript
-- [ ] Sistema de Scheduling (asignar templates a días de la semana)
-- [ ] Onboarding Flow completo (wizard post-registro)
-- [ ] Offline Queue (sync pendientes al recuperar conexión)
-- [ ] Historial de sesiones (página dedicada con filtros)
-- [ ] Recommended Weight System (progressive overload automático)
+- [x] Sistema de Scheduling (asignar templates a días de la semana)
+- [x] Onboarding Flow completo (wizard 7 pasos, 35 ejercicios, template auto-generado)
+- [x] Offline Queue (sync pendientes al recuperar conexión)
+- [x] Historial de sesiones (página dedicada con búsqueda, filtros por músculo, detalle expandible)
+- [x] Recommended Weight System (double progression automático desde historial)
 
-### Última actualización: 2026-02-07
+### Última actualización: 2026-02-07 (sesión 2)
 
 Supabase integrado:
 
@@ -52,6 +52,21 @@ Componentes de sesion:
 - `/components/session/SessionStats.tsx` - 4 stat cards
 - `/components/session/XPBreakdown.tsx` - Desglose XP animado
 - `/components/session/PRBadge.tsx` - Badge de PR con animación
+
+Scheduling, Onboarding y Offline:
+
+- `/pages/Schedule.tsx` - Asignar templates a días de la semana
+- `/pages/Onboarding.tsx` - Wizard 7 pasos, genera plan personalizado
+- `/data/exerciseBlueprints.ts` - 35 ejercicios con metadata completa
+- `/lib/templateGenerator.ts` - Auto-genera templates según preferencias
+- `/hooks/useOnlineStatus.ts` - Detecta online/offline + reconnect callback
+- `/services/offlineQueue.ts` - Cola de operaciones pendientes con retry
+- `/components/SyncIndicator.tsx` - Indicador visual de sync
+
+Recommended Weight y History:
+
+- `/lib/weightRecommendation.ts` - Double progression (getRecommendedWeight, getWarmupWeight)
+- `/pages/History.tsx` - Historial con búsqueda, filtros por músculo, detalle expandible
 
 Dashboard y Progress:
 
@@ -92,13 +107,16 @@ Charts:   Recharts
 │   │                 # SessionSummary, SessionStats, XPBreakdown, PRBadge
 │   ├── /workout      # ExerciseCard, SetInput, Timer
 │   └── DateSelector.tsx
-├── /pages            # Login, Signup, Onboarding, Dashboard, WorkoutPlayer, Progress
+├── /pages            # Login, Signup, Onboarding, Dashboard, WorkoutPlayer, Progress,
+│                     # Templates, TemplateEditor, Schedule, History
 ├── /context          # AppContext.tsx (estado global)
-├── /hooks            # usePersist, useSessionTimer, useRestTimer
-├── /lib              # supabase.ts, utils.ts, constants.ts, sessionCalculations.ts
-├── /services         # auth.ts, xp.ts, audio.ts, workoutSessions.ts, templates.ts
+├── /hooks            # usePersist, useSessionTimer, useRestTimer, useOnlineStatus
+├── /lib              # supabase.ts, utils.ts, constants.ts, sessionCalculations.ts,
+│                     # weightRecommendation.ts, templateGenerator.ts
+├── /services         # auth.ts, xp.ts, audio.ts, workoutSessions.ts, templates.ts,
+│                     # offlineQueue.ts
 ├── /types            # index.ts, database.ts
-├── /data             # mockData.ts
+├── /data             # mockData.ts, exerciseBlueprints.ts
 ├── /supabase         # schema.sql
 └── /docs             # session-notes/
 ```
@@ -113,6 +131,8 @@ Agentes disponibles en `.claude/agents/`:
 | **code-reviewer**   | Review de código, TypeScript, patterns React, performance         |
 | **ux-designer**     | Diseño de flujos, micro-interacciones, estados UI                 |
 | **training-expert** | Validación de lógica de entrenamiento, RPE, progresiones, volumen |
+| **session-manager** | Gestión de sesiones, notas, tracking de progreso, CLAUDE.md       |
+| **github-expert**   | Git/GitHub: commits, branches, PRs, conflictos, CI/CD            |
 
 ## Code Conventions
 
@@ -240,6 +260,9 @@ Dashboard → startSession() → WorkoutPlayer → completeSession() → Session
 - Summary guard BEFORE derived state prevents null crash
 - `personal_records` tabla con UNIQUE constraint para upsert eficiente
 - Dashboard/Progress usan `useMemo` con `workoutHistory` para stats reales
+- `startSessionFromTemplate` pre-rellena pesos via `getRecommendedWeight()` (double progression)
+- Warmup sets reciben 60% del peso top-set recomendado
+- History page: búsqueda + filtro por músculo + detalle expandible por sesión
 
 ## Important Rules
 
