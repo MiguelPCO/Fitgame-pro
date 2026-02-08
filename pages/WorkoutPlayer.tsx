@@ -323,18 +323,19 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
       />
 
       {/* XP popup */}
-      {xpPopup && (
-        <div
-          key={xpPopup.key}
-          className="fixed top-16 inset-x-0 flex justify-center z-50 pointer-events-none"
-          style={{ animation: 'xpFloat 1.8s ease-out forwards' }}
-        >
-          <div className="bg-amber-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center gap-1.5">
-            <Zap className="w-4 h-4 fill-current" />
-            +{xpPopup.amount} XP
+      <div aria-live="polite" aria-atomic="true" className="fixed top-16 inset-x-0 flex justify-center z-50 pointer-events-none">
+        {xpPopup && (
+          <div
+            key={xpPopup.key}
+            style={{ animation: 'xpFloat 1.8s ease-out forwards' }}
+          >
+            <div className="bg-amber-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center gap-1.5">
+              <Zap className="w-4 h-4 fill-current" />
+              +{xpPopup.amount} XP
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* === 2-column layout (sidebar + main) === */}
       <div className="flex-1 flex overflow-hidden">
@@ -477,7 +478,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
       </div>
 
       {/* Fixed bottom navigation */}
-      <nav className="fixed bottom-0 inset-x-0 z-20 bg-background/95 backdrop-blur-xl border-t border-gray-800/50 px-4 py-3 safe-area-bottom">
+      <nav aria-label="Navegación de ejercicios" className="fixed bottom-0 inset-x-0 z-20 bg-background/95 backdrop-blur-xl border-t border-gray-800/50 px-4 py-3 safe-area-bottom">
         <div className="flex items-center gap-3 max-w-2xl mx-auto">
           {allExercisesComplete ? (
             <Button

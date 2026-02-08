@@ -45,6 +45,18 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
 
   return (
     <div className="flex h-screen bg-transparent text-text-main overflow-hidden">
+      {/* Skip navigation link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-primary focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-bold"
+        onClick={(e) => {
+          e.preventDefault();
+          mainRef.current?.focus();
+        }}
+      >
+        Saltar al contenido
+      </a>
+
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -67,7 +79,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
           <h1 className="text-xl font-bold tracking-tight text-white">FitGame<span className="text-primary">Pro</span></h1>
         </div>
 
-        <nav className="flex-1 px-4 py-4 space-y-2">
+        <nav aria-label="Navegación principal" className="flex-1 px-4 py-4 space-y-2">
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -108,9 +120,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Header */}
         <header className="h-16 border-b border-gray-800/50 bg-background/50 backdrop-blur-md flex items-center justify-between px-6 z-30 sticky top-0">
-          <button 
+          <button
             className="md:hidden p-2 text-text-muted hover:text-white"
             onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Abrir menú"
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -141,9 +154,11 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
         </header>
 
         {/* Page Content */}
-        <main 
+        <main
+          id="main-content"
           ref={mainRef}
-          className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth"
+          tabIndex={-1}
+          className="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth outline-none"
         >
           <div className="max-w-7xl mx-auto">
             {children}
