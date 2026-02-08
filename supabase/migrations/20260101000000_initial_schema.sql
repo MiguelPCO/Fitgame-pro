@@ -1,7 +1,6 @@
--- FitGame Pro Database Schema (Full)
--- This is the complete schema for reference. For incremental changes,
--- see supabase/migrations/ for timestamped migration files.
--- Run this in Supabase SQL Editor (supabase.com > SQL Editor > New Query)
+-- Migration: Initial Schema
+-- Creates core tables: profiles, templates, workout_sessions
+-- Enables RLS, creates policies, functions, triggers, and indexes
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -23,7 +22,6 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   minutes_per_session INTEGER CHECK (minutes_per_session BETWEEN 15 AND 180),
   equipment TEXT[] DEFAULT '{}',
   experience_level TEXT CHECK (experience_level IN ('Beginner', 'Intermediate', 'Advanced')),
-  weekly_schedule JSONB DEFAULT NULL,
   onboarding_completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -64,74 +62,37 @@ CREATE TABLE IF NOT EXISTS public.workout_sessions (
 );
 
 -- ============================================
--- PERSONAL RECORDS TABLE
--- ============================================
-CREATE TABLE IF NOT EXISTS public.personal_records (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-  exercise_id TEXT NOT NULL,
-  weight NUMERIC NOT NULL,
-  reps INTEGER NOT NULL,
-  achieved_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, exercise_id)
-);
-
--- ============================================
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================
-
--- Enable RLS on all tables
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.workout_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.personal_records ENABLE ROW LEVEL SECURITY;
 
--- Profiles: Users can only access their own profile
+-- Profiles policies
 CREATE POLICY "Users can view own profile" ON public.profiles
   FOR SELECT USING (auth.uid() = id);
-
 CREATE POLICY "Users can update own profile" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
-
 CREATE POLICY "Users can insert own profile" ON public.profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
--- Templates: Users can only access their own templates
+-- Templates policies
 CREATE POLICY "Users can view own templates" ON public.templates
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own templates" ON public.templates
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own templates" ON public.templates
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own templates" ON public.templates
   FOR DELETE USING (auth.uid() = user_id);
 
--- Personal Records: Users can only access their own records
-CREATE POLICY "Users can view own records" ON public.personal_records
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own records" ON public.personal_records
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own records" ON public.personal_records
-  FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own records" ON public.personal_records
-  FOR DELETE USING (auth.uid() = user_id);
-
--- Workout Sessions: Users can only access their own sessions
+-- Workout Sessions policies
 CREATE POLICY "Users can view own sessions" ON public.workout_sessions
   FOR SELECT USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can insert own sessions" ON public.workout_sessions
   FOR INSERT WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY "Users can update own sessions" ON public.workout_sessions
   FOR UPDATE USING (auth.uid() = user_id);
-
 CREATE POLICY "Users can delete own sessions" ON public.workout_sessions
   FOR DELETE USING (auth.uid() = user_id);
 
@@ -139,7 +100,7 @@ CREATE POLICY "Users can delete own sessions" ON public.workout_sessions
 -- FUNCTIONS & TRIGGERS
 -- ============================================
 
--- Function to handle new user signup (creates profile automatically)
+-- Auto-create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -153,13 +114,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger to auto-create profile on signup
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Function to update updated_at timestamp
+-- Auto-update updated_at
 CREATE OR REPLACE FUNCTION public.update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -168,7 +128,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Triggers for updated_at
 CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
@@ -180,7 +139,6 @@ CREATE TRIGGER update_templates_updated_at
 -- ============================================
 -- INDEXES
 -- ============================================
-CREATE INDEX IF NOT EXISTS idx_personal_records_user_id ON public.personal_records(user_id);
 CREATE INDEX IF NOT EXISTS idx_templates_user_id ON public.templates(user_id);
 CREATE INDEX IF NOT EXISTS idx_workout_sessions_user_id ON public.workout_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_workout_sessions_status ON public.workout_sessions(status);

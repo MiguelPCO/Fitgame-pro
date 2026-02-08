@@ -1,20 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import WorkoutPlayer from './pages/WorkoutPlayer';
-import ExerciseLibrary from './pages/ExerciseLibrary';
-import Progress from './pages/Progress';
-import Onboarding from './pages/Onboarding';
-import WorkoutSummary from './pages/WorkoutSummary';
-import Templates from './pages/Templates';
-import TemplateEditor from './pages/TemplateEditor';
-import Schedule from './pages/Schedule';
-import History from './pages/History';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import { AppProvider, useApp } from './context/AppContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ROUTES } from './lib/constants';
+
+// Lazy-loaded page components
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const WorkoutPlayer = React.lazy(() => import('./pages/WorkoutPlayer'));
+const ExerciseLibrary = React.lazy(() => import('./pages/ExerciseLibrary'));
+const Progress = React.lazy(() => import('./pages/Progress'));
+const Onboarding = React.lazy(() => import('./pages/Onboarding'));
+const WorkoutSummary = React.lazy(() => import('./pages/WorkoutSummary'));
+const Templates = React.lazy(() => import('./pages/Templates'));
+const TemplateEditor = React.lazy(() => import('./pages/TemplateEditor'));
+const Schedule = React.lazy(() => import('./pages/Schedule'));
+const History = React.lazy(() => import('./pages/History'));
+
+const PageLoader: React.FC = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading, user } = useApp();
@@ -57,7 +65,9 @@ const AppContent: React.FC = () => {
   if (user && user.onboardingCompleted !== true && currentView !== ROUTES.ONBOARDING) {
     return (
       <Layout currentPage={ROUTES.ONBOARDING} onNavigate={navigate}>
-        <Onboarding onComplete={handleOnboardingComplete} />
+        <Suspense fallback={<PageLoader />}>
+          <Onboarding onComplete={handleOnboardingComplete} />
+        </Suspense>
       </Layout>
     );
   }
@@ -66,7 +76,9 @@ const AppContent: React.FC = () => {
   if (currentView === ROUTES.ONBOARDING) {
     return (
       <Layout currentPage={ROUTES.ONBOARDING} onNavigate={navigate}>
-        <Onboarding onComplete={handleOnboardingComplete} />
+        <Suspense fallback={<PageLoader />}>
+          <Onboarding onComplete={handleOnboardingComplete} />
+        </Suspense>
       </Layout>
     );
   }
@@ -111,17 +123,27 @@ const AppContent: React.FC = () => {
 
   // Workout Player takes over the full screen
   if (currentView === ROUTES.WORKOUT) {
-    return <div className="bg-background min-h-screen">{renderContent()}</div>;
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <div className="bg-background min-h-screen">{renderContent()}</div>
+      </Suspense>
+    );
   }
 
   // Template Editor also takes over, or at least no sidebar for focus
   if (currentView === ROUTES.TEMPLATE_EDITOR) {
-    return <div className="bg-background min-h-screen p-4 md:p-8">{renderContent()}</div>;
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <div className="bg-background min-h-screen p-4 md:p-8">{renderContent()}</div>
+      </Suspense>
+    );
   }
 
   return (
     <Layout currentPage={currentView} onNavigate={navigate}>
-      {renderContent()}
+      <Suspense fallback={<PageLoader />}>
+        {renderContent()}
+      </Suspense>
     </Layout>
   );
 };

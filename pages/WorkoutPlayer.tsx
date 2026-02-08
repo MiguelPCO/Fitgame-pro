@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -160,19 +160,21 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
   const isLastExercise = currentExerciseIndex === totalExercises - 1;
   const isFirstExercise = currentExerciseIndex === 0;
 
-  const allExercisesComplete = activeWorkout.exercises.every(
-    ex => ex.sets.length > 0 && ex.sets.every(s => s.completed)
-  );
+  const allExercisesComplete = useMemo(() =>
+    activeWorkout.exercises.every(
+      ex => ex.sets.length > 0 && ex.sets.every(s => s.completed)
+    ), [activeWorkout.exercises]);
 
   // Live XP calculation from all completed sets
-  const sessionXP = activeWorkout.exercises.reduce((total, ex) => {
-    return total + ex.sets.reduce((setTotal, set) => {
-      if (!set.completed) return setTotal;
-      let xp = XP.PER_SET;
-      if (set.rpe && set.rpe >= 9) xp += XP.BONUS_RPE_9_PLUS;
-      return setTotal + xp;
-    }, 0);
-  }, 0);
+  const sessionXP = useMemo(() =>
+    activeWorkout.exercises.reduce((total, ex) => {
+      return total + ex.sets.reduce((setTotal, set) => {
+        if (!set.completed) return setTotal;
+        let xp = XP.PER_SET;
+        if (set.rpe && set.rpe >= 9) xp += XP.BONUS_RPE_9_PLUS;
+        return setTotal + xp;
+      }, 0);
+    }, 0), [activeWorkout.exercises]);
 
   // Next exercise info for mobile preview
   const nextExerciseData = !isLastExercise
@@ -184,11 +186,11 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
 
   // --- Handlers that depend on derived state ---
 
-  const handleSetClick = (setIndex: number) => {
+  const handleSetClick = useCallback((setIndex: number) => {
     setSelectedSetIndex(setIndex);
-  };
+  }, []);
 
-  const handleSaveSet = (data: SetData) => {
+  const handleSaveSet = useCallback((data: SetData) => {
     if (selectedSetIndex === null || !activeExerciseData) return;
 
     updateSet(currentExerciseIndex, selectedSetIndex, 'weight', data.weight);
@@ -203,32 +205,32 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
     // Start rest timer
     const duration = activeExerciseData.restTimer || 90;
     startRestTimer(duration);
-  };
+  }, [selectedSetIndex, activeExerciseData, currentExerciseIndex, updateSet, startRestTimer]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (!isFirstExercise) {
       setCurrentExerciseIndex(prev => prev - 1);
     }
-  };
+  }, [isFirstExercise]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (!isLastExercise) {
       setCurrentExerciseIndex(prev => prev + 1);
     }
-  };
+  }, [isLastExercise]);
 
-  const handleExit = () => {
+  const handleExit = useCallback(() => {
     stopRestTimer();
     onBack();
-  };
+  }, [stopRestTimer, onBack]);
 
-  const handleAddExercise = (id: string) => {
+  const handleAddExercise = useCallback((id: string) => {
     addExerciseToSession(id);
     setShowAddModal(false);
     setTimeout(() => {
       if (activeWorkout) setCurrentExerciseIndex(activeWorkout.exercises.length);
     }, 50);
-  };
+  }, [addExerciseToSession, activeWorkout]);
 
   // Previous set data for the modal
   const getSelectedSetPrevious = () => {
@@ -248,19 +250,22 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
   };
 
   // --- Derived data for ExerciseSidebar ---
-  const sidebarExercises = activeWorkout.exercises.map(
-    ex => allExercises.find(e => e.id === ex.exerciseId)!
-  ).filter(Boolean);
+  const sidebarExercises = useMemo(() =>
+    activeWorkout.exercises.map(
+      ex => allExercises.find(e => e.id === ex.exerciseId)!
+    ).filter(Boolean), [activeWorkout.exercises]);
 
-  const completedExercises = activeWorkout.exercises.reduce<number[]>((acc, ex, idx) => {
-    if (ex.sets.length > 0 && ex.sets.every(s => s.completed)) acc.push(idx);
-    return acc;
-  }, []);
+  const completedExercises = useMemo(() =>
+    activeWorkout.exercises.reduce<number[]>((acc, ex, idx) => {
+      if (ex.sets.length > 0 && ex.sets.every(s => s.completed)) acc.push(idx);
+      return acc;
+    }, []), [activeWorkout.exercises]);
 
-  const setsProgress = activeWorkout.exercises.map(ex => ({
-    completed: ex.sets.filter(s => s.completed).length,
-    total: ex.sets.length,
-  }));
+  const setsProgress = useMemo(() =>
+    activeWorkout.exercises.map(ex => ({
+      completed: ex.sets.filter(s => s.completed).length,
+      total: ex.sets.length,
+    })), [activeWorkout.exercises]);
 
   // --- Empty session state ---
   if (!activeExerciseData || !exerciseInfo) {
