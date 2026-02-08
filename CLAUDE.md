@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado del Proyecto
 
-### Fase actual: Post-MVP — Consolidación completada
+### Fase actual: Post-MVP — Production-Ready
 
 - [x] Auth básico (mock + Supabase)
 - [x] Onboarding
@@ -30,8 +30,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [x] Offline Queue (sync pendientes al recuperar conexión)
 - [x] Historial de sesiones (página dedicada con búsqueda, filtros por músculo, detalle expandible)
 - [x] Recommended Weight System (double progression automático desde historial)
+- [x] Alta prioridad: ErrorBoundary, logger dev-only, .gitignore mejorado, error handling en servicios
+- [x] Media prioridad: MIT License, SEO/OG meta tags, PWA (manifest + service worker), Testing (29 tests), Accesibilidad (ARIA, focus trap, skip-nav)
+- [x] Baja prioridad: Code splitting (React.lazy), memoización WorkoutPlayer, migraciones DB
 
-### Última actualización: 2026-02-07 (sesión 2)
+### Última actualización: 2026-02-08
 
 Supabase integrado:
 
@@ -40,7 +43,8 @@ Supabase integrado:
 - `/services/workoutSessions.ts` - CRUD sessions + getPersonalRecords + upsertPersonalRecords
 - `/services/templates.ts` - CRUD templates sincronizado
 - `/types/database.ts` - Tipos para 4 tablas Supabase (profiles, templates, workout_sessions, personal_records)
-- `/supabase/schema.sql` - Esquema de BD con RLS (4 tablas)
+- `/supabase/schema.sql` - Esquema de BD completo con RLS (4 tablas)
+- `/supabase/migrations/` - Migraciones timestamped (3 archivos)
 
 Componentes de sesion:
 
@@ -68,6 +72,17 @@ Recommended Weight y History:
 - `/lib/weightRecommendation.ts` - Double progression (getRecommendedWeight, getWarmupWeight)
 - `/pages/History.tsx` - Historial con búsqueda, filtros por músculo, detalle expandible
 
+Hardening y Production-Ready:
+
+- `/components/ErrorBoundary.tsx` - Error boundary con retry/reload (React 19 `declare` pattern)
+- `/lib/logger.ts` - Dev-only logger (reemplaza todos los console.log/error/warn)
+- `/lib/weightRecommendation.test.ts` - 13 tests (double progression)
+- `/services/xp.test.ts` - 16 tests (XP system completo)
+- `/vitest.setup.ts` - Setup de testing
+- `/.env.example` - Template de variables de entorno
+- `/LICENSE` - MIT License
+- `/public/favicon.svg`, `/public/pwa-*.svg` - Iconos PWA
+
 Dashboard y Progress:
 
 - `/pages/Dashboard.tsx` - Stats semanales reales, calendario real, card "Last Session"
@@ -80,6 +95,8 @@ Dashboard y Progress:
 npm run dev          # Dev server en http://localhost:3000
 npm run build        # Build producción a /dist
 npm run preview      # Preview del build
+npm run test         # Vitest run (29 tests)
+npm run test:watch   # Vitest watch mode
 npm run lint         # ESLint check
 npm run type-check   # TypeScript sin compilar
 ```
@@ -93,6 +110,8 @@ Backend:  Supabase v2.94 (auth + PostgreSQL + RLS)
 Forms:    React Hook Form + Zod (validation)
 UI:       Lucide React (iconos) + Framer Motion (animaciones)
 Charts:   Recharts
+Testing:  Vitest + React Testing Library + jest-dom
+PWA:      vite-plugin-pwa (workbox, manifest, service worker)
 ```
 
 ## Folder Structure
@@ -117,7 +136,8 @@ Charts:   Recharts
 │                     # offlineQueue.ts
 ├── /types            # index.ts, database.ts
 ├── /data             # mockData.ts, exerciseBlueprints.ts
-├── /supabase         # schema.sql
+├── /supabase         # schema.sql + migrations/
+├── /public           # favicon.svg, pwa-*.svg (PWA icons)
 └── /docs             # session-notes/
 ```
 
@@ -263,6 +283,12 @@ Dashboard → startSession() → WorkoutPlayer → completeSession() → Session
 - `startSessionFromTemplate` pre-rellena pesos via `getRecommendedWeight()` (double progression)
 - Warmup sets reciben 60% del peso top-set recomendado
 - History page: búsqueda + filtro por músculo + detalle expandible por sesión
+- Code splitting: React.lazy + Suspense para todas las páginas (bundle 933→421 kB)
+- WorkoutPlayer: useMemo/useCallback para computaciones y handlers costosos
+- Modal: focus trap, aria-modal, auto-focus, restore focus on close
+- Layout: skip-nav link, aria-label en navegación
+- ErrorBoundary: `declare` keyword para React 19 class component TS compatibility
+- Logger dev-only: `import.meta.env.DEV` gate, reemplaza todos los console.*
 
 ## Important Rules
 
