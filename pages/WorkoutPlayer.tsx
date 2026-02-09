@@ -136,8 +136,17 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
   // Guard: if activeWorkout was cleared but summary isn't showing
   if (!activeWorkout) {
     return (
-      <div className="flex items-center justify-center h-screen p-8 text-white">
-        No hay sesión activa.
+      <div className="flex flex-col items-center justify-center h-screen p-8 gap-6">
+        <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center">
+          <Dumbbell className="w-10 h-10 text-gray-500" />
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-xl font-bold text-white">No hay sesion activa</h2>
+          <p className="text-text-muted text-sm">Selecciona una rutina desde el dashboard para empezar.</p>
+        </div>
+        <Button onClick={onBack} leftIcon={<ChevronLeft className="w-5 h-5" />}>
+          Volver
+        </Button>
       </div>
     );
   }

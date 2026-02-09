@@ -120,6 +120,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     if (profile) {
+      // Merge with localStorage fallback so local-only changes aren't lost
+      const storedUser = loadFromStorage<UserProfile | null>(STORAGE_KEYS.USER, null);
+
       const userProfile: UserProfile = {
         name: profile.name,
         email: profile.email,
@@ -129,12 +132,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         streak: profile.streak,
         avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`,
         tier: profile.tier as UserProfile['tier'],
-        goal: profile.goal as UserProfile['goal'],
-        daysPerWeek: profile.days_per_week || undefined,
-        minutesPerSession: profile.minutes_per_session || undefined,
-        equipment: profile.equipment || undefined,
-        experienceLevel: profile.experience_level as UserProfile['experienceLevel'],
-        onboardingCompleted: profile.onboarding_completed ?? false,
+        goal: profile.goal as UserProfile['goal'] || storedUser?.goal,
+        daysPerWeek: profile.days_per_week || storedUser?.daysPerWeek,
+        minutesPerSession: profile.minutes_per_session || storedUser?.minutesPerSession,
+        equipment: profile.equipment || storedUser?.equipment,
+        experienceLevel: profile.experience_level as UserProfile['experienceLevel'] || storedUser?.experienceLevel,
+        onboardingCompleted: profile.onboarding_completed || storedUser?.onboardingCompleted || false,
       };
 
       // Load schedule from profile
@@ -161,11 +164,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const initAuth = async () => {
       if (isSupabaseConfigured()) {
-        const { session } = await getSession();
+        try {
+          const { session } = await getSession();
 
-        if (session?.user) {
-          await loadUserProfile(session.user.id);
-          setIsAuthenticated(true);
+          if (session?.user) {
+            await loadUserProfile(session.user.id);
+            setIsAuthenticated(true);
+          } else {
+            // No Supabase session — try localStorage fallback
+            const storedUser = loadFromStorage<UserProfile | null>(STORAGE_KEYS.USER, null);
+            if (storedUser) {
+              setUser(storedUser);
+              setIsAuthenticated(true);
+            }
+          }
+        } catch (err) {
+          logger.error('Error initializing auth:', err);
+          // Fallback to localStorage on Supabase failure
+          const storedUser = loadFromStorage<UserProfile | null>(STORAGE_KEYS.USER, null);
+          if (storedUser) {
+            setUser(storedUser);
+            setIsAuthenticated(true);
+          }
         }
       } else {
         // Fallback to localStorage for offline mode
@@ -322,7 +342,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [weeklySchedule, templates]);
 
   const updateUser = async (data: Partial<UserProfile>) => {
-    setUser(prev => prev ? { ...prev, ...data } : null);
+    setUser(prev => {
+      const updated = prev ? { ...prev, ...data } : null;
+      // Persist immediately to localStorage (don't rely on async effect)
+      if (updated) localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updated));
+      return updated;
+    });
 
     // Sync to Supabase if configured
     if (isSupabaseConfigured() && supabase && userId) {
