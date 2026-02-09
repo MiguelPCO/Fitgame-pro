@@ -1,14 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Wifi, WifiOff, RefreshCw, Check } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Wifi, WifiOff, RefreshCw, Check, AlertTriangle } from 'lucide-react';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { getQueue, processQueue } from '../services/offlineQueue';
+import { useToast } from './ui/Toast';
 
-type SyncState = 'synced' | 'syncing' | 'offline-pending' | 'offline';
+type SyncState = 'synced' | 'syncing' | 'offline-pending' | 'offline' | 'sync-failed';
 
 const SyncIndicator: React.FC = () => {
   const { isOnline, onReconnect } = useOnlineStatus();
   const [syncState, setSyncState] = useState<SyncState>('synced');
   const [pendingCount, setPendingCount] = useState(0);
+  const { toast } = useToast();
+  const prevCountRef = useRef(0);
 
   const checkQueue = useCallback(() => {
     const queue = getQueue();
@@ -17,17 +20,30 @@ const SyncIndicator: React.FC = () => {
   }, []);
 
   const doSync = useCallback(async () => {
-    const count = checkQueue();
-    if (count === 0) {
+    const countBefore = checkQueue();
+    if (countBefore === 0) {
       setSyncState('synced');
       return;
     }
 
     setSyncState('syncing');
-    await processQueue();
+    const processed = await processQueue();
     const remaining = checkQueue();
-    setSyncState(remaining > 0 ? 'offline-pending' : 'synced');
-  }, [checkQueue]);
+
+    // Operations were dropped (countBefore - processed - remaining = dropped)
+    const dropped = countBefore - processed - remaining;
+    if (dropped > 0) {
+      toast(`${dropped} operacion(es) no se pudieron sincronizar y fueron descartadas`, 'error');
+      setSyncState(remaining > 0 ? 'sync-failed' : 'sync-failed');
+    } else if (remaining > 0) {
+      setSyncState('offline-pending');
+    } else {
+      if (processed > 0) {
+        toast(`${processed} operacion(es) sincronizadas`, 'success');
+      }
+      setSyncState('synced');
+    }
+  }, [checkQueue, toast]);
 
   // Check queue periodically
   useEffect(() => {
@@ -81,6 +97,12 @@ const SyncIndicator: React.FC = () => {
       bg: 'bg-red-500',
       icon: <WifiOff className="w-3 h-3" />,
       label: 'Sin conexion',
+    },
+    'sync-failed': {
+      color: 'text-red-400',
+      bg: 'bg-red-500',
+      icon: <AlertTriangle className="w-3 h-3" />,
+      label: 'Error de sincronizacion',
     },
   };
 

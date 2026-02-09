@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, User, Target, Clock, Dumbbell, Shield, ChevronRight } from 'lucide-react';
+import { Save, User, Target, Clock, Dumbbell, Shield, ChevronRight, Download } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../components/ui/Toast';
 import { resetPassword, deleteAccount } from '../services/auth';
@@ -61,6 +61,29 @@ const Settings: React.FC = () => {
     setEquipment(prev =>
       prev.includes(item) ? prev.filter(e => e !== item) : [...prev, item]
     );
+  };
+
+  const handleExportData = () => {
+    const exportData: Record<string, unknown> = {};
+    Object.entries(STORAGE_KEYS).forEach(([key, storageKey]) => {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        try {
+          exportData[key] = JSON.parse(raw);
+        } catch {
+          exportData[key] = raw;
+        }
+      }
+    });
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fitgame-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Datos exportados', 'success');
   };
 
   const handleResetPassword = async () => {
@@ -265,6 +288,22 @@ const Settings: React.FC = () => {
             </button>
           ))}
         </div>
+      </Card>
+
+      {/* Data Section */}
+      <Card className="p-6 space-y-3">
+        <div className="flex items-center gap-3 mb-2">
+          <Download className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-white">Datos</h2>
+        </div>
+        <p className="text-sm text-text-muted">Exporta tu perfil, templates, historial y records como archivo JSON.</p>
+        <button
+          onClick={handleExportData}
+          className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-gray-700 text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm"
+        >
+          <span>Exportar datos</span>
+          <Download className="w-4 h-4" />
+        </button>
       </Card>
 
       {/* Account Section */}
