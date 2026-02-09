@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Dumbbell, ArrowRight, AlertCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { signIn } from '../services/auth';
+import { signIn, resetPassword } from '../services/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -17,6 +17,8 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +43,23 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
         login(email);
         setIsLoading(false);
       }, 500);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setError('Ingresa tu email primero');
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    const result = await resetPassword(email);
+    setIsLoading(false);
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setResetSent(true);
     }
   };
 
@@ -78,26 +97,74 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-300 ml-1">Password</label>
-              <Input
-                type="password"
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+            {!showForgotPassword && (
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-300 ml-1">Password</label>
+                <Input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            )}
 
-            <Button
-              type="submit"
-              fullWidth
-              size="lg"
-              isLoading={isLoading}
-              rightIcon={!isLoading ? <ArrowRight className="w-5 h-5" /> : undefined}
-            >
-              {isLoading ? 'Authenticating...' : 'Start Training'}
-            </Button>
+            {showForgotPassword ? (
+              resetSent ? (
+                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm text-center">
+                  Email enviado. Revisa tu bandeja de entrada para restablecer tu contrasena.
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgotPassword(false); setResetSent(false); setError(null); }}
+                    className="block mx-auto mt-3 text-primary font-bold hover:underline"
+                  >
+                    Volver al login
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-text-muted">Ingresa tu email y te enviaremos un enlace para restablecer tu contrasena.</p>
+                  <Button
+                    type="button"
+                    fullWidth
+                    size="lg"
+                    isLoading={isLoading}
+                    onClick={handleForgotPassword}
+                  >
+                    {isLoading ? 'Enviando...' : 'Enviar enlace'}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgotPassword(false); setError(null); }}
+                    className="w-full text-sm text-text-muted hover:text-white transition-colors"
+                  >
+                    Volver al login
+                  </button>
+                </div>
+              )
+            ) : (
+              <>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgotPassword(true); setError(null); }}
+                    className="text-xs text-text-muted hover:text-primary transition-colors"
+                  >
+                    Olvidaste tu contrasena?
+                  </button>
+                </div>
+                <Button
+                  type="submit"
+                  fullWidth
+                  size="lg"
+                  isLoading={isLoading}
+                  rightIcon={!isLoading ? <ArrowRight className="w-5 h-5" /> : undefined}
+                >
+                  {isLoading ? 'Authenticating...' : 'Start Training'}
+                </Button>
+              </>
+            )}
           </form>
 
           <div className="mt-6 text-center">

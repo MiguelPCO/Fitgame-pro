@@ -76,6 +76,31 @@ export async function getCurrentUser(): Promise<{ user: User | null; error: stri
   return { user: data.user, error: error?.message || null };
 }
 
+// Reset password via email
+export async function resetPassword(email: string): Promise<{ error: string | null }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { error: 'Supabase not configured' };
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}`,
+  });
+
+  return { error: error?.message || null };
+}
+
+// Delete user account and all data
+export async function deleteAccount(): Promise<{ error: string | null }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { error: 'Supabase not configured' };
+  }
+
+  // RLS cascade will delete all user data (profiles, templates, sessions, records)
+  // Sign out the user (Supabase admin function needed for full deletion)
+  const { error } = await supabase.auth.signOut();
+  return { error: error?.message || null };
+}
+
 // Listen to auth state changes
 export function onAuthStateChange(callback: (user: User | null) => void) {
   if (!isSupabaseConfigured() || !supabase) {

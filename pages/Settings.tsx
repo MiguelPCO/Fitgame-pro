@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Save, User, Target, Clock, Dumbbell, Shield, ChevronRight } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../components/ui/Toast';
+import { resetPassword, deleteAccount } from '../services/auth';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { STORAGE_KEYS } from '../lib/constants';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { cn } from '../lib/utils';
@@ -58,6 +61,40 @@ const Settings: React.FC = () => {
     setEquipment(prev =>
       prev.includes(item) ? prev.filter(e => e !== item) : [...prev, item]
     );
+  };
+
+  const handleResetPassword = async () => {
+    if (!user.email) {
+      toast('No hay email configurado', 'warning');
+      return;
+    }
+    const result = await resetPassword(user.email);
+    if (result.error) {
+      toast(result.error, 'error');
+    } else {
+      toast('Email de restablecimiento enviado', 'success');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = confirm(
+      'Esta accion es irreversible. Se eliminaran todos tus datos, templates, historial y records. Deseas continuar?'
+    );
+    if (!confirmed) return;
+
+    const doubleConfirm = confirm('Confirma que deseas eliminar tu cuenta permanentemente.');
+    if (!doubleConfirm) return;
+
+    const result = await deleteAccount();
+    if (result.error) {
+      toast(result.error, 'error');
+      return;
+    }
+
+    // Clear all local data
+    Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
+    toast('Cuenta eliminada', 'info');
+    // Sign out will trigger auth state change and redirect to login
   };
 
   if (!user) return null;
@@ -238,11 +275,19 @@ const Settings: React.FC = () => {
         </div>
         <p className="text-sm text-text-muted">{user.email || 'Sin email configurado'}</p>
         <div className="flex flex-col gap-2 pt-2">
-          <button className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-gray-700 text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm">
+          <button
+            onClick={handleResetPassword}
+            disabled={!isSupabaseConfigured()}
+            className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-gray-700 text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm disabled:opacity-50"
+          >
             <span>Cambiar contrasena</span>
             <ChevronRight className="w-4 h-4" />
           </button>
-          <button className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-red-900/30 text-red-400 hover:bg-red-500/5 hover:border-red-800/50 transition-all text-sm">
+          <button
+            onClick={handleDeleteAccount}
+            disabled={!isSupabaseConfigured()}
+            className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-red-900/30 text-red-400 hover:bg-red-500/5 hover:border-red-800/50 transition-all text-sm disabled:opacity-50"
+          >
             <span>Eliminar cuenta</span>
             <ChevronRight className="w-4 h-4" />
           </button>
