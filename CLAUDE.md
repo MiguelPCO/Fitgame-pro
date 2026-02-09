@@ -42,68 +42,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Última actualización: 2026-02-09
 
-Supabase integrado:
-
-- `/lib/supabase.ts` - Cliente con fallback offline
-- `/services/auth.ts` - signUp, signIn, signOut
-- `/services/workoutSessions.ts` - CRUD sessions + getPersonalRecords + upsertPersonalRecords
-- `/services/templates.ts` - CRUD templates sincronizado
-- `/types/database.ts` - Tipos para 4 tablas Supabase (profiles, templates, workout_sessions, personal_records)
-- `/supabase/schema.sql` - Esquema de BD completo con RLS (4 tablas)
-- `/supabase/migrations/` - Migraciones timestamped (3 archivos)
-
-Componentes de sesion:
-
-- `/components/session/SessionHeader.tsx` - Header con timer, XP, exit modal
-- `/components/session/ExerciseSidebar.tsx` - Lista de ejercicios con estados
-- `/components/session/ExerciseCard.tsx` - Card rediseñada con imagen, badges, grid
-- `/components/session/SetCard.tsx` - Card individual de set con 3 estados
-- `/components/session/SessionSummary.tsx` - Resumen post-sesión con confetti
-- `/components/session/SessionStats.tsx` - 4 stat cards
-- `/components/session/XPBreakdown.tsx` - Desglose XP animado
-- `/components/session/PRBadge.tsx` - Badge de PR con animación
-
-Scheduling, Onboarding y Offline:
-
-- `/pages/Schedule.tsx` - Asignar templates a días de la semana
-- `/pages/Onboarding.tsx` - Wizard 7 pasos, genera plan personalizado
-- `/data/exerciseBlueprints.ts` - 35 ejercicios con metadata completa
-- `/lib/templateGenerator.ts` - Auto-genera templates según preferencias
-- `/hooks/useOnlineStatus.ts` - Detecta online/offline + reconnect callback
-- `/services/offlineQueue.ts` - Cola de operaciones pendientes con retry
-- `/components/SyncIndicator.tsx` - Indicador visual de sync
-
-Recommended Weight y History:
-
-- `/lib/weightRecommendation.ts` - Double progression (getRecommendedWeight, getWarmupWeight)
-- `/pages/History.tsx` - Historial con búsqueda, filtros por músculo, detalle expandible
-
-Hardening y Production-Ready:
-
-- `/components/ErrorBoundary.tsx` - Error boundary con retry/reload (React 19 `declare` pattern, usa logger)
-- `/components/ui/Toast.tsx` - Toast notification system (ToastProvider + useToast hook)
-- `/lib/logger.ts` - Dev-only logger (reemplaza todos los console.log/error/warn)
-- `/hooks/useInstallPrompt.ts` - Hook PWA install prompt (beforeinstallprompt)
-- `/components/InstallBanner.tsx` - Banner animado de instalación PWA
-- `/components/ui/Skeleton.tsx` - Skeleton loaders (Dashboard, Progress, History)
-- `/lib/constants.ts` - ROUTES, XP, STORAGE_KEYS, UI_TIMING, USER_DEFAULTS, DEFAULT_SET_CONFIG
-- `/lib/dateUtils.ts` - Shared date utils (isSameDay, isPastDay, getTimeAgo, formatDuration, formatDateEs)
-- `/lib/weightRecommendation.test.ts` - 13 tests (double progression)
-- `/services/xp.test.ts` - 16 tests (XP system completo)
-- `/services/offlineQueue.test.ts` - 19 tests (queue CRUD, processQueue, withOfflineQueue)
-- `/context/AppContext.test.ts` - 18 tests (session lifecycle, XP, PRs, stats, weight rec)
-- `/vitest.setup.ts` - Setup de testing
-- `/.env.example` - Template de variables de entorno
-- `/.github/workflows/ci.yml` - CI/CD pipeline (tsc + vitest + build)
-- `/LICENSE` - MIT License
-- `/public/favicon.svg`, `/public/pwa-*.svg`, `/public/og-image.svg` - Iconos PWA + OG image
-
-Dashboard y Progress:
-
-- `/pages/Dashboard.tsx` - Stats semanales reales, calendario real, card "Last Session"
-- `/pages/Progress.tsx` - Heatmap real (60 días), lista de PRs, streak card, volume charts
-- `/lib/sessionCalculations.ts` - calculateSessionStats, calculateXPBreakdown, detectPRs
-
 ## Build & Development Commands
 
 ```bash
@@ -120,13 +58,13 @@ npm run type-check   # TypeScript sin compilar
 
 ```
 Frontend: React 19 + TypeScript (strict) + Vite + Tailwind CSS v3 (PostCSS build)
-Estado:   Context API (AppContext) + localStorage (persistencia offline)
+Estado:   Context API (AppContext) + localStorage (persistencia offline-first)
 Backend:  Supabase v2.94 (auth + PostgreSQL + RLS)
-Forms:    React Hook Form + Zod (validation)
-UI:       Lucide React (iconos) + Framer Motion (animaciones)
+UI:       Lucide React (iconos)
 Charts:   Recharts
 Testing:  Vitest + React Testing Library + jest-dom
 PWA:      vite-plugin-pwa (workbox, manifest, service worker)
+Deploy:   Vercel (vercel.json SPA rewrites)
 ```
 
 ## Folder Structure
@@ -134,17 +72,21 @@ PWA:      vite-plugin-pwa (workbox, manifest, service worker)
 ```
 /
 ├── /components
-│   ├── /ui           # Button, Input, Slider, Modal, Card
+│   ├── /ui           # Button, Input, Slider, Modal, Card, Toast, Skeleton
 │   ├── /home         # WorkoutDayCard
 │   ├── /progress     # LevelBadge, XPBar
 │   ├── /session      # SessionHeader, ExerciseSidebar, ExerciseCard, SetCard,
 │   │                 # SessionSummary, SessionStats, XPBreakdown, PRBadge
 │   ├── /workout      # ExerciseCard, SetInput, Timer
-│   └── DateSelector.tsx
+│   ├── DateSelector.tsx
+│   ├── ErrorBoundary.tsx
+│   ├── InstallBanner.tsx
+│   ├── SyncIndicator.tsx
+│   └── Layout.tsx
 ├── /pages            # Login, Signup, Onboarding, Dashboard, WorkoutPlayer, Progress,
 │                     # Templates, TemplateEditor, Schedule, History, Settings
 ├── /context          # AppContext.tsx (estado global)
-├── /hooks            # usePersist, useSessionTimer, useRestTimer, useOnlineStatus
+├── /hooks            # usePersist, useSessionTimer, useRestTimer, useOnlineStatus, useInstallPrompt
 ├── /lib              # supabase.ts, utils.ts, constants.ts, sessionCalculations.ts,
 │                     # weightRecommendation.ts, templateGenerator.ts, dateUtils.ts, logger.ts
 ├── /services         # auth.ts, xp.ts, audio.ts, workoutSessions.ts, templates.ts,
@@ -152,9 +94,87 @@ PWA:      vite-plugin-pwa (workbox, manifest, service worker)
 ├── /types            # index.ts, database.ts
 ├── /data             # mockData.ts, exerciseBlueprints.ts
 ├── /supabase         # schema.sql + migrations/
-├── /public           # favicon.svg, pwa-*.svg (PWA icons)
-└── /docs             # session-notes/
+├── /public           # favicon.svg, pwa-*.svg, og-image.svg
+├── /docs             # session-notes/
+├── tailwind.config.js
+├── postcss.config.js
+├── vercel.json
+└── index.css         # Tailwind directives + custom styles
 ```
+
+## Key Files Reference
+
+### Supabase
+
+- `/lib/supabase.ts` - Cliente con fallback offline
+- `/services/auth.ts` - signUp, signIn, signOut, resetPassword, deleteAccount
+- `/services/workoutSessions.ts` - CRUD sessions + getPersonalRecords + upsertPersonalRecords
+- `/services/templates.ts` - CRUD templates sincronizado
+- `/types/database.ts` - Tipos para 4 tablas Supabase (profiles, templates, workout_sessions, personal_records)
+- `/supabase/schema.sql` - Esquema de BD completo con RLS (4 tablas)
+- `/supabase/migrations/` - Migraciones timestamped (3 archivos)
+
+### Componentes de sesión
+
+- `/components/session/SessionHeader.tsx` - Header con timer, XP, exit modal
+- `/components/session/ExerciseSidebar.tsx` - Lista de ejercicios con estados
+- `/components/session/ExerciseCard.tsx` - Card rediseñada con imagen, badges, grid
+- `/components/session/SetCard.tsx` - Card individual de set con 3 estados
+- `/components/session/SessionSummary.tsx` - Resumen post-sesión con confetti
+- `/components/session/SessionStats.tsx` - 4 stat cards
+- `/components/session/XPBreakdown.tsx` - Desglose XP animado
+- `/components/session/PRBadge.tsx` - Badge de PR con animación
+
+### Scheduling, Onboarding y Offline
+
+- `/pages/Schedule.tsx` - Asignar templates a días de la semana
+- `/pages/Onboarding.tsx` - Wizard 7 pasos, genera plan personalizado
+- `/data/exerciseBlueprints.ts` - 35 ejercicios con metadata completa
+- `/lib/templateGenerator.ts` - Auto-genera templates según preferencias
+- `/hooks/useOnlineStatus.ts` - Detecta online/offline + reconnect callback
+- `/services/offlineQueue.ts` - Cola de operaciones pendientes con retry
+- `/components/SyncIndicator.tsx` - Indicador visual de sync
+
+### Recommended Weight y History
+
+- `/lib/weightRecommendation.ts` - Double progression (getRecommendedWeight, getWarmupWeight)
+- `/pages/History.tsx` - Historial con búsqueda, filtros por músculo, detalle expandible
+
+### Hardening, UX y Production
+
+- `/components/ErrorBoundary.tsx` - Error boundary con retry/reload (React 19 `declare` pattern, usa logger)
+- `/components/ui/Toast.tsx` - Toast notification system (ToastProvider + useToast hook)
+- `/components/ui/Skeleton.tsx` - Skeleton loaders reutilizables (Skeleton, SkeletonCard, DashboardSkeleton, ProgressSkeleton, HistorySkeleton)
+- `/components/InstallBanner.tsx` - Banner animado de instalación PWA (slide-up)
+- `/hooks/useInstallPrompt.ts` - Hook PWA install prompt (beforeinstallprompt + appinstalled)
+- `/lib/logger.ts` - Dev-only logger (reemplaza todos los console.log/error/warn)
+- `/lib/constants.ts` - ROUTES, XP, STORAGE_KEYS, UI_TIMING, USER_DEFAULTS, DEFAULT_SET_CONFIG
+- `/lib/dateUtils.ts` - Shared date utils (isSameDay, isPastDay, getTimeAgo, formatDuration, formatDateEs)
+
+### Testing (66 tests)
+
+- `/lib/weightRecommendation.test.ts` - 13 tests (double progression)
+- `/services/xp.test.ts` - 16 tests (XP system completo)
+- `/services/offlineQueue.test.ts` - 19 tests (queue CRUD, processQueue, withOfflineQueue)
+- `/context/AppContext.test.ts` - 18 tests (session lifecycle, XP, PRs, stats, weight rec)
+- `/vitest.setup.ts` - Setup de testing
+
+### Config y Deploy
+
+- `/tailwind.config.js` - Tailwind v3 config (colores custom, fuentes, animaciones)
+- `/postcss.config.js` - PostCSS con tailwindcss + autoprefixer
+- `/vercel.json` - SPA rewrites (excluye assets, SW, manifest)
+- `/index.css` - Tailwind directives (@tailwind base/components/utilities) + scrollbar + autofill fix
+- `/.env.example` - Template de variables de entorno
+- `/.github/workflows/ci.yml` - CI/CD pipeline (tsc + vitest + build)
+- `/LICENSE` - MIT License
+- `/public/favicon.svg`, `/public/pwa-*.svg`, `/public/og-image.svg` - Iconos PWA + OG image
+
+### Dashboard y Progress
+
+- `/pages/Dashboard.tsx` - Stats semanales reales, calendario real, card "Last Session"
+- `/pages/Progress.tsx` - Heatmap real (60 días), lista de PRs, streak card, volume charts
+- `/lib/sessionCalculations.ts` - calculateSessionStats, calculateXPBreakdown, detectPRs
 
 ## Custom Agents
 
@@ -232,16 +252,17 @@ const XP_BONUS_MORNING = 0.2; // +20% si entrena 6-10am
 ```typescript
 interface UserProfile {
   id: string;
-  goal: "strength" | "hypertrophy" | "fat_loss" | "endurance";
+  goal: "Strength" | "Hypertrophy" | "Fat Loss" | "Endurance";
   daysPerWeek: number; // 3-6
   minutesPerSession: number; // 30-90
   equipment: string[];
-  experienceLevel: "beginner" | "intermediate" | "advanced";
-  splitPreference: "full_body" | "upper_lower" | "ppl";
+  experienceLevel: "Beginner" | "Intermediate" | "Advanced";
+  onboardingCompleted: boolean;
+  weeklySchedule: WeeklySchedule;
 }
 
 interface WorkoutSession {
-  id: string;
+  id: string; // crypto.randomUUID() — MUST be UUID for Supabase
   date: string;
   type: "push" | "pull" | "legs" | "upper" | "lower" | "full";
   exercises: Exercise[];
@@ -262,9 +283,9 @@ interface CompletedSet {
 ## Supabase Tables
 
 ```
-profiles          — User data (XP, level, streak, tier, preferences)
-templates         — Workout templates with JSONB exercises
-workout_sessions  — Completed/active sessions with exercises, XP, timestamps
+profiles          — User data (XP, level, streak, tier, preferences, onboarding_completed, weekly_schedule)
+templates         — Workout templates with JSONB exercises (UUID id)
+workout_sessions  — Completed/active sessions with exercises, XP, timestamps (UUID id)
 personal_records  — Best lifts per exercise, UNIQUE(user_id, exercise_id)
 ```
 
@@ -273,10 +294,13 @@ personal_records  — Best lifts per exercise, UNIQUE(user_id, exercise_id)
 ### State Management (AppContext)
 
 - Estado centralizado en `context/AppContext.tsx`
-- Persistencia dual: localStorage (offline) + Supabase (online)
+- **localStorage-first**: todas las mutaciones persisten inmediatamente a localStorage, Supabase sync es secondary/non-blocking
+- `updateUser()` persiste dentro de setState callback (sync, no useEffect race condition)
+- `saveTemplate()` persiste a localStorage inmediato, Supabase es fire-and-forget
 - Rest timer usa `endTime` (timestamp absoluto) para sobrevivir throttling del browser
 - Audio notifications via Web Audio API + `navigator.vibrate()`
 - `completeSession()` persiste: session → PRs → profile XP (en ese orden)
+- `initAuth()` tiene fallback a localStorage cuando Supabase falla
 
 ### Workout Flow
 
@@ -298,45 +322,56 @@ Dashboard → startSession() → WorkoutPlayer → completeSession() → Session
 - `startSessionFromTemplate` pre-rellena pesos via `getRecommendedWeight()` (double progression)
 - Warmup sets reciben 60% del peso top-set recomendado
 - History page: búsqueda + filtro por músculo + detalle expandible por sesión
-- Code splitting: React.lazy + Suspense para todas las páginas (bundle 933→427 kB)
+- Code splitting: React.lazy + Suspense para todas las páginas (bundle 431 kB main chunk)
+- Suspense fallbacks: page-specific skeletons (DashboardSkeleton, ProgressSkeleton, HistorySkeleton)
 - WorkoutPlayer: useMemo/useCallback para computaciones y handlers costosos
 - SyncIndicator: toast on sync success/failure, drops ops after MAX_RETRIES=5
 - Settings: data export (JSON backup), password reset, account deletion (double confirm)
+- Loading states: isLoading/isSaving en botones de Settings, Onboarding, TemplateEditor
 - Modal: focus trap, aria-modal, auto-focus, restore focus on close
 - Layout: skip-nav link, aria-label en navegación
 - ErrorBoundary: `declare` keyword para React 19 class component TS compatibility
 - Logger dev-only: `import.meta.env.DEV` gate, reemplaza todos los console.*
+- Template/Session IDs: `crypto.randomUUID()` obligatorio para columnas UUID de Supabase
+- PWA Install: `useInstallPrompt` hook + `InstallBanner` component (sessionStorage dismiss)
 
 ## Important Rules
 
 ```
 ❌ NO usar "any" en TypeScript
-❌ NO crear componentes clase (solo funcionales)
-❌ NO hardcodear colores (usar Tailwind tokens)
+❌ NO crear componentes clase (solo funcionales, excepto ErrorBoundary)
+❌ NO hardcodear colores (usar Tailwind tokens de tailwind.config.js)
 ❌ NO olvidar estados de loading/error
 ❌ NO ignorar accesibilidad (ARIA, keyboard nav)
 ❌ NO mezclar lógica de negocio en componentes UI
+❌ NO usar IDs no-UUID para entidades que van a Supabase (usar crypto.randomUUID())
+❌ NO depender solo de Supabase para persistencia (localStorage-first siempre)
 ```
 
 ## Pre-Commit Checklist
 
 ```
-□ TypeScript compila sin errores
-□ ESLint pasa
+□ TypeScript compila sin errores (npx tsc --noEmit)
+□ Tests pasan (npx vitest run — 66 tests)
+□ Build exitoso (npx vite build)
 □ Props tipadas con interfaces
 □ Estados loading/error implementados
 □ Responsive verificado (320px mínimo)
 □ Touch targets >= 44px
-□ No console.log en código final
+□ No console.log en código final (usar logger.ts)
 ```
 
 ## Theme
 
-Dark mode con accent rojo (`#DC2626`):
+Dark mode con accent rojo (`#DC2626`) — definido en `tailwind.config.js`:
 
 - Background: slate-950 (`#0f172a`)
 - Cards: slate-800 (`#1e293b`)
+- Lighter: slate-700 (`#334155`)
+- Text main: slate-50 (`#f8fafc`)
+- Text muted: slate-400 (`#94a3b8`)
 - Glassmorphism: `backdrop-blur-xl`
+- Animaciones: `slide-up` (InstallBanner)
 
 ## Environment
 
@@ -344,7 +379,7 @@ Dark mode con accent rojo (`#DC2626`):
 - `VITE_SUPABASE_URL` — URL del proyecto Supabase
 - `VITE_SUPABASE_ANON_KEY` — Anon key de Supabase
 
-## 🔧 Comandos Personalizados
+## Comandos Personalizados
 
 ### Notas de Sesión
 
@@ -356,22 +391,11 @@ Cuando escribas alguno de estos comandos, Claude ejecutará el skill de notas:
 | `"cerrar sesión"`   | Igual que guardar notas + resumen para CLAUDE.md |
 | `"qué hicimos hoy"` | Muestra resumen sin guardar archivo              |
 
-### Ejemplo de uso
-
-```
-Usuario: "guardar notas"
-Claude:
-1. Analiza la conversación
-2. Crea docs/session-notes/2026-02-03-18-30.md
-3. Muestra resumen en terminal
-4. Confirma: "✅ Notas guardadas en docs/session-notes/2026-02-03-18-30.md"
-```
-
 ### Actualización de Estado
 
 Al final de cada sesión productiva, Claude debe sugerir actualizaciones para la sección "Estado del Proyecto" de este CLAUDE.md.
 
-## 🔌 MCP Servers
+## MCP Servers
 
 ### Context7
 
@@ -385,31 +409,7 @@ Usa Context7 automáticamente cuando necesites:
 
 **Librerías frecuentes del proyecto**:
 
-- `/vercel/next.js` - Next.js (si migras)
 - `/tailwindlabs/tailwindcss` - Tailwind CSS
 - `/framer/motion` - Framer Motion
 - `/react-hook-form/react-hook-form` - React Hook Form
 - `/colinhacks/zod` - Zod validation
-
-```
-
----
-
-## Uso en Prompts
-
-Ahora cuando trabajes en Claude Code, puedes ser explícito si quieres:
-```
-
-Implementa el RPESlider usando Framer Motion para las animaciones. use context7
-
-```
-
-O especificar la librería directamente:
-```
-
-Crea animaciones de entrada para los componentes. use library /framer/motion
-
-```
-
-Pero con la regla añadida, Claude Code debería buscar docs automáticamente cuando sea relevante.
-```
