@@ -37,6 +37,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [x] Alta prioridad (2): CI/CD GitHub Actions, password reset, account deletion, integration tests (18)
 - [x] Media prioridad (2): Offline queue tests (19), data export JSON, sync failure notifications
 - [x] Baja prioridad (2): Constantes extraídas (UI_TIMING, USER_DEFAULTS), lib/dateUtils.ts, a11y forms (htmlFor/id), Slider aria, dead code cleanup (SetRow removed), avatar SVG inline
+- [x] Production-ready: Tailwind CDN → PostCSS build (66.3 kB CSS tree-shaken), Vercel config (SPA rewrites)
+- [x] UX Polish: PWA Install Prompt (beforeinstallprompt + banner), Skeleton Loaders (Dashboard/Progress/History), Loading states (Settings/Onboarding/TemplateEditor buttons), Mobile responsiveness audit (320px fixes)
 
 ### Última actualización: 2026-02-09
 
@@ -81,6 +83,9 @@ Hardening y Production-Ready:
 - `/components/ErrorBoundary.tsx` - Error boundary con retry/reload (React 19 `declare` pattern, usa logger)
 - `/components/ui/Toast.tsx` - Toast notification system (ToastProvider + useToast hook)
 - `/lib/logger.ts` - Dev-only logger (reemplaza todos los console.log/error/warn)
+- `/hooks/useInstallPrompt.ts` - Hook PWA install prompt (beforeinstallprompt)
+- `/components/InstallBanner.tsx` - Banner animado de instalación PWA
+- `/components/ui/Skeleton.tsx` - Skeleton loaders (Dashboard, Progress, History)
 - `/lib/constants.ts` - ROUTES, XP, STORAGE_KEYS, UI_TIMING, USER_DEFAULTS, DEFAULT_SET_CONFIG
 - `/lib/dateUtils.ts` - Shared date utils (isSameDay, isPastDay, getTimeAgo, formatDuration, formatDateEs)
 - `/lib/weightRecommendation.test.ts` - 13 tests (double progression)
@@ -114,7 +119,7 @@ npm run type-check   # TypeScript sin compilar
 ## Tech Stack
 
 ```
-Frontend: React 19 + TypeScript (strict) + Vite + Tailwind CSS (CDN inline config)
+Frontend: React 19 + TypeScript (strict) + Vite + Tailwind CSS v3 (PostCSS build)
 Estado:   Context API (AppContext) + localStorage (persistencia offline)
 Backend:  Supabase v2.94 (auth + PostgreSQL + RLS)
 Forms:    React Hook Form + Zod (validation)

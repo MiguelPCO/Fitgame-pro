@@ -6,6 +6,8 @@ import { AppProvider, useApp } from './context/AppContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/ui/Toast';
 import { ROUTES } from './lib/constants';
+import { InstallBanner } from './components/InstallBanner';
+import { DashboardSkeleton, ProgressSkeleton, HistorySkeleton } from './components/ui/Skeleton';
 
 // Lazy-loaded page components
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
@@ -85,6 +87,15 @@ const AppContent: React.FC = () => {
     );
   }
 
+  const getPageFallback = () => {
+    switch (currentView) {
+      case ROUTES.DASHBOARD: return <DashboardSkeleton />;
+      case ROUTES.PROGRESS: return <ProgressSkeleton />;
+      case ROUTES.HISTORY: return <HistorySkeleton />;
+      default: return <PageLoader />;
+    }
+  };
+
   const renderContent = () => {
     switch (currentView) {
       case ROUTES.DASHBOARD:
@@ -145,7 +156,7 @@ const AppContent: React.FC = () => {
 
   return (
     <Layout currentPage={currentView} onNavigate={navigate}>
-      <Suspense fallback={<PageLoader />}>
+      <Suspense fallback={getPageFallback()}>
         {renderContent()}
       </Suspense>
     </Layout>
@@ -158,6 +169,7 @@ const App: React.FC = () => {
       <ToastProvider>
         <AppProvider>
           <AppContent />
+          <InstallBanner />
         </AppProvider>
       </ToastProvider>
     </ErrorBoundary>

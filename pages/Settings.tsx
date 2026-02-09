@@ -51,10 +51,17 @@ const Settings: React.FC = () => {
     setHasChanges(changed);
   }, [name, goal, daysPerWeek, minutesPerSession, experienceLevel, equipment, user]);
 
-  const handleSave = () => {
-    updateUser({ name, goal, daysPerWeek, minutesPerSession, experienceLevel, equipment });
-    toast('Perfil actualizado', 'success');
-    setHasChanges(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await updateUser({ name, goal, daysPerWeek, minutesPerSession, experienceLevel, equipment });
+      toast('Perfil actualizado', 'success');
+      setHasChanges(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const toggleEquipment = (item: string) => {
@@ -132,6 +139,7 @@ const Settings: React.FC = () => {
         <Button
           onClick={handleSave}
           disabled={!hasChanges}
+          isLoading={isSaving}
           leftIcon={<Save className="w-5 h-5" />}
         >
           Guardar

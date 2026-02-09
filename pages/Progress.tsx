@@ -241,7 +241,7 @@ const Progress: React.FC = () => {
       {/* Consistency Heatmap */}
       <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
          <h3 className="text-lg font-bold text-white mb-4">Consistency Heatmap (Last 60 Days)</h3>
-         <div className="grid grid-cols-12 sm:grid-cols-[repeat(20,minmax(0,1fr))] gap-2">
+         <div className="grid grid-cols-10 sm:grid-cols-[repeat(20,minmax(0,1fr))] gap-1 sm:gap-2">
             {heatmapDays.map((day, i) => (
               <div
                 key={i}

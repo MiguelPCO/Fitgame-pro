@@ -493,8 +493,8 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
       </div>
 
       {/* Fixed bottom navigation */}
-      <nav aria-label="Navegación de ejercicios" className="fixed bottom-0 inset-x-0 z-20 bg-background/95 backdrop-blur-xl border-t border-gray-800/50 px-4 py-3 safe-area-bottom">
-        <div className="flex items-center gap-3 max-w-2xl mx-auto">
+      <nav aria-label="Navegación de ejercicios" className="fixed bottom-0 inset-x-0 z-20 bg-background/95 backdrop-blur-xl border-t border-gray-800/50 px-3 sm:px-4 py-2 sm:py-3 safe-area-bottom">
+        <div className="flex items-center gap-2 sm:gap-3 max-w-2xl mx-auto">
           {allExercisesComplete ? (
             <Button
               variant="success"

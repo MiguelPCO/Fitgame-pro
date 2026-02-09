@@ -130,7 +130,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
       </div>
 
       {/* Week grid */}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {weekDates.map((date, idx) => {
           const isSelected = checkIsSameDay(date, selectedDate);
           const isTodayVal = checkIsToday(date);
@@ -141,7 +141,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
               key={idx}
               onClick={() => onSelectDate(date)}
               className={cn(
-                'flex flex-col items-center justify-center py-3 px-1 rounded-2xl border transition-all duration-200',
+                'flex flex-col items-center justify-center py-2 sm:py-3 px-0.5 sm:px-1 rounded-xl sm:rounded-2xl border transition-all duration-200',
                 'min-h-[88px] relative',
                 isSelected
                   ? 'bg-primary border-primary text-white shadow-lg shadow-primary/30 scale-[1.02]'

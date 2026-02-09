@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Plus, Trash2, Dumbbell } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../components/ui/Toast';
+import { Button } from '../components/ui/Button';
 import { exercises as allExercises } from '../data/mockData';
 import { WorkoutTemplate, TemplateExercise } from '../types';
 
@@ -35,28 +36,35 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
     }
   }, [editId, templates]);
 
-  const handleSave = () => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
     if (!name) return alert("Please enter a template name");
     if (templateExercises.length === 0) return alert("Please add at least one exercise");
 
-    const newTemplate: WorkoutTemplate = {
-      id: editId || `tpl-${Date.now()}`,
-      name,
-      description,
-      duration,
-      difficulty,
-      exercises: templateExercises,
-      muscleFocus: Array.from(new Set(
-        templateExercises.flatMap(te => {
-          const ex = allExercises.find(e => e.id === te.exerciseId);
-          return ex ? ex.muscleGroup : [];
-        })
-      ))
-    };
+    setIsSaving(true);
+    try {
+      const newTemplate: WorkoutTemplate = {
+        id: editId || crypto.randomUUID(),
+        name,
+        description,
+        duration,
+        difficulty,
+        exercises: templateExercises,
+        muscleFocus: Array.from(new Set(
+          templateExercises.flatMap(te => {
+            const ex = allExercises.find(e => e.id === te.exerciseId);
+            return ex ? ex.muscleGroup : [];
+          })
+        ))
+      };
 
-    saveTemplate(newTemplate);
-    toast(editId ? 'Template actualizado' : 'Template creado', 'success');
-    onClose();
+      await saveTemplate(newTemplate);
+      toast(editId ? 'Template actualizado' : 'Template creado', 'success');
+      onClose();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const addExercise = (exerciseId: string) => {
@@ -90,12 +98,13 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
         <h1 className="text-2xl font-bold text-white">
           {editId ? 'Edit Template' : 'Create Template'}
         </h1>
-        <button 
+        <Button
           onClick={handleSave}
-          className="px-6 py-2 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-primary/20"
+          isLoading={isSaving}
+          leftIcon={<Save className="w-5 h-5" />}
         >
-          <Save className="w-5 h-5" /> Save
-        </button>
+          Save
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

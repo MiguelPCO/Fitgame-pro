@@ -141,11 +141,11 @@ const History: React.FC = () => {
 
         {/* Muscle filter pills */}
         {allMuscleGroups.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={() => setMuscleFilter(null)}
               className={cn(
-                'shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all',
+                'shrink-0 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold border transition-all',
                 !muscleFilter
                   ? 'bg-primary/15 text-primary border-primary/30'
                   : 'bg-gray-800/50 text-gray-400 border-gray-700 hover:text-white'
@@ -158,7 +158,7 @@ const History: React.FC = () => {
                 key={muscle}
                 onClick={() => setMuscleFilter(muscleFilter === muscle ? null : muscle)}
                 className={cn(
-                  'shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all',
+                  'shrink-0 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold border transition-all',
                   muscleFilter === muscle
                     ? 'bg-primary/15 text-primary border-primary/30'
                     : 'bg-gray-800/50 text-gray-400 border-gray-700 hover:text-white'

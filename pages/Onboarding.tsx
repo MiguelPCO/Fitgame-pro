@@ -27,6 +27,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
   const [generatedTemplates, setGeneratedTemplates] = useState<WorkoutTemplate[]>([]);
   const [schedule, setSchedule] = useState<WeeklySchedule>({});
+  const [isFinishing, setIsFinishing] = useState(false);
 
   const handleNext = () => {
     if (step === 4) {
@@ -55,21 +56,26 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   };
 
   const finishOnboarding = async () => {
-    // Save all generated templates
-    for (const template of generatedTemplates) {
-      await saveTemplate(template);
+    setIsFinishing(true);
+    try {
+      // Save all generated templates
+      for (const template of generatedTemplates) {
+        await saveTemplate(template);
+      }
+
+      // Save schedule
+      await setWeeklySchedule(schedule);
+
+      // Save user preferences + mark onboarding complete
+      await updateUser({
+        ...formData,
+        onboardingCompleted: true,
+      });
+
+      onComplete();
+    } finally {
+      setIsFinishing(false);
     }
-
-    // Save schedule
-    await setWeeklySchedule(schedule);
-
-    // Save user preferences + mark onboarding complete
-    await updateUser({
-      ...formData,
-      onboardingCompleted: true,
-    });
-
-    onComplete();
   };
 
   const updateData = (key: keyof UserProfile, value: any) => {
@@ -420,6 +426,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           <Button
             onClick={handleNext}
             size="lg"
+            isLoading={isFinishing}
             rightIcon={step === totalSteps ? <CheckCircle2 className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
           >
             {step === totalSteps ? 'Comenzar!' : 'Siguiente'}
