@@ -171,7 +171,7 @@ export function generateTemplates(opts: GenerateOptions): WorkoutTemplate[] {
     const muscleFocus = [...new Set(exercises.flatMap(e => e.muscleGroup))].slice(0, 4);
 
     templates.push({
-      id: `gen-${day.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
+      id: crypto.randomUUID(),
       name: day.name,
       description: `Rutina generada automaticamente para ${goal.toLowerCase()}`,
       muscleFocus,

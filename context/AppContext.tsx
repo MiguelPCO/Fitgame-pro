@@ -320,7 +320,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setWeeklySchedule = async (schedule: WeeklySchedule) => {
     setWeeklyScheduleState(schedule);
-    setUser(prev => prev ? { ...prev, weeklySchedule: schedule } : null);
+    localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(schedule));
+    setUser(prev => {
+      const updated = prev ? { ...prev, weeklySchedule: schedule } : null;
+      if (updated) localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updated));
+      return updated;
+    });
 
     if (isSupabaseConfigured() && supabase && userId) {
       const { error } = await supabase
@@ -330,7 +335,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (error) {
         logger.error('Error saving schedule:', error);
-        toast('Error al guardar programa', 'error');
       }
     }
   };
@@ -378,13 +382,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const saveTemplate = async (template: WorkoutTemplate) => {
     setTemplates(prev => {
       const exists = prev.find(t => t.id === template.id);
-      if (exists) return prev.map(t => t.id === template.id ? template : t);
-      return [...prev, template];
+      const updated = exists ? prev.map(t => t.id === template.id ? template : t) : [...prev, template];
+      // Persist immediately to localStorage
+      localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(updated));
+      return updated;
     });
 
-    // Sync to Supabase
+    // Sync to Supabase (non-blocking — local state is already saved)
     if (userId) {
-      await upsertTemplate(template, userId);
+      upsertTemplate(template, userId);
     }
   };
 
@@ -402,7 +408,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const startSessionFromTemplate = (template: WorkoutTemplate) => {
     const session: WorkoutSession = {
-      id: `session-${Date.now()}`,
+      id: crypto.randomUUID(),
       name: template.name,
       duration: template.duration,
       muscleFocus: template.muscleFocus,
