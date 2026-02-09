@@ -40,7 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
     { id: 'exercises', label: 'Exercises', icon: Users },
     { id: 'progress', label: 'Progress', icon: LineChart },
     { id: 'history', label: 'Historial', icon: History },
-    { id: 'onboarding', label: 'Plan Setup', icon: Settings },
+    { id: 'settings', label: 'Configuracion', icon: Settings },
   ];
 
   return (

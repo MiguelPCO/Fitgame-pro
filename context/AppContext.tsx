@@ -13,6 +13,7 @@ import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { processQueue, getQueue } from '../services/offlineQueue';
 import { getRecommendedWeight, getWarmupWeight } from '../lib/weightRecommendation';
 import { logger } from '../lib/logger';
+import { useToast } from '../components/ui/Toast';
 
 interface RestTimerState {
   remaining: number;
@@ -62,6 +63,7 @@ interface AppState {
 const AppContext = createContext<AppState | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { toast } = useToast();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [templates, setTemplates] = useState<WorkoutTemplate[]>(() => loadFromStorage(STORAGE_KEYS.TEMPLATES, mockTemplates));
@@ -113,6 +115,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (error) {
       logger.error('Error loading profile:', error);
+      toast('Error al cargar perfil', 'error');
       return;
     }
 
@@ -233,11 +236,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     if (isOnline && getQueue().length > 0) {
       processQueue();
+      toast('Datos sincronizados', 'info');
     }
-  }, [isOnline]);
+  }, [isOnline]); // eslint-disable-line react-hooks/exhaustive-deps
 
   onReconnect(() => {
     processQueue();
+    toast('Reconectado — sincronizando datos', 'info');
   });
 
   const startRestTimer = (duration: number) => {
@@ -303,7 +308,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .update({ weekly_schedule: schedule as any })
         .eq('id', userId);
 
-      if (error) logger.error('Error saving schedule:', error);
+      if (error) {
+        logger.error('Error saving schedule:', error);
+        toast('Error al guardar programa', 'error');
+      }
     }
   };
 
@@ -333,7 +341,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .update(updatePayload as any)
           .eq('id', userId);
 
-        if (error) logger.error('Error updating profile:', error);
+        if (error) {
+          logger.error('Error updating profile:', error);
+          toast('Error al actualizar perfil', 'error');
+        }
       }
     }
   };
@@ -489,6 +500,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (error) {
         logger.error('Error syncing XP to Supabase:', error);
+        toast('Error al sincronizar XP', 'error');
       }
     }
   };

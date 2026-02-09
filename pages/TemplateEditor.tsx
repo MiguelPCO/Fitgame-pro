@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Plus, Trash2, Dumbbell } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../components/ui/Toast';
 import { exercises as allExercises } from '../data/mockData';
 import { WorkoutTemplate, TemplateExercise } from '../types';
 
@@ -11,7 +12,8 @@ interface TemplateEditorProps {
 
 const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
   const { templates, saveTemplate } = useApp();
-  
+  const { toast } = useToast();
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState('60 Mins');
@@ -53,6 +55,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
     };
 
     saveTemplate(newTemplate);
+    toast(editId ? 'Template actualizado' : 'Template creado', 'success');
     onClose();
   };
 

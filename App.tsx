@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import { AppProvider, useApp } from './context/AppContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider } from './components/ui/Toast';
 import { ROUTES } from './lib/constants';
 
 // Lazy-loaded page components
@@ -17,6 +18,7 @@ const Templates = React.lazy(() => import('./pages/Templates'));
 const TemplateEditor = React.lazy(() => import('./pages/TemplateEditor'));
 const Schedule = React.lazy(() => import('./pages/Schedule'));
 const History = React.lazy(() => import('./pages/History'));
+const Settings = React.lazy(() => import('./pages/Settings'));
 
 const PageLoader: React.FC = () => (
   <div className="flex items-center justify-center h-64">
@@ -114,6 +116,8 @@ const AppContent: React.FC = () => {
         return <Progress />;
       case ROUTES.HISTORY:
         return <History />;
+      case ROUTES.SETTINGS:
+        return <Settings />;
       case ROUTES.ONBOARDING:
         return <Onboarding onComplete={handleOnboardingComplete} />;
       default:
@@ -151,9 +155,11 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <AppProvider>
-        <AppContent />
-      </AppProvider>
+      <ToastProvider>
+        <AppProvider>
+          <AppContent />
+        </AppProvider>
+      </ToastProvider>
     </ErrorBoundary>
   );
 };

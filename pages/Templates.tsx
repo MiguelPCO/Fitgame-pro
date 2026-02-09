@@ -1,6 +1,7 @@
 import React from 'react';
 import { Plus, Play, Edit2, Trash2, Clock, Dumbbell } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../components/ui/Toast';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Badge, getDifficultyVariant } from '../components/ui/Badge';
@@ -13,13 +14,20 @@ interface TemplatesProps {
 
 const Templates: React.FC<TemplatesProps> = ({ onCreate, onEdit, onStart }) => {
   const { templates, startSessionFromTemplate, deleteTemplate } = useApp();
+  const { toast } = useToast();
 
   const handleStart = (templateId: string) => {
     const template = templates.find(t => t.id === templateId);
     if (template) {
       startSessionFromTemplate(template);
+      toast('Sesion iniciada', 'success');
       onStart();
     }
+  };
+
+  const handleDelete = (id: string) => {
+    deleteTemplate(id);
+    toast('Template eliminado', 'success');
   };
 
   return (
@@ -68,7 +76,7 @@ const Templates: React.FC<TemplatesProps> = ({ onCreate, onEdit, onStart }) => {
                     <button 
                       onClick={() => {
                         if (confirm('Are you sure you want to delete this template?')) {
-                          deleteTemplate(template.id);
+                          handleDelete(template.id);
                         }
                       }}
                       className="p-2 text-text-muted hover:text-red-500 hover:bg-gray-700 rounded-lg transition-colors"

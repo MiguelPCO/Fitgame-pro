@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Accent line -->
+  <rect x="0" y="0" width="1200" height="4" fill="#DC2626"/>
+  <!-- Logo icon -->
+  <rect x="440" y="160" width="72" height="72" rx="16" fill="#DC2626" opacity="0.15"/>
+  <rect x="440" y="160" width="72" height="72" rx="16" fill="none" stroke="#DC2626" stroke-width="2"/>
+  <text x="476" y="210" font-family="Arial, sans-serif" font-size="40" font-weight="900" fill="#DC2626" text-anchor="middle">F</text>
+  <!-- Title -->
+  <text x="528" y="195" font-family="Arial, sans-serif" font-size="48" font-weight="800" fill="#f8fafc">FitGame</text>
+  <text x="802" y="195" font-family="Arial, sans-serif" font-size="48" font-weight="800" fill="#DC2626">Pro</text>
+  <!-- Subtitle -->
+  <text x="600" y="280" font-family="Arial, sans-serif" font-size="28" font-weight="500" fill="#94a3b8" text-anchor="middle">Gamified Fitness Tracker</text>
+  <!-- Features -->
+  <text x="600" y="360" font-family="Arial, sans-serif" font-size="20" fill="#64748b" text-anchor="middle">XP System  ·  Progressive Overload  ·  Personal Records  ·  Offline Ready</text>
+  <!-- Bottom bar -->
+  <rect x="0" y="610" width="1200" height="20" fill="#DC2626" opacity="0.3"/>
+  <!-- URL -->
+  <text x="600" y="520" font-family="Arial, sans-serif" font-size="18" fill="#475569" text-anchor="middle">fitgame-pro.vercel.app</text>
+</svg>

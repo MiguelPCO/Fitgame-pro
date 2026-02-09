@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Save, X, AlertTriangle, Dumbbell, Coffee } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { useToast } from '../components/ui/Toast';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { WeeklySchedule } from '../types';
 
-const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'] as const;
-const DAY_SHORTS = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'] as const;
+const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'] as const;
+const DAY_SHORTS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'] as const;
 
 const DAY_GRADIENTS = [
   'from-rose-500/20 to-red-600/10',
@@ -20,6 +21,7 @@ const DAY_GRADIENTS = [
 
 const Schedule: React.FC = () => {
   const { templates, weeklySchedule, setWeeklySchedule, user } = useApp();
+  const { toast } = useToast();
   const [draft, setDraft] = useState<WeeklySchedule>({ ...weeklySchedule });
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [saved, setSaved] = useState(false);
@@ -49,6 +51,7 @@ const Schedule: React.FC = () => {
   const handleSave = () => {
     setWeeklySchedule(draft);
     setSaved(true);
+    toast('Programa guardado', 'success');
     setTimeout(() => setSaved(false), 2000);
   };
 
