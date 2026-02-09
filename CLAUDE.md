@@ -31,10 +31,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [x] Historial de sesiones (página dedicada con búsqueda, filtros por músculo, detalle expandible)
 - [x] Recommended Weight System (double progression automático desde historial)
 - [x] Alta prioridad: ErrorBoundary, logger dev-only, .gitignore mejorado, error handling en servicios
-- [x] Media prioridad: MIT License, SEO/OG meta tags, PWA (manifest + service worker), Testing (29 tests), Accesibilidad (ARIA, focus trap, skip-nav)
+- [x] Media prioridad: MIT License, SEO/OG meta tags, PWA (manifest + service worker), Testing, Accesibilidad (ARIA, focus trap, skip-nav)
 - [x] Baja prioridad: Code splitting (React.lazy), memoización WorkoutPlayer, migraciones DB
+- [x] Prioridad crítica: Toast system, Settings/Profile page, OG image SVG, viewport WCAG fix
+- [x] Alta prioridad (2): CI/CD GitHub Actions, password reset, account deletion, integration tests (18)
+- [x] Media prioridad (2): Offline queue tests (19), data export JSON, sync failure notifications
+- [x] Baja prioridad (2): Constantes extraídas (UI_TIMING, USER_DEFAULTS), lib/dateUtils.ts, a11y forms (htmlFor/id), Slider aria, dead code cleanup (SetRow removed), avatar SVG inline
 
-### Última actualización: 2026-02-08
+### Última actualización: 2026-02-09
 
 Supabase integrado:
 
@@ -74,14 +78,20 @@ Recommended Weight y History:
 
 Hardening y Production-Ready:
 
-- `/components/ErrorBoundary.tsx` - Error boundary con retry/reload (React 19 `declare` pattern)
+- `/components/ErrorBoundary.tsx` - Error boundary con retry/reload (React 19 `declare` pattern, usa logger)
+- `/components/ui/Toast.tsx` - Toast notification system (ToastProvider + useToast hook)
 - `/lib/logger.ts` - Dev-only logger (reemplaza todos los console.log/error/warn)
+- `/lib/constants.ts` - ROUTES, XP, STORAGE_KEYS, UI_TIMING, USER_DEFAULTS, DEFAULT_SET_CONFIG
+- `/lib/dateUtils.ts` - Shared date utils (isSameDay, isPastDay, getTimeAgo, formatDuration, formatDateEs)
 - `/lib/weightRecommendation.test.ts` - 13 tests (double progression)
 - `/services/xp.test.ts` - 16 tests (XP system completo)
+- `/services/offlineQueue.test.ts` - 19 tests (queue CRUD, processQueue, withOfflineQueue)
+- `/context/AppContext.test.ts` - 18 tests (session lifecycle, XP, PRs, stats, weight rec)
 - `/vitest.setup.ts` - Setup de testing
 - `/.env.example` - Template de variables de entorno
+- `/.github/workflows/ci.yml` - CI/CD pipeline (tsc + vitest + build)
 - `/LICENSE` - MIT License
-- `/public/favicon.svg`, `/public/pwa-*.svg` - Iconos PWA
+- `/public/favicon.svg`, `/public/pwa-*.svg`, `/public/og-image.svg` - Iconos PWA + OG image
 
 Dashboard y Progress:
 
@@ -95,7 +105,7 @@ Dashboard y Progress:
 npm run dev          # Dev server en http://localhost:3000
 npm run build        # Build producción a /dist
 npm run preview      # Preview del build
-npm run test         # Vitest run (29 tests)
+npm run test         # Vitest run (66 tests)
 npm run test:watch   # Vitest watch mode
 npm run lint         # ESLint check
 npm run type-check   # TypeScript sin compilar
@@ -127,11 +137,11 @@ PWA:      vite-plugin-pwa (workbox, manifest, service worker)
 │   ├── /workout      # ExerciseCard, SetInput, Timer
 │   └── DateSelector.tsx
 ├── /pages            # Login, Signup, Onboarding, Dashboard, WorkoutPlayer, Progress,
-│                     # Templates, TemplateEditor, Schedule, History
+│                     # Templates, TemplateEditor, Schedule, History, Settings
 ├── /context          # AppContext.tsx (estado global)
 ├── /hooks            # usePersist, useSessionTimer, useRestTimer, useOnlineStatus
 ├── /lib              # supabase.ts, utils.ts, constants.ts, sessionCalculations.ts,
-│                     # weightRecommendation.ts, templateGenerator.ts
+│                     # weightRecommendation.ts, templateGenerator.ts, dateUtils.ts, logger.ts
 ├── /services         # auth.ts, xp.ts, audio.ts, workoutSessions.ts, templates.ts,
 │                     # offlineQueue.ts
 ├── /types            # index.ts, database.ts
@@ -283,8 +293,10 @@ Dashboard → startSession() → WorkoutPlayer → completeSession() → Session
 - `startSessionFromTemplate` pre-rellena pesos via `getRecommendedWeight()` (double progression)
 - Warmup sets reciben 60% del peso top-set recomendado
 - History page: búsqueda + filtro por músculo + detalle expandible por sesión
-- Code splitting: React.lazy + Suspense para todas las páginas (bundle 933→421 kB)
+- Code splitting: React.lazy + Suspense para todas las páginas (bundle 933→427 kB)
 - WorkoutPlayer: useMemo/useCallback para computaciones y handlers costosos
+- SyncIndicator: toast on sync success/failure, drops ops after MAX_RETRIES=5
+- Settings: data export (JSON backup), password reset, account deletion (double confirm)
 - Modal: focus trap, aria-modal, auto-focus, restore focus on close
 - Layout: skip-nav link, aria-label en navegación
 - ErrorBoundary: `declare` keyword para React 19 class component TS compatibility
