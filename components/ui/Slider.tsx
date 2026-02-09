@@ -53,6 +53,10 @@ export function Slider({
           min={min}
           max={max}
           step={step}
+          aria-label={label || 'Slider'}
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={value}
           className={cn(
             'relative w-full h-6 appearance-none bg-transparent cursor-pointer z-10',
             // Thumb styles (Webkit - Chrome, Safari, Edge)

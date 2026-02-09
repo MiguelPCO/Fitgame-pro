@@ -100,8 +100,9 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-300 ml-1">Name</label>
+              <label htmlFor="signup-name" className="text-sm font-bold text-gray-300 ml-1">Name</label>
               <Input
+                id="signup-name"
                 type="text"
                 required
                 placeholder="Your name"
@@ -111,8 +112,9 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-300 ml-1">Email</label>
+              <label htmlFor="signup-email" className="text-sm font-bold text-gray-300 ml-1">Email</label>
               <Input
+                id="signup-email"
                 type="email"
                 required
                 placeholder="warrior@fitgame.pro"
@@ -122,8 +124,9 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-300 ml-1">Password</label>
+              <label htmlFor="signup-password" className="text-sm font-bold text-gray-300 ml-1">Password</label>
               <Input
+                id="signup-password"
                 type="password"
                 required
                 placeholder="Min 6 characters"
@@ -133,8 +136,9 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-300 ml-1">Confirm Password</label>
+              <label htmlFor="signup-confirm" className="text-sm font-bold text-gray-300 ml-1">Confirm Password</label>
               <Input
+                id="signup-confirm"
                 type="password"
                 required
                 placeholder="Repeat password"

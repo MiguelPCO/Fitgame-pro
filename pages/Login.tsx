@@ -87,8 +87,9 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-gray-300 ml-1">Email</label>
+              <label htmlFor="login-email" className="text-sm font-bold text-gray-300 ml-1">Email</label>
               <Input
+                id="login-email"
                 type="email"
                 required
                 placeholder="warrior@fitgame.pro"
@@ -99,8 +100,9 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
 
             {!showForgotPassword && (
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-300 ml-1">Password</label>
+                <label htmlFor="login-password" className="text-sm font-bold text-gray-300 ml-1">Password</label>
                 <Input
+                  id="login-password"
                   type="password"
                   required
                   placeholder="••••••••"

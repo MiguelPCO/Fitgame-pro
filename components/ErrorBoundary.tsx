@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { logger } from '../lib/logger';
 
 interface Props {
   children: React.ReactNode;
@@ -25,9 +26,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    if (import.meta.env.DEV) {
-      console.error('ErrorBoundary caught:', error, info.componentStack);
-    }
+    logger.error('ErrorBoundary caught:', error, info.componentStack);
   }
 
   handleReload = () => {

@@ -146,8 +146,9 @@ const Settings: React.FC = () => {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-text-muted block mb-1.5">Nombre</label>
+          <label htmlFor="settings-name" className="text-sm font-medium text-text-muted block mb-1.5">Nombre</label>
           <input
+            id="settings-name"
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}

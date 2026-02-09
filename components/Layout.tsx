@@ -12,6 +12,7 @@ import {
   History
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { USER_DEFAULTS } from '../lib/constants';
 import SyncIndicator from './SyncIndicator';
 
 interface LayoutProps {
@@ -143,11 +144,11 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
 
             <div className="flex items-center gap-3 pl-2">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-white leading-none">{user?.name || 'Guest User'}</p>
-                <p className="text-xs text-primary font-medium mt-1">Lvl {user?.level || 1} {user?.tier || 'Novice'}</p>
+                <p className="text-sm font-bold text-white leading-none">{user?.name || USER_DEFAULTS.NAME}</p>
+                <p className="text-xs text-primary font-medium mt-1">Lvl {user?.level || USER_DEFAULTS.LEVEL} {user?.tier || USER_DEFAULTS.TIER}</p>
               </div>
               <div className="w-10 h-10 rounded-full border-2 border-gray-700 p-0.5 bg-background-card overflow-hidden shadow-lg">
-                <img src={user?.avatarUrl || "https://picsum.photos/100/100"} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                <img src={user?.avatarUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23374151' width='100' height='100'/%3E%3Ctext x='50' y='58' text-anchor='middle' fill='%239CA3AF' font-size='40' font-family='sans-serif'%3E%F0%9F%8F%8B%3C/text%3E%3C/svg%3E"} alt="Profile" className="w-full h-full object-cover rounded-full" />
               </div>
             </div>
           </div>

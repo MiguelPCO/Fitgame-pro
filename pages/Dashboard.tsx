@@ -7,6 +7,8 @@ import { WorkoutDayCard } from '../components/home/WorkoutDayCard';
 import { LevelBadge } from '../components/progress/LevelBadge';
 import { XPBar } from '../components/progress/XPBar';
 import { WorkoutSession } from '../types';
+import { DEFAULT_SET_CONFIG } from '../lib/constants';
+import { isSameDay, isPastDay, getTimeAgo } from '../lib/dateUtils';
 
 interface DashboardProps {
   onStartWorkout: () => void;
@@ -20,21 +22,6 @@ const formatDateString = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-// Helper to compare dates (ignoring time)
-const isSameDay = (d1: Date, d2: Date): boolean => {
-  return d1.getDate() === d2.getDate() &&
-         d1.getMonth() === d2.getMonth() &&
-         d1.getFullYear() === d2.getFullYear();
-};
-
-const isPastDay = (date: Date): boolean => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const compareDate = new Date(date);
-  compareDate.setHours(0, 0, 0, 0);
-  return compareDate < today;
-};
-
 // Get tier display name
 const getTierName = (level: number): string => {
   if (level >= 50) return 'Elite';
@@ -42,18 +29,6 @@ const getTierName = (level: number): string => {
   if (level >= 15) return 'Intermediate';
   if (level >= 5) return 'Regular';
   return 'Novice';
-};
-
-// Relative time helper
-const getTimeAgo = (timestamp: number): string => {
-  const diff = Date.now() - timestamp;
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 60) return `hace ${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `hace ${hours}h`;
-  const days = Math.floor(hours / 24);
-  if (days === 1) return 'ayer';
-  return `hace ${days}d`;
 };
 
 /** Convert a template to a preview WorkoutSession (for display, not for starting) */
@@ -66,7 +41,7 @@ const templateToPreviewSession = (template: { id: string; name: string; duration
   xpReward: 0,
   exercises: template.exercises.map((ex: any) => ({
     exerciseId: ex.exerciseId,
-    restTimer: ex.restTimer || 120,
+    restTimer: ex.restTimer || DEFAULT_SET_CONFIG.restTimer,
     sets: Array.from({ length: ex.sets || 3 }).map((_, idx) => ({
       id: `preview-set-${idx}`,
       type: idx === 0 ? 'warmup' as const : 'top' as const,

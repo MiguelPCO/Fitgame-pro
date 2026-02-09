@@ -15,6 +15,7 @@ import { exercises as mockExercises } from '../data/mockData';
 import { exerciseBlueprints } from '../data/exerciseBlueprints';
 import { WorkoutSession } from '../types';
 import { cn } from '../lib/utils';
+import { formatDuration, formatDateEs } from '../lib/dateUtils';
 
 // Merge exercise databases for name lookup
 const allExercises = [...mockExercises, ...exerciseBlueprints];
@@ -30,26 +31,6 @@ function calculateSessionVolume(session: WorkoutSession): number {
       .filter(s => s.completed && s.weight > 0)
       .reduce((sum, s) => sum + s.weight * s.reps, 0);
   }, 0);
-}
-
-function formatDuration(startTime?: number, endTime?: number): string {
-  if (!startTime || !endTime) return '--';
-  const minutes = Math.round((endTime - startTime) / 60000);
-  if (minutes < 60) return `${minutes} min`;
-  const hrs = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return `${hrs}h ${mins}m`;
-}
-
-function formatDate(dateStr?: string, startTime?: number): string {
-  const ts = dateStr ? new Date(dateStr) : startTime ? new Date(startTime) : null;
-  if (!ts) return '--';
-  return ts.toLocaleDateString('es-ES', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
 }
 
 const MUSCLE_COLORS: Record<string, string> = {
@@ -213,7 +194,7 @@ const History: React.FC = () => {
             const isExpanded = expandedId === session.id;
             const volume = calculateSessionVolume(session);
             const duration = formatDuration(session.startTime, session.endTime);
-            const date = formatDate(session.date, session.startTime);
+            const date = formatDateEs(session.date, session.startTime);
 
             return (
               <div

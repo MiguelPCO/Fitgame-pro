@@ -13,6 +13,7 @@ import { exercises as allExercises } from '../data/mockData';
 import { useApp } from '../context/AppContext';
 import { useSessionTimer } from '../hooks/useSessionTimer';
 import { cn } from '../lib/utils';
+import { UI_TIMING } from '../lib/constants';
 import { XP } from '../lib/constants';
 import { calculateWorkoutXP, XPBreakdown } from '../services/xp';
 import { WorkoutSession } from '../types';
@@ -75,7 +76,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
   // Auto-dismiss XP popup
   useEffect(() => {
     if (xpPopup) {
-      const timer = setTimeout(() => setXpPopup(null), 1800);
+      const timer = setTimeout(() => setXpPopup(null), UI_TIMING.XP_POPUP_TIMEOUT);
       return () => clearTimeout(timer);
     }
   }, [xpPopup]);

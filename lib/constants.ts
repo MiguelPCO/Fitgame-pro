@@ -55,3 +55,20 @@ export const DEFAULT_SET_CONFIG = {
   targetRPE: 8,
   restTimer: 120,
 } as const;
+
+/**
+ * UI timing constants (milliseconds)
+ */
+export const UI_TIMING = {
+  XP_POPUP_TIMEOUT: 1800,
+  MS_PER_MINUTE: 60000,
+} as const;
+
+/**
+ * Default user fallbacks
+ */
+export const USER_DEFAULTS = {
+  NAME: 'Guest User',
+  LEVEL: 1,
+  TIER: 'Novice' as const,
+} as const;

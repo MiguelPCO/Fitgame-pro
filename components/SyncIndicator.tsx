@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Wifi, WifiOff, RefreshCw, Check, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { WifiOff, RefreshCw, Check, AlertTriangle } from 'lucide-react';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { getQueue, processQueue } from '../services/offlineQueue';
 import { useToast } from './ui/Toast';
@@ -11,7 +11,6 @@ const SyncIndicator: React.FC = () => {
   const [syncState, setSyncState] = useState<SyncState>('synced');
   const [pendingCount, setPendingCount] = useState(0);
   const { toast } = useToast();
-  const prevCountRef = useRef(0);
 
   const checkQueue = useCallback(() => {
     const queue = getQueue();
