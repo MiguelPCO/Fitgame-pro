@@ -214,6 +214,222 @@ export const exerciseBlueprints: Exercise[] = [
     instructions: ['Start on knees', 'Roll forward slowly', 'Pull back using abs'],
     tips: ['Dont let hips sag', 'Start with short range'],
   },
+
+  // === CHEST (expanded) ===
+  {
+    id: 'chest06', name: 'Decline Bench Press', muscleGroup: ['Chest', 'Triceps'], equipment: 'Barbell',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Set bench to decline', 'Lower bar to lower chest', 'Press up explosively'],
+    tips: ['Use a spotter', 'Dont bounce off chest'],
+  },
+  {
+    id: 'chest07', name: 'Dumbbell Bench Press', muscleGroup: ['Chest', 'Triceps'], equipment: 'Dumbbells',
+    difficulty: 'Beginner', type: 'Compound',
+    instructions: ['Lie flat on bench', 'Press dumbbells up', 'Lower with control'],
+    tips: ['Greater range of motion than barbell', 'Keep wrists neutral'],
+  },
+  {
+    id: 'chest08', name: 'Machine Chest Press', muscleGroup: ['Chest', 'Triceps'], equipment: 'Machine',
+    difficulty: 'Beginner', type: 'Compound',
+    instructions: ['Adjust seat height', 'Push handles forward', 'Return slowly'],
+    tips: ['Great for beginners', 'Focus on chest squeeze'],
+  },
+  {
+    id: 'chest09', name: 'Chest Dip', muscleGroup: ['Chest', 'Triceps', 'Shoulders'], equipment: 'Bodyweight',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Lean forward slightly', 'Lower until shoulders below elbows', 'Push back up'],
+    tips: ['Forward lean targets chest', 'Dont go too deep initially'],
+  },
+  {
+    id: 'chest10', name: 'Pec Deck', muscleGroup: ['Chest'], equipment: 'Machine',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Adjust arm pads to chest level', 'Bring pads together', 'Control return'],
+    tips: ['Squeeze chest at center', 'Keep back flat against pad'],
+  },
+
+  // === BACK (expanded) ===
+  {
+    id: 'back06', name: 'T-Bar Row', muscleGroup: ['Back', 'Biceps'], equipment: 'Barbell',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Straddle the bar', 'Grip handle close', 'Pull to chest'],
+    tips: ['Keep chest up', 'Squeeze at top'],
+  },
+  {
+    id: 'back07', name: 'Chest Supported Row', muscleGroup: ['Back'], equipment: 'Dumbbells',
+    difficulty: 'Beginner', type: 'Compound',
+    instructions: ['Lie chest on incline bench', 'Row dumbbells up', 'Lower with control'],
+    tips: ['Eliminates momentum', 'Great for strict form'],
+  },
+  {
+    id: 'back08', name: 'Chin Up', muscleGroup: ['Back', 'Biceps'], equipment: 'Bodyweight',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Underhand grip shoulder width', 'Pull chin over bar', 'Lower with control'],
+    tips: ['More bicep emphasis than pull up', 'Full dead hang at bottom'],
+  },
+  {
+    id: 'back09', name: 'Straight Arm Pulldown', muscleGroup: ['Back'], equipment: 'Cable',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Stand facing cable', 'Keep arms straight', 'Pull bar to thighs'],
+    tips: ['Focus on lat contraction', 'Slight forward lean'],
+  },
+  {
+    id: 'back10', name: 'Cable Pullover', muscleGroup: ['Back'], equipment: 'Cable',
+    difficulty: 'Intermediate', type: 'Isolation',
+    instructions: ['Face away from cable', 'Pull handle overhead to hips', 'Control return'],
+    tips: ['Keep slight elbow bend', 'Feel the stretch at top'],
+  },
+  {
+    id: 'back11', name: 'Rack Pull', muscleGroup: ['Back', 'Hamstrings'], equipment: 'Barbell',
+    difficulty: 'Advanced', type: 'Compound',
+    instructions: ['Set bar at knee height', 'Pull to lockout', 'Lower with control'],
+    tips: ['Great for upper back strength', 'Keep lats engaged'],
+  },
+
+  // === SHOULDERS (expanded) ===
+  {
+    id: 'sho06', name: 'Arnold Press', muscleGroup: ['Shoulders', 'Triceps'], equipment: 'Dumbbells',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Start with palms facing you', 'Rotate as you press up', 'Reverse on descent'],
+    tips: ['Smooth rotation throughout', 'Full range of motion'],
+  },
+  {
+    id: 'sho07', name: 'Cable Lateral Raise', muscleGroup: ['Shoulders'], equipment: 'Cable',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Stand sideways to cable', 'Raise arm to shoulder height', 'Lower slowly'],
+    tips: ['Constant tension from cable', 'Dont shrug shoulders'],
+  },
+  {
+    id: 'sho08', name: 'Machine Shoulder Press', muscleGroup: ['Shoulders', 'Triceps'], equipment: 'Machine',
+    difficulty: 'Beginner', type: 'Compound',
+    instructions: ['Adjust seat height', 'Press handles overhead', 'Lower with control'],
+    tips: ['Keep back flat against pad', 'Dont lock elbows'],
+  },
+  {
+    id: 'sho09', name: 'Upright Row', muscleGroup: ['Shoulders', 'Back'], equipment: 'Barbell',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Narrow grip on bar', 'Pull to chin level', 'Lead with elbows'],
+    tips: ['Dont go too narrow', 'Stop if shoulder discomfort'],
+  },
+  {
+    id: 'sho10', name: 'Reverse Pec Deck', muscleGroup: ['Shoulders'], equipment: 'Machine',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Face the machine', 'Open arms to sides', 'Squeeze rear delts'],
+    tips: ['Keep slight elbow bend', 'Control the return'],
+  },
+
+  // === LEGS (expanded) ===
+  {
+    id: 'leg09', name: 'Front Squat', muscleGroup: ['Quadriceps', 'Core'], equipment: 'Barbell',
+    difficulty: 'Advanced', type: 'Compound',
+    instructions: ['Bar on front delts', 'Elbows high', 'Squat to depth'],
+    tips: ['More quad dominant than back squat', 'Keep torso upright'],
+  },
+  {
+    id: 'leg10', name: 'Hack Squat', muscleGroup: ['Quadriceps', 'Glutes'], equipment: 'Machine',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Shoulders under pads', 'Feet shoulder width on platform', 'Squat to depth'],
+    tips: ['Keep back flat against pad', 'Dont lock knees at top'],
+  },
+  {
+    id: 'leg11', name: 'Walking Lunge', muscleGroup: ['Quadriceps', 'Glutes'], equipment: 'Dumbbells',
+    difficulty: 'Beginner', type: 'Compound',
+    instructions: ['Step forward into lunge', 'Lower back knee toward floor', 'Alternate legs'],
+    tips: ['Keep torso upright', 'Dont let knee pass toes'],
+  },
+  {
+    id: 'leg12', name: 'Hip Thrust', muscleGroup: ['Glutes', 'Hamstrings'], equipment: 'Barbell',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Upper back on bench', 'Bar over hips', 'Drive hips to full extension'],
+    tips: ['Squeeze glutes at top', 'Chin tucked throughout'],
+  },
+  {
+    id: 'leg13', name: 'Sumo Deadlift', muscleGroup: ['Glutes', 'Hamstrings', 'Quadriceps'], equipment: 'Barbell',
+    difficulty: 'Advanced', type: 'Compound',
+    instructions: ['Wide stance, toes out', 'Grip inside knees', 'Pull to lockout'],
+    tips: ['Push knees out', 'Keep chest up'],
+  },
+  {
+    id: 'leg14', name: 'Seated Calf Raise', muscleGroup: ['Calves'], equipment: 'Machine',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Sit with knees under pad', 'Rise onto toes', 'Lower for full stretch'],
+    tips: ['Targets soleus muscle', 'Pause at top and bottom'],
+  },
+  {
+    id: 'leg15', name: 'Step Up', muscleGroup: ['Quadriceps', 'Glutes'], equipment: 'Dumbbells',
+    difficulty: 'Beginner', type: 'Compound',
+    instructions: ['Place foot on box', 'Drive up to standing', 'Lower with control'],
+    tips: ['Dont push off back leg', 'Keep box at knee height'],
+  },
+
+  // === ARMS (expanded) ===
+  {
+    id: 'arm06', name: 'Preacher Curl', muscleGroup: ['Biceps'], equipment: 'Barbell',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Arms on preacher pad', 'Curl bar to shoulders', 'Lower with control'],
+    tips: ['Eliminates cheating', 'Full extension at bottom'],
+  },
+  {
+    id: 'arm07', name: 'Concentration Curl', muscleGroup: ['Biceps'], equipment: 'Dumbbells',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Sit with elbow on inner thigh', 'Curl to shoulder', 'Squeeze at top'],
+    tips: ['Isolates the bicep', 'Slow and controlled'],
+  },
+  {
+    id: 'arm08', name: 'Incline Dumbbell Curl', muscleGroup: ['Biceps'], equipment: 'Dumbbells',
+    difficulty: 'Intermediate', type: 'Isolation',
+    instructions: ['Sit on incline bench', 'Arms hang straight down', 'Curl to shoulders'],
+    tips: ['Greater stretch on bicep', 'Dont swing'],
+  },
+  {
+    id: 'arm09', name: 'Skull Crusher', muscleGroup: ['Triceps'], equipment: 'Barbell',
+    difficulty: 'Intermediate', type: 'Isolation',
+    instructions: ['Lie flat, bar overhead', 'Lower to forehead', 'Extend back up'],
+    tips: ['Keep elbows pointing up', 'Use EZ bar for wrist comfort'],
+  },
+  {
+    id: 'arm10', name: 'Tricep Dip', muscleGroup: ['Triceps', 'Chest'], equipment: 'Bodyweight',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Grip parallel bars', 'Lower until elbows at 90 degrees', 'Push back up'],
+    tips: ['Upright torso targets triceps', 'Dont go too deep'],
+  },
+  {
+    id: 'arm11', name: 'Cable Curl', muscleGroup: ['Biceps'], equipment: 'Cable',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Stand facing low pulley', 'Curl handle to shoulders', 'Lower slowly'],
+    tips: ['Constant tension throughout', 'Keep elbows pinned'],
+  },
+  {
+    id: 'arm12', name: 'Close Grip Bench Press', muscleGroup: ['Triceps', 'Chest'], equipment: 'Barbell',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Hands shoulder width apart', 'Lower to lower chest', 'Press up explosively'],
+    tips: ['Keep elbows tucked', 'Great for tricep mass'],
+  },
+
+  // === CORE (expanded) ===
+  {
+    id: 'core05', name: 'Russian Twist', muscleGroup: ['Core'], equipment: 'Dumbbells',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Sit with knees bent', 'Lean back slightly', 'Rotate side to side with weight'],
+    tips: ['Keep feet off floor for extra challenge', 'Control the rotation'],
+  },
+  {
+    id: 'core06', name: 'Dead Bug', muscleGroup: ['Core'], equipment: 'Bodyweight',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Lie on back, arms up', 'Extend opposite arm and leg', 'Return and alternate'],
+    tips: ['Keep lower back pressed to floor', 'Slow and controlled'],
+  },
+  {
+    id: 'core07', name: 'Pallof Press', muscleGroup: ['Core'], equipment: 'Cable',
+    difficulty: 'Intermediate', type: 'Isolation',
+    instructions: ['Stand sideways to cable', 'Hold handle at chest', 'Press straight out and hold'],
+    tips: ['Resist rotation', 'Great anti-rotation exercise'],
+  },
+  {
+    id: 'core08', name: 'Bicycle Crunch', muscleGroup: ['Core'], equipment: 'Bodyweight',
+    difficulty: 'Beginner', type: 'Isolation',
+    instructions: ['Lie on back, hands behind head', 'Bring elbow to opposite knee', 'Alternate sides'],
+    tips: ['Dont pull on neck', 'Slow controlled movement'],
+  },
 ];
 
 /**
