@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, X, Plus } from 'lucide-react';
-import { exercises as allExercises } from '../../data/mockData';
+import { exerciseBlueprints as allExercises } from '../../data/exerciseBlueprints';
 
 export interface AddExerciseModalProps {
   onClose: () => void;
@@ -44,7 +44,7 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({ onClose, onS
                  <p className="font-bold text-white group-hover:text-primary transition-colors">{ex.name}</p>
                  <p className="text-xs text-text-muted">{ex.muscleGroup.join(', ')}</p>
                </div>
-               <Plus className="w-5 h-5 text-gray-500 group-hover:text-primary transition-colors" />
+               <Plus className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
             </button>
           ))}
           {filtered.length === 0 && (

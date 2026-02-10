@@ -338,8 +338,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                         </>
                       ) : (
                         <>
-                          <Coffee className="w-4 h-4 text-gray-600 mb-1" />
-                          <p className="text-[10px] text-gray-500">Rest</p>
+                          <Coffee className="w-4 h-4 text-gray-400 mb-1" />
+                          <p className="text-[10px] text-gray-400">Rest</p>
                         </>
                       )}
                     </div>

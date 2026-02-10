@@ -12,6 +12,7 @@ import { isSameDay, isPastDay, getTimeAgo } from '../lib/dateUtils';
 
 interface DashboardProps {
   onStartWorkout: () => void;
+  onNavigateProgress?: () => void;
 }
 
 // Helper to format date as 'YYYY-MM-DD'
@@ -54,7 +55,7 @@ const templateToPreviewSession = (template: { id: string; name: string; duration
   }))
 });
 
-const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgress }) => {
   const { user, selectedDate, setSelectedDate, startSessionFromTemplate, workoutHistory, getScheduledTemplate, weeklySchedule } = useApp();
 
   // Build a Set of completed workout date strings from real history
@@ -260,7 +261,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout }) => {
           <Card>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-white">Weekly Progress</h3>
-              <ChevronRight className="w-5 h-5 text-text-muted hover:text-white cursor-pointer transition-colors" />
+              <ChevronRight
+                className="w-5 h-5 text-text-muted hover:text-white cursor-pointer transition-colors"
+                onClick={onNavigateProgress}
+              />
             </div>
 
             <div className="space-y-4">

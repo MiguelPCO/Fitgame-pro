@@ -136,8 +136,8 @@ const Schedule: React.FC = () => {
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-center">
-                    <Coffee className="w-6 h-6 text-gray-600 mb-1" />
-                    <p className="text-sm text-gray-500 font-medium">Descanso</p>
+                    <Coffee className="w-6 h-6 text-gray-400 mb-1" />
+                    <p className="text-sm text-gray-400 font-medium">Descanso</p>
                   </div>
                 )}
               </Card>
@@ -166,7 +166,7 @@ const Schedule: React.FC = () => {
                       </button>
                     ))}
                     {templates.length === 0 && (
-                      <p className="px-4 py-3 text-sm text-gray-500">No hay plantillas creadas</p>
+                      <p className="px-4 py-3 text-sm text-gray-400">No hay plantillas creadas</p>
                     )}
                   </div>
                 </>

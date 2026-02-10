@@ -3,7 +3,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { TrendingUp, Activity, Trophy, Calendar, Flame, Award } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { WorkoutSession } from '../types';
-import { exercises as exerciseDB } from '../data/mockData';
+import { exerciseBlueprints as exerciseDB } from '../data/exerciseBlueprints';
 
 // Helper to format date as 'YYYY-MM-DD'
 const formatDateString = (date: Date): string => {
@@ -153,7 +153,7 @@ const Progress: React.FC = () => {
                  </BarChart>
                </ResponsiveContainer>
              ) : (
-               <div className="h-full flex items-center justify-center text-xs text-gray-600">No workout data yet</div>
+               <div className="h-full flex items-center justify-center text-xs text-gray-400">No workout data yet</div>
              )}
            </div>
         </div>
@@ -165,7 +165,7 @@ const Progress: React.FC = () => {
            </div>
            <div>
              <p className="text-sm font-bold text-text-muted uppercase">Lifetime Volume</p>
-             <h3 className="text-3xl font-black text-white mt-1">{(totalLifetimeVolume/1000).toFixed(0)}k <span className="text-base text-gray-500 font-medium">kg</span></h3>
+             <h3 className="text-3xl font-black text-white mt-1">{(totalLifetimeVolume/1000).toFixed(0)}k <span className="text-base text-gray-400 font-medium">kg</span></h3>
              <p className="text-sm text-primary mt-2 font-bold">Level {user?.level} {user?.tier}</p>
            </div>
            <div className="w-full bg-gray-800 h-2 rounded-full mt-4 overflow-hidden">
@@ -197,7 +197,7 @@ const Progress: React.FC = () => {
                </AreaChart>
              </ResponsiveContainer>
            ) : (
-             <div className="h-full flex flex-col items-center justify-center text-gray-500 gap-2">
+             <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-2">
                 <Activity className="w-8 h-8 opacity-50" />
                 <p>Complete a workout to see your analytics</p>
              </div>
@@ -231,7 +231,7 @@ const Progress: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-8 text-gray-500 gap-2">
+          <div className="flex flex-col items-center justify-center py-8 text-gray-400 gap-2">
             <Trophy className="w-8 h-8 opacity-50" />
             <p className="text-sm">Complete workouts to set your first PR</p>
           </div>

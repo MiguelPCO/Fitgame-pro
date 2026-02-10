@@ -11,15 +11,12 @@ import {
   Dumbbell,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { exercises as mockExercises } from '../data/mockData';
 import { exerciseBlueprints } from '../data/exerciseBlueprints';
 import { WorkoutSession } from '../types';
 import { cn } from '../lib/utils';
 import { formatDuration, formatDateEs } from '../lib/dateUtils';
 
-// Merge exercise databases for name lookup
-const allExercises = [...mockExercises, ...exerciseBlueprints];
-const exerciseMap = new Map(allExercises.map(e => [e.id, e]));
+const exerciseMap = new Map(exerciseBlueprints.map(e => [e.id, e]));
 
 function getExerciseName(exerciseId: string): string {
   return exerciseMap.get(exerciseId)?.name || exerciseId;
@@ -34,17 +31,17 @@ function calculateSessionVolume(session: WorkoutSession): number {
 }
 
 const MUSCLE_COLORS: Record<string, string> = {
-  Chest: 'bg-red-500/15 text-red-400 border-red-500/20',
-  Back: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
-  Quadriceps: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-  Hamstrings: 'bg-teal-500/15 text-teal-400 border-teal-500/20',
-  Glutes: 'bg-pink-500/15 text-pink-400 border-pink-500/20',
-  Shoulders: 'bg-orange-500/15 text-orange-400 border-orange-500/20',
-  Biceps: 'bg-violet-500/15 text-violet-400 border-violet-500/20',
-  Triceps: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/20',
-  Legs: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
+  Chest: 'bg-red-500/25 text-red-400 border-red-500/20',
+  Back: 'bg-blue-500/25 text-blue-400 border-blue-500/20',
+  Quadriceps: 'bg-emerald-500/25 text-emerald-400 border-emerald-500/20',
+  Hamstrings: 'bg-teal-500/25 text-teal-400 border-teal-500/20',
+  Glutes: 'bg-pink-500/25 text-pink-400 border-pink-500/20',
+  Shoulders: 'bg-orange-500/25 text-orange-400 border-orange-500/20',
+  Biceps: 'bg-violet-500/25 text-violet-400 border-violet-500/20',
+  Triceps: 'bg-indigo-500/25 text-indigo-400 border-indigo-500/20',
+  Legs: 'bg-emerald-500/25 text-emerald-400 border-emerald-500/20',
 };
-const DEFAULT_MUSCLE_COLOR = 'bg-gray-500/15 text-gray-400 border-gray-500/20';
+const DEFAULT_MUSCLE_COLOR = 'bg-gray-500/25 text-gray-400 border-gray-500/20';
 
 const History: React.FC = () => {
   const { workoutHistory } = useApp();
@@ -123,7 +120,7 @@ const History: React.FC = () => {
       <div className="space-y-3">
         {/* Search bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             value={search}
@@ -132,7 +129,7 @@ const History: React.FC = () => {
             className={cn(
               'w-full pl-10 pr-4 py-2.5 rounded-xl text-sm',
               'bg-background-card border border-gray-800 text-white',
-              'placeholder:text-gray-600',
+              'placeholder:text-gray-500',
               'focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40',
               'transition-all'
             )}
@@ -175,14 +172,14 @@ const History: React.FC = () => {
       {filteredSessions.length === 0 ? (
         <div className="text-center py-16 space-y-3">
           <div className="w-16 h-16 mx-auto bg-gray-800/50 rounded-full flex items-center justify-center">
-            <HistoryIcon className="w-8 h-8 text-gray-600" />
+            <HistoryIcon className="w-8 h-8 text-gray-400" />
           </div>
           <p className="text-lg font-bold text-gray-400">
             {completedSessions.length === 0
               ? 'Sin sesiones completadas'
               : 'No hay resultados'}
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-400">
             {completedSessions.length === 0
               ? 'Completa tu primer entrenamiento para verlo aquí.'
               : 'Intenta con otro filtro o término de búsqueda.'}
@@ -216,7 +213,7 @@ const History: React.FC = () => {
                       <h3 className="text-base font-bold text-white truncate">
                         {session.name}
                       </h3>
-                      <p className="text-xs text-gray-500 mt-0.5">{date}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{date}</p>
 
                       {/* Muscle badges */}
                       {session.muscleFocus && session.muscleFocus.length > 0 && (
@@ -257,8 +254,8 @@ const History: React.FC = () => {
 
                       {/* Expand icon */}
                       {isExpanded
-                        ? <ChevronUp className="w-4 h-4 text-gray-500" />
-                        : <ChevronDown className="w-4 h-4 text-gray-500" />
+                        ? <ChevronUp className="w-4 h-4 text-gray-400" />
+                        : <ChevronDown className="w-4 h-4 text-gray-400" />
                       }
                     </div>
                   </div>
@@ -274,7 +271,7 @@ const History: React.FC = () => {
                       return (
                         <div key={exIdx} className="space-y-1.5">
                           <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                            <Dumbbell className="w-3.5 h-3.5 text-gray-500" />
+                            <Dumbbell className="w-3.5 h-3.5 text-gray-400" />
                             {name}
                           </h4>
                           {completedSets.length > 0 ? (
@@ -287,7 +284,7 @@ const History: React.FC = () => {
                                   <span className={cn(
                                     'text-[10px] font-bold uppercase px-1.5 py-px rounded border',
                                     set.type === 'warmup'
-                                      ? 'text-blue-400 bg-blue-500/15 border-blue-500/20'
+                                      ? 'text-blue-400 bg-blue-500/25 border-blue-500/20'
                                       : 'text-primary bg-primary/15 border-primary/20'
                                   )}>
                                     {set.type === 'warmup' ? 'W' : 'T'}
@@ -307,7 +304,7 @@ const History: React.FC = () => {
                               ))}
                             </div>
                           ) : (
-                            <p className="ml-5 text-xs text-gray-600">Sin sets completados</p>
+                            <p className="ml-5 text-xs text-gray-400">Sin sets completados</p>
                           )}
                         </div>
                       );

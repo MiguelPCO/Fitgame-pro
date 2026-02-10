@@ -39,8 +39,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - [x] Baja prioridad (2): Constantes extraídas (UI_TIMING, USER_DEFAULTS), lib/dateUtils.ts, a11y forms (htmlFor/id), Slider aria, dead code cleanup (SetRow removed), avatar SVG inline
 - [x] Production-ready: Tailwind CDN → PostCSS build (66.3 kB CSS tree-shaken), Vercel config (SPA rewrites)
 - [x] UX Polish: PWA Install Prompt (beforeinstallprompt + banner), Skeleton Loaders (Dashboard/Progress/History), Loading states (Settings/Onboarding/TemplateEditor buttons), Mobile responsiveness audit (320px fixes)
+- [x] UI Contrast Overhaul: text-muted bumped to slate-300, all gray text levels raised for WCAG compliance, Card/Modal borders lightened, badge opacity increased, min font 10px
 
-### Última actualización: 2026-02-09
+### Última actualización: 2026-02-10
 
 ## Build & Development Commands
 
@@ -369,7 +370,7 @@ Dark mode con accent rojo (`#DC2626`) — definido en `tailwind.config.js`:
 - Cards: slate-800 (`#1e293b`)
 - Lighter: slate-700 (`#334155`)
 - Text main: slate-50 (`#f8fafc`)
-- Text muted: slate-400 (`#94a3b8`)
+- Text muted: slate-300 (`#cbd5e1`)
 - Glassmorphism: `backdrop-blur-xl`
 - Animaciones: `slide-up` (InstallBanner)
 

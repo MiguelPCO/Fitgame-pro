@@ -98,7 +98,7 @@ export const Modal: React.FC<ModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div className="flex items-center justify-between p-4 border-b border-gray-700 shrink-0">
             {title && <h3 className="font-bold text-white text-lg">{title}</h3>}
             {showCloseButton && (
               <button
@@ -111,7 +111,9 @@ export const Modal: React.FC<ModalProps> = ({
             )}
           </div>
         )}
-        {children}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -134,7 +136,7 @@ export interface ModalFooterProps {
 export const ModalFooter: React.FC<ModalFooterProps> = ({ children, className }) => (
   <div
     className={cn(
-      'p-4 border-t border-gray-800 bg-background-card/95 backdrop-blur flex justify-end gap-3',
+      'p-4 border-t border-gray-700 bg-background-card/95 backdrop-blur flex justify-end gap-3 shrink-0',
       className
     )}
   >

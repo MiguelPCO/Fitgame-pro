@@ -9,6 +9,7 @@ interface ExerciseCardProps {
   sets: WorkoutSet[];
   currentSetIndex: number;
   onSetClick: (setIndex: number) => void;
+  onDeleteSet?: (setIndex: number) => void;
   isActive: boolean;
   targetReps?: string;
   targetRPE?: number;
@@ -21,23 +22,24 @@ function getRPEColor(rpe: number): string {
 }
 
 const MUSCLE_COLORS: Record<string, string> = {
-  Chest: 'bg-red-500/15 text-red-400 border-red-500/20',
-  Back: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
-  Quadriceps: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
-  Hamstrings: 'bg-teal-500/15 text-teal-400 border-teal-500/20',
-  Glutes: 'bg-pink-500/15 text-pink-400 border-pink-500/20',
-  Shoulders: 'bg-orange-500/15 text-orange-400 border-orange-500/20',
-  Biceps: 'bg-violet-500/15 text-violet-400 border-violet-500/20',
-  Triceps: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/20',
+  Chest: 'bg-red-500/25 text-red-400 border-red-500/20',
+  Back: 'bg-blue-500/25 text-blue-400 border-blue-500/20',
+  Quadriceps: 'bg-emerald-500/25 text-emerald-400 border-emerald-500/20',
+  Hamstrings: 'bg-teal-500/25 text-teal-400 border-teal-500/20',
+  Glutes: 'bg-pink-500/25 text-pink-400 border-pink-500/20',
+  Shoulders: 'bg-orange-500/25 text-orange-400 border-orange-500/20',
+  Biceps: 'bg-violet-500/25 text-violet-400 border-violet-500/20',
+  Triceps: 'bg-indigo-500/25 text-indigo-400 border-indigo-500/20',
 };
 
-const DEFAULT_MUSCLE_COLOR = 'bg-gray-500/15 text-gray-400 border-gray-500/20';
+const DEFAULT_MUSCLE_COLOR = 'bg-gray-500/25 text-gray-400 border-gray-500/20';
 
 export function ExerciseCard({
   exercise,
   sets,
   currentSetIndex,
   onSetClick,
+  onDeleteSet,
   isActive,
   targetReps,
   targetRPE,
@@ -86,7 +88,7 @@ export function ExerciseCard({
                   backgroundSize: '16px 16px',
                 }}
               />
-              <Dumbbell className="w-12 h-12 text-gray-700" />
+              <Dumbbell className="w-12 h-12 text-gray-400" />
             </>
           )}
 
@@ -143,10 +145,10 @@ export function ExerciseCard({
           {/* Target info */}
           {(targetReps || targetRPE) && (
             <div className="flex items-center gap-2 mt-3 text-sm">
-              <Target className="w-3.5 h-3.5 text-gray-500" />
+              <Target className="w-3.5 h-3.5 text-gray-400" />
               <span className="text-gray-400">
                 {totalSets} sets × {targetReps || '8-12'} reps
-                {targetRPE && <span className="text-gray-500"> @ RPE {targetRPE}</span>}
+                {targetRPE && <span className="text-gray-400"> @ RPE {targetRPE}</span>}
               </span>
             </div>
           )}
@@ -177,6 +179,7 @@ export function ExerciseCard({
                 target={{ reps: set.targetReps, rpe: set.targetRPE }}
                 recommendedWeight={set.recommendedWeight}
                 onClick={() => onSetClick(idx)}
+                onDelete={onDeleteSet ? () => onDeleteSet(idx) : undefined}
               />
             );
           })}
@@ -189,14 +192,14 @@ export function ExerciseCard({
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-4">
               <div>
-                <span className="text-gray-500 text-xs">Volumen </span>
+                <span className="text-gray-400 text-xs">Volumen </span>
                 <span className="font-bold text-white">
                   {totalVolume.toLocaleString()} kg
                 </span>
               </div>
               {avgRPE > 0 && (
                 <div>
-                  <span className="text-gray-500 text-xs">RPE </span>
+                  <span className="text-gray-400 text-xs">RPE </span>
                   <span className={cn('font-bold', getRPEColor(avgRPE))}>
                     {avgRPE.toFixed(1)}
                   </span>

@@ -96,7 +96,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
               `}
             >
               <item.icon 
-                className={`w-5 h-5 ${currentPage === item.id ? 'text-primary' : 'group-hover:text-white text-gray-500'}`} 
+                className={`w-5 h-5 ${currentPage === item.id ? 'text-primary' : 'group-hover:text-white text-gray-400'}`} 
               />
               <span className="font-medium">{item.label}</span>
               {item.highlight && (
@@ -131,7 +131,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
 
           <div className="hidden md:flex items-center gap-4 text-sm text-text-muted">
              <span>Dashboard</span>
-             <span className="text-gray-700">/</span>
+             <span className="text-gray-400">/</span>
              <span className="text-white capitalize font-medium">{currentPage.replace('-', ' ')}</span>
           </div>
 

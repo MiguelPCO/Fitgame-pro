@@ -99,7 +99,7 @@ const AppContent: React.FC = () => {
   const renderContent = () => {
     switch (currentView) {
       case ROUTES.DASHBOARD:
-        return <Dashboard onStartWorkout={() => navigate(ROUTES.WORKOUT)} />;
+        return <Dashboard onStartWorkout={() => navigate(ROUTES.WORKOUT)} onNavigateProgress={() => navigate(ROUTES.PROGRESS)} />;
       case ROUTES.TEMPLATES:
         return (
           <Templates
@@ -132,7 +132,7 @@ const AppContent: React.FC = () => {
       case ROUTES.ONBOARDING:
         return <Onboarding onComplete={handleOnboardingComplete} />;
       default:
-        return <Dashboard onStartWorkout={() => navigate(ROUTES.WORKOUT)} />;
+        return <Dashboard onStartWorkout={() => navigate(ROUTES.WORKOUT)} onNavigateProgress={() => navigate(ROUTES.PROGRESS)} />;
     }
   };
 
@@ -140,7 +140,7 @@ const AppContent: React.FC = () => {
   if (currentView === ROUTES.WORKOUT) {
     return (
       <Suspense fallback={<PageLoader />}>
-        <div className="bg-background min-h-screen">{renderContent()}</div>
+        <div className="bg-background min-h-screen animate-fade-in">{renderContent()}</div>
       </Suspense>
     );
   }
@@ -149,7 +149,7 @@ const AppContent: React.FC = () => {
   if (currentView === ROUTES.TEMPLATE_EDITOR) {
     return (
       <Suspense fallback={<PageLoader />}>
-        <div className="bg-background min-h-screen p-4 md:p-8">{renderContent()}</div>
+        <div className="bg-background min-h-screen p-4 md:p-8 animate-fade-in">{renderContent()}</div>
       </Suspense>
     );
   }
@@ -157,7 +157,9 @@ const AppContent: React.FC = () => {
   return (
     <Layout currentPage={currentView} onNavigate={navigate}>
       <Suspense fallback={getPageFallback()}>
-        {renderContent()}
+        <div key={currentView} className="animate-fade-in-up">
+          {renderContent()}
+        </div>
       </Suspense>
     </Layout>
   );

@@ -9,7 +9,7 @@ import {
   Zap,
   Target,
 } from 'lucide-react';
-import { exercises as allExercises } from '../data/mockData';
+import { exerciseBlueprints as allExercises } from '../data/exerciseBlueprints';
 import { useApp } from '../context/AppContext';
 import { useSessionTimer } from '../hooks/useSessionTimer';
 import { cn } from '../lib/utils';
@@ -120,43 +120,14 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
     onFinish();
   };
 
-  // Show summary after session completion (MUST be before activeWorkout access)
-  if (showSummary && summarySnapshot.current && user) {
-    return (
-      <SessionSummary
-        session={summarySnapshot.current.session}
-        xpBreakdown={summarySnapshot.current.xpBreakdown}
-        user={user}
-        previousRecords={summarySnapshot.current.previousRecords}
-        onClose={handleSummaryClose}
-      />
-    );
-  }
+  // --- All hooks MUST be above early returns (rules-of-hooks) ---
 
-  // Guard: if activeWorkout was cleared but summary isn't showing
-  if (!activeWorkout) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen p-8 gap-6">
-        <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center">
-          <Dumbbell className="w-10 h-10 text-gray-500" />
-        </div>
-        <div className="text-center space-y-2">
-          <h2 className="text-xl font-bold text-white">No hay sesion activa</h2>
-          <p className="text-text-muted text-sm">Selecciona una rutina desde el dashboard para empezar.</p>
-        </div>
-        <Button onClick={onBack} leftIcon={<ChevronLeft className="w-5 h-5" />}>
-          Volver
-        </Button>
-      </div>
-    );
-  }
+  const exercises = activeWorkout?.exercises ?? [];
 
-  // --- Derived state (activeWorkout guaranteed non-null below) ---
-
-  const totalExercises = activeWorkout.exercises.length;
-  const activeExerciseData = activeWorkout.exercises[currentExerciseIndex];
+  const totalExercises = exercises.length;
+  const activeExerciseData = exercises[currentExerciseIndex] ?? null;
   const exerciseInfo = activeExerciseData
-    ? allExercises.find(e => e.id === activeExerciseData.exerciseId)
+    ? allExercises.find(e => e.id === activeExerciseData.exerciseId) ?? null
     : null;
 
   const nextPendingSetIndex = activeExerciseData
@@ -171,30 +142,24 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
   const isFirstExercise = currentExerciseIndex === 0;
 
   const allExercisesComplete = useMemo(() =>
-    activeWorkout.exercises.every(
+    exercises.every(
       ex => ex.sets.length > 0 && ex.sets.every(s => s.completed)
-    ), [activeWorkout.exercises]);
+    ), [exercises]);
 
-  // Live XP calculation from all completed sets
   const sessionXP = useMemo(() =>
-    activeWorkout.exercises.reduce((total, ex) => {
+    exercises.reduce((total, ex) => {
       return total + ex.sets.reduce((setTotal, set) => {
         if (!set.completed) return setTotal;
         let xp = XP.PER_SET;
         if (set.rpe && set.rpe >= 9) xp += XP.BONUS_RPE_9_PLUS;
         return setTotal + xp;
       }, 0);
-    }, 0), [activeWorkout.exercises]);
+    }, 0), [exercises]);
 
-  // Next exercise info for mobile preview
-  const nextExerciseData = !isLastExercise
-    ? activeWorkout.exercises[currentExerciseIndex + 1]
-    : null;
+  const nextExerciseData = !isLastExercise ? exercises[currentExerciseIndex + 1] ?? null : null;
   const nextExerciseInfo = nextExerciseData
-    ? allExercises.find(e => e.id === nextExerciseData.exerciseId)
+    ? allExercises.find(e => e.id === nextExerciseData.exerciseId) ?? null
     : null;
-
-  // --- Handlers that depend on derived state ---
 
   const handleSetClick = useCallback((setIndex: number) => {
     setSelectedSetIndex(setIndex);
@@ -208,25 +173,19 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
     updateSet(currentExerciseIndex, selectedSetIndex, 'rpe', data.rpe);
     updateSet(currentExerciseIndex, selectedSetIndex, 'completed', true);
 
-    // Calculate XP for this set and show popup
     const xpGained = XP.PER_SET + (data.rpe >= 9 ? XP.BONUS_RPE_9_PLUS : 0);
     setXpPopup({ amount: xpGained, key: Date.now() });
 
-    // Start rest timer
     const duration = activeExerciseData.restTimer || 90;
     startRestTimer(duration);
   }, [selectedSetIndex, activeExerciseData, currentExerciseIndex, updateSet, startRestTimer]);
 
   const handlePrev = useCallback(() => {
-    if (!isFirstExercise) {
-      setCurrentExerciseIndex(prev => prev - 1);
-    }
+    if (!isFirstExercise) setCurrentExerciseIndex(prev => prev - 1);
   }, [isFirstExercise]);
 
   const handleNext = useCallback(() => {
-    if (!isLastExercise) {
-      setCurrentExerciseIndex(prev => prev + 1);
-    }
+    if (!isLastExercise) setCurrentExerciseIndex(prev => prev + 1);
   }, [isLastExercise]);
 
   const handleExit = useCallback(() => {
@@ -242,7 +201,56 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
     }, 50);
   }, [addExerciseToSession, activeWorkout]);
 
-  // Previous set data for the modal
+  const sidebarExercises = useMemo(() =>
+    exercises.map(
+      ex => allExercises.find(e => e.id === ex.exerciseId)!
+    ).filter(Boolean), [exercises]);
+
+  const completedExercises = useMemo(() =>
+    exercises.reduce<number[]>((acc, ex, idx) => {
+      if (ex.sets.length > 0 && ex.sets.every(s => s.completed)) acc.push(idx);
+      return acc;
+    }, []), [exercises]);
+
+  const setsProgress = useMemo(() =>
+    exercises.map(ex => ({
+      completed: ex.sets.filter(s => s.completed).length,
+      total: ex.sets.length,
+    })), [exercises]);
+
+  // --- Early returns (after all hooks) ---
+
+  if (showSummary && summarySnapshot.current && user) {
+    return (
+      <SessionSummary
+        session={summarySnapshot.current.session}
+        xpBreakdown={summarySnapshot.current.xpBreakdown}
+        user={user}
+        previousRecords={summarySnapshot.current.previousRecords}
+        onClose={handleSummaryClose}
+      />
+    );
+  }
+
+  if (!activeWorkout) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen p-8 gap-6">
+        <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center">
+          <Dumbbell className="w-10 h-10 text-gray-400" />
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-xl font-bold text-white">No hay sesion activa</h2>
+          <p className="text-text-muted text-sm">Selecciona una rutina desde el dashboard para empezar.</p>
+        </div>
+        <Button onClick={onBack} leftIcon={<ChevronLeft className="w-5 h-5" />}>
+          Volver
+        </Button>
+      </div>
+    );
+  }
+
+  // --- Helper functions ---
+
   const getSelectedSetPrevious = () => {
     if (selectedSetIndex === null || !activeExerciseData) return undefined;
     if (selectedSetIndex === 0) return undefined;
@@ -250,32 +258,6 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
     if (!prevSet.completed || prevSet.weight === 0) return undefined;
     return { weight: prevSet.weight, reps: prevSet.reps, rpe: prevSet.rpe };
   };
-
-  // Selected set data (for editing completed sets)
-  const getSelectedSetData = () => {
-    if (selectedSetIndex === null || !activeExerciseData) return undefined;
-    const set = activeExerciseData.sets[selectedSetIndex];
-    if (!set.completed || set.weight === 0) return undefined;
-    return { weight: set.weight, reps: set.reps, rpe: set.rpe };
-  };
-
-  // --- Derived data for ExerciseSidebar ---
-  const sidebarExercises = useMemo(() =>
-    activeWorkout.exercises.map(
-      ex => allExercises.find(e => e.id === ex.exerciseId)!
-    ).filter(Boolean), [activeWorkout.exercises]);
-
-  const completedExercises = useMemo(() =>
-    activeWorkout.exercises.reduce<number[]>((acc, ex, idx) => {
-      if (ex.sets.length > 0 && ex.sets.every(s => s.completed)) acc.push(idx);
-      return acc;
-    }, []), [activeWorkout.exercises]);
-
-  const setsProgress = useMemo(() =>
-    activeWorkout.exercises.map(ex => ({
-      completed: ex.sets.filter(s => s.completed).length,
-      total: ex.sets.length,
-    })), [activeWorkout.exercises]);
 
   // --- Empty session state ---
   if (!activeExerciseData || !exerciseInfo) {
@@ -289,7 +271,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
           onExit={handleExit}
         />
         <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-6">
-          <div className="w-16 h-16 bg-background-card border border-gray-700 rounded-full flex items-center justify-center text-gray-500">
+          <div className="w-16 h-16 bg-background-card border border-gray-700 rounded-full flex items-center justify-center text-gray-400">
             <Dumbbell className="w-8 h-8" />
           </div>
           <div>
@@ -340,10 +322,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
       {/* XP popup */}
       <div aria-live="polite" aria-atomic="true" className="fixed top-16 inset-x-0 flex justify-center z-50 pointer-events-none">
         {xpPopup && (
-          <div
-            key={xpPopup.key}
-            style={{ animation: 'xpFloat 1.8s ease-out forwards' }}
-          >
+          <div key={xpPopup.key} className="animate-xp-fly">
             <div className="bg-amber-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center gap-1.5">
               <Zap className="w-4 h-4 fill-current" />
               +{xpPopup.amount} XP
@@ -385,6 +364,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
               sets={activeExerciseData.sets}
               currentSetIndex={nextPendingSetIndex >= 0 ? nextPendingSetIndex : 0}
               onSetClick={handleSetClick}
+              onDeleteSet={(idx) => deleteSet(currentExerciseIndex, idx)}
               isActive
               targetReps={activeExerciseData.sets[0]?.targetReps}
               targetRPE={activeExerciseData.sets[0]?.targetRPE}
@@ -444,7 +424,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
                     className="w-full flex items-center justify-between px-4 py-3 text-sm"
                   >
                     <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-gray-500" />
+                      <Target className="w-4 h-4 text-gray-400" />
                       <span className="text-text-muted font-medium">
                         {nextExerciseInfo
                           ? `Siguiente: ${nextExerciseInfo.name}`
@@ -453,7 +433,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
                       </span>
                     </div>
                     <ChevronDown className={cn(
-                      'w-4 h-4 text-gray-500 transition-transform duration-200',
+                      'w-4 h-4 text-gray-400 transition-transform duration-200',
                       showUpcoming && 'rotate-180'
                     )} />
                   </button>
@@ -541,7 +521,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
           exerciseName={exerciseInfo.name}
           setNumber={selectedSetIndex + 1}
           totalSets={activeExerciseData.sets.length}
-          previousSet={getSelectedSetData() || getSelectedSetPrevious()}
+          previousSet={getSelectedSetPrevious()}
           recommendedWeight={selectedSet.recommendedWeight}
           targetReps={selectedSet.targetReps}
           targetRPE={selectedSet.targetRPE}

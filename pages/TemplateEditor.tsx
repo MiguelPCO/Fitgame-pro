@@ -3,7 +3,7 @@ import { ArrowLeft, Save, Plus, Trash2, Dumbbell } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../components/ui/Toast';
 import { Button } from '../components/ui/Button';
-import { exercises as allExercises } from '../data/mockData';
+import { exerciseBlueprints as allExercises } from '../data/exerciseBlueprints';
 import { WorkoutTemplate, TemplateExercise } from '../types';
 
 interface TemplateEditorProps {
@@ -195,7 +195,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
            <div className="space-y-4">
              {templateExercises.length === 0 && !showExercisePicker && (
                <div className="text-center py-10 border-2 border-dashed border-gray-800 rounded-2xl">
-                 <Dumbbell className="w-10 h-10 text-gray-700 mx-auto mb-2" />
+                 <Dumbbell className="w-10 h-10 text-gray-400 mx-auto mb-2" />
                  <p className="text-text-muted">No exercises added yet.</p>
                </div>
              )}
@@ -206,13 +206,13 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
                  <div key={idx} className="bg-background-card border border-gray-800 rounded-xl p-4 relative group hover:border-gray-600 transition-colors">
                     <button 
                       onClick={() => removeExercise(idx)}
-                      className="absolute top-4 right-4 text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute top-4 right-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                     
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center font-bold text-gray-500 text-sm">
+                      <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center font-bold text-gray-400 text-sm">
                         {idx + 1}
                       </div>
                       <div>

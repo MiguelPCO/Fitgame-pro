@@ -153,7 +153,7 @@ export function RPESlider({ value, onChange, disabled = false }: RPESliderProps)
       </div>
 
       {/* Scale labels */}
-      <div className="flex justify-between px-1 text-[10px] font-medium text-gray-500">
+      <div className="flex justify-between px-1 text-[10px] font-medium text-gray-400">
         <span>Easy</span>
         <span>Hard</span>
         <span>Max</span>

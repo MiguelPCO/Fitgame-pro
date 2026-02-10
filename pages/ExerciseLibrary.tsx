@@ -9,7 +9,7 @@ import {
   Plus,
   Zap
 } from 'lucide-react';
-import { exercises as allExercises } from '../data/mockData';
+import { exerciseBlueprints as allExercises } from '../data/exerciseBlueprints';
 import { useApp } from '../context/AppContext';
 import { Exercise } from '../types';
 import { Button } from '../components/ui/Button';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, ChevronRight } from 'lucide-react';
+import { Check, ChevronRight, Trash2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 type SetType = 'warmup' | 'top' | 'backoff';
@@ -12,6 +12,7 @@ interface SetCardProps {
   recommendedWeight?: number;
   setType?: SetType;
   onClick: () => void;
+  onDelete?: () => void;
 }
 
 function getSetTypeLabel(type: SetType): string {
@@ -24,9 +25,9 @@ function getSetTypeLabel(type: SetType): string {
 
 function getSetTypeBadge(type: SetType): string {
   switch (type) {
-    case 'warmup': return 'text-blue-400 bg-blue-500/15 border-blue-500/20';
-    case 'top': return 'text-primary bg-primary/15 border-primary/20';
-    case 'backoff': return 'text-amber-400 bg-amber-500/15 border-amber-500/20';
+    case 'warmup': return 'text-blue-400 bg-blue-500/25 border-blue-500/20';
+    case 'top': return 'text-primary bg-primary/25 border-primary/20';
+    case 'backoff': return 'text-amber-400 bg-amber-500/25 border-amber-500/20';
   }
 }
 
@@ -44,6 +45,7 @@ export const SetCard: React.FC<SetCardProps> = ({
   recommendedWeight = 0,
   setType,
   onClick,
+  onDelete,
 }) => {
   const isActive = status === 'active';
   const isCompleted = status === 'completed';
@@ -77,7 +79,7 @@ export const SetCard: React.FC<SetCardProps> = ({
       <div className="flex items-center justify-center gap-1.5 mb-2">
         {setType && (
           <span className={cn(
-            'text-[9px] font-bold uppercase px-1.5 py-px rounded border',
+            'text-[10px] font-bold uppercase px-1.5 py-px rounded border',
             getSetTypeBadge(setType)
           )}>
             {getSetTypeLabel(setType)}
@@ -85,7 +87,7 @@ export const SetCard: React.FC<SetCardProps> = ({
         )}
         <span className={cn(
           'text-[11px] font-bold',
-          isCompleted ? 'text-gray-400' : isActive ? 'text-primary' : 'text-gray-600'
+          isCompleted ? 'text-gray-400' : isActive ? 'text-primary' : 'text-gray-400'
         )}>
           #{setNumber}
         </span>
@@ -95,7 +97,7 @@ export const SetCard: React.FC<SetCardProps> = ({
       {isCompleted && data ? (
         <>
           <p className="text-base font-black text-white leading-tight">
-            {data.weight}<span className="text-gray-500 text-xs font-medium">kg</span>
+            {data.weight}<span className="text-gray-400 text-xs font-medium">kg</span>
           </p>
           <p className="text-xs text-gray-400 font-semibold mt-0.5">
             × {data.reps} reps
@@ -116,7 +118,7 @@ export const SetCard: React.FC<SetCardProps> = ({
             <span className="text-xs font-bold">Registrar</span>
           </div>
           {target && (
-            <p className="text-[10px] text-gray-500 mt-1">
+            <p className="text-[10px] text-gray-400 mt-1">
               {target.reps} @ RPE {target.rpe}
             </p>
           )}
@@ -124,16 +126,16 @@ export const SetCard: React.FC<SetCardProps> = ({
       ) : (
         <>
           {recommendedWeight > 0 && (
-            <p className="text-xs font-bold text-gray-500 mb-0.5">
-              {recommendedWeight}<span className="text-gray-600 text-[9px] font-medium">kg</span>
+            <p className="text-xs font-bold text-gray-400 mb-0.5">
+              {recommendedWeight}<span className="text-gray-400 text-[10px] font-medium">kg</span>
             </p>
           )}
           {target && (
             <>
-              <p className="text-sm font-semibold text-gray-600">
+              <p className="text-sm font-semibold text-gray-400">
                 {target.reps}
               </p>
-              <p className="text-[10px] text-gray-700 mt-0.5">
+              <p className="text-[10px] text-gray-400 mt-0.5">
                 RPE {target.rpe}
               </p>
             </>
@@ -141,9 +143,23 @@ export const SetCard: React.FC<SetCardProps> = ({
         </>
       )}
 
+      {/* Delete button for completed sets */}
+      {isCompleted && onDelete && (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); e.preventDefault(); onDelete(); } }}
+          className="absolute top-1.5 left-1.5 p-0.5 rounded text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+          aria-label={`Eliminar set ${setNumber}`}
+        >
+          <Trash2 className="w-3 h-3" />
+        </div>
+      )}
+
       {/* Completed checkmark */}
       {isCompleted && (
-        <div className="absolute top-1.5 right-1.5">
+        <div className="absolute top-1.5 right-1.5 animate-check-pop">
           <Check className="w-3.5 h-3.5 text-green-500" />
         </div>
       )}

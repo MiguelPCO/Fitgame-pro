@@ -84,7 +84,7 @@ export function RestTimer({
             fill="none"
             stroke="currentColor"
             strokeWidth="6"
-            className="text-gray-800"
+            className="text-gray-500"
           />
           {/* Progress circle */}
           <circle
@@ -109,7 +109,7 @@ export function RestTimer({
           )}>
             {formatTime(remaining)}
           </span>
-          <span className="text-sm text-gray-500 mt-1">
+          <span className="text-sm text-gray-400 mt-1">
             {isFinished ? 'Rest complete!' : 'Rest time'}
           </span>
         </div>
@@ -203,7 +203,7 @@ export function RestTimer({
             'text-sm font-medium transition-colors',
             soundEnabled
               ? 'text-gray-300 hover:text-white'
-              : 'text-gray-500 hover:text-gray-400'
+              : 'text-gray-400 hover:text-gray-400'
           )}
         >
           {soundEnabled ? (
@@ -272,7 +272,7 @@ export function RestTimerCompact({
             fill="none"
             stroke="currentColor"
             strokeWidth="3"
-            className="text-gray-700"
+            className="text-gray-400"
           />
           <circle
             cx="18"

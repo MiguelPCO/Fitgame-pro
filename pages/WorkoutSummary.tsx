@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Share2, Home, Star, Trophy, Activity, Dumbbell, Calendar, Clock, CheckCircle2, ArrowRight, Download } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { exercises as allExercises } from '../data/mockData';
+import { exerciseBlueprints as allExercises } from '../data/exerciseBlueprints';
 
 interface Props {
   onHome: () => void;
@@ -19,7 +19,7 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
   if (!lastCompletedSession || !user) {
     return (
        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-         <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-500">
+         <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-400">
             <Activity className="w-8 h-8" />
          </div>
          <h2 className="text-xl font-bold text-white mb-2">No Workout Found</h2>
@@ -153,8 +153,8 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
                    {bestSet.weight > 0 ? (
                      <div className="text-right">
                         <div className="flex items-center gap-1 justify-end text-white font-bold text-lg">
-                           {bestSet.weight}<span className="text-sm text-gray-500 font-normal">kg</span>
-                           <span className="text-gray-600 mx-1">x</span>
+                           {bestSet.weight}<span className="text-sm text-gray-400 font-normal">kg</span>
+                           <span className="text-gray-400 mx-1">x</span>
                            {bestSet.reps}
                         </div>
                         <div className="flex justify-end mt-1">
@@ -164,7 +164,7 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
                         </div>
                      </div>
                    ) : (
-                     <span className="text-sm font-bold text-gray-600 bg-gray-800/50 px-3 py-1 rounded-lg">Skipped</span>
+                     <span className="text-sm font-bold text-gray-400 bg-gray-800/50 px-3 py-1 rounded-lg">Skipped</span>
                    )}
                 </div>
               )

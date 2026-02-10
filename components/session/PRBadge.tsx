@@ -27,7 +27,7 @@ export const PRBadge: React.FC<PRBadgeProps> = ({ exercise, weight, reps, improv
         )}
       >
         {/* Trophy icon */}
-        <div className="w-10 h-10 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0">
+        <div className="w-10 h-10 rounded-lg bg-amber-500/25 flex items-center justify-center shrink-0">
           <Trophy className="w-5 h-5 text-amber-400" />
         </div>
 
@@ -43,7 +43,7 @@ export const PRBadge: React.FC<PRBadgeProps> = ({ exercise, weight, reps, improv
 
         {/* Improvement badge */}
         {improvement && (
-          <span className="text-[11px] font-bold text-amber-400 bg-amber-500/15 px-2 py-1 rounded-md shrink-0">
+          <span className="text-[11px] font-bold text-amber-400 bg-amber-500/25 px-2 py-1 rounded-md shrink-0">
             {improvement}
           </span>
         )}

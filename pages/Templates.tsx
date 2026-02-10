@@ -45,7 +45,7 @@ const Templates: React.FC<TemplatesProps> = ({ onCreate, onEdit, onStart }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {templates.length === 0 ? (
           <div className="col-span-full py-16 text-center bg-background-card rounded-2xl border border-dashed border-gray-800">
-             <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-500">
+             <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
                <ClipboardIcon className="w-8 h-8" />
              </div>
              <h3 className="text-xl font-bold text-white mb-2">No templates found</h3>

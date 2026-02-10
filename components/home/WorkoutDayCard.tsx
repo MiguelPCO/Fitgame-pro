@@ -63,7 +63,7 @@ export function WorkoutDayCard({ workout, date, variant, onStartWorkout }: Worko
         'flex flex-col items-center justify-center text-center min-h-[300px]',
         variant === 'past' ? 'opacity-60' : 'border-dashed'
       )}>
-        <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-500">
+        <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-4 text-gray-400">
           <Zap className="w-8 h-8" />
         </div>
         <h3 className="text-2xl font-bold text-white mb-2">Rest Day</h3>

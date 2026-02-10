@@ -15,13 +15,13 @@ const variantStyles: Record<NonNullable<ButtonProps['variant']>, string> = {
   primary:
     'bg-primary hover:bg-primary-hover text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95',
   secondary:
-    'bg-background-card border border-gray-700 hover:bg-gray-800 text-white hover:border-gray-600',
+    'bg-background-card border border-gray-700 hover:bg-gray-800 text-white hover:border-gray-600 active:scale-95',
   ghost:
-    'bg-transparent hover:bg-white/10 text-text-muted hover:text-white',
+    'bg-transparent hover:bg-white/10 text-text-muted hover:text-white active:scale-95',
   danger:
-    'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/20',
+    'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/20 active:scale-95',
   success:
-    'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20',
+    'bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 active:scale-95',
 };
 
 const sizeStyles: Record<NonNullable<ButtonProps['size']>, string> = {

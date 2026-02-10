@@ -32,7 +32,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         ref={ref}
         className={cn(
           'bg-background-card rounded-2xl',
-          border && 'border border-gray-800',
+          border && 'border border-gray-700',
           paddingStyles[padding],
           hover && 'hover:border-gray-600 transition-all',
           className

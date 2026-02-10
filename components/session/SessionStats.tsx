@@ -13,7 +13,7 @@ function getRPEColor(rpe: number): string {
   if (rpe >= 9) return 'text-red-400 bg-red-500/10 border-red-500/20';
   if (rpe >= 7) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
   if (rpe > 0) return 'text-green-400 bg-green-500/10 border-green-500/20';
-  return 'text-gray-500 bg-gray-500/10 border-gray-500/20';
+  return 'text-gray-400 bg-gray-500/10 border-gray-500/20';
 }
 
 const stats = [
@@ -82,7 +82,7 @@ export function SessionStats({
               )}>
                 <Icon className="w-3.5 h-3.5" />
               </div>
-              <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+              <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
                 {label}
               </span>
             </div>

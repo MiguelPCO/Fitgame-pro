@@ -55,7 +55,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
             {this.state.error && (
               <div className="px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-left">
-                <p className="text-xs text-gray-500 font-mono break-all">
+                <p className="text-xs text-gray-400 font-mono break-all">
                   {this.state.error.message}
                 </p>
               </div>

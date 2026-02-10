@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { PartyPopper, Zap, Trophy, ArrowRight } from 'lucide-react';
 import { WorkoutSession, UserProfile } from '../../types';
 import { XPBreakdown as XPBreakdownType } from '../../services/xp';
-import { exercises as allExercises } from '../../data/mockData';
+import { exerciseBlueprints as allExercises } from '../../data/exerciseBlueprints';
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/Button';
 import { SessionStats } from './SessionStats';
@@ -217,7 +217,7 @@ export function SessionSummary({
               <span className="text-sm font-bold text-gray-400">
                 Nivel {user.level}
               </span>
-              <span className="text-xs font-semibold text-gray-500">
+              <span className="text-xs font-semibold text-gray-400">
                 {newXP.toLocaleString()} / {xpToNext.toLocaleString()} XP
               </span>
             </div>
@@ -228,7 +228,7 @@ export function SessionSummary({
               />
             </div>
             {xpNeeded > 0 && (
-              <p className="text-xs text-gray-500 mt-2 text-center">
+              <p className="text-xs text-gray-400 mt-2 text-center">
                 ¡<span className="text-amber-400 font-bold">{xpNeeded.toLocaleString()} XP</span> para nivel {user.level + 1}!
               </p>
             )}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Minus, Plus, Check, Dumbbell, Sparkles } from 'lucide-react';
 import { Modal, ModalBody, ModalFooter } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -88,7 +88,7 @@ function NumberInput({ value, onChange, step, min, max, label, unit, size = 'lg'
           />
           <span className={cn(
             'absolute right-3 top-1/2 -translate-y-1/2',
-            'text-gray-500 font-medium pointer-events-none',
+            'text-gray-400 font-medium pointer-events-none',
             size === 'lg' ? 'text-sm' : 'text-xs'
           )}>
             {unit}
@@ -151,10 +151,11 @@ export function SetInputModal({
   const [weight, setWeight] = useState(0);
   const [reps, setReps] = useState(0);
   const [rpe, setRpe] = useState(8);
+  const prevOpenRef = useRef(false);
 
-  // Initialize with previous set values when modal opens
+  // Initialize with previous set values only when modal first opens
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevOpenRef.current) {
       if (previousSet) {
         setWeight(previousSet.weight);
         setReps(previousSet.reps);
@@ -165,6 +166,7 @@ export function SetInputModal({
         setRpe(targetRPE);
       }
     }
+    prevOpenRef.current = isOpen;
   }, [isOpen, previousSet, targetRPE]);
 
   const handleSave = () => {
@@ -214,7 +216,7 @@ export function SetInputModal({
         {/* Previous set info */}
         {previousSet && previousSet.weight > 0 && (
           <div className="mt-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-400">
               Último set: <span className="text-gray-300 font-semibold">{previousSet.weight}kg × {previousSet.reps} reps</span>
             </p>
           </div>
