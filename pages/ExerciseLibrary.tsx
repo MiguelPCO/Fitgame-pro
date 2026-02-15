@@ -13,7 +13,6 @@ import { exerciseBlueprints as allExercises } from '../data/exerciseBlueprints';
 import { useApp } from '../context/AppContext';
 import { Exercise } from '../types';
 import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
 import { Badge, getDifficultyVariant } from '../components/ui/Badge';
 import { Input } from '../components/ui/Input';
 
@@ -147,7 +146,7 @@ const ExerciseLibrary: React.FC = () => {
       </div>
 
       {/* Exercise Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[500px]">
+      <div role="region" aria-live="polite" aria-label="Ejercicios filtrados" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[500px]">
         {filteredExercises.length > 0 ? (
           filteredExercises.map((exercise) => (
             <ExerciseCard 
@@ -162,8 +161,8 @@ const ExerciseLibrary: React.FC = () => {
         ) : (
           <div className="col-span-full flex flex-col items-center justify-center text-center py-20 text-text-muted">
              <Dumbbell className="w-16 h-16 opacity-20 mb-4" />
-             <p className="text-lg font-medium text-white">No exercises found.</p>
-             <p>Try adjusting your search or filters.</p>
+             <p className="text-lg font-medium text-white">Sin ejercicios encontrados.</p>
+             <p>Intenta ajustar tu busqueda o filtros.</p>
              <button 
                onClick={() => {setSelectedMuscle('All'); setSelectedEquipment('All'); setSearchQuery('');}}
                className="mt-4 px-6 py-2 bg-gray-800 rounded-lg text-sm hover:bg-gray-700 transition-colors"

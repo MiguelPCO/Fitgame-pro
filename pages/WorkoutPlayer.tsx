@@ -40,7 +40,6 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
     addSet,
     deleteSet,
     addExerciseToSession,
-    removeExerciseFromSession,
     completeSession,
     restTimer,
     startRestTimer,
@@ -122,7 +121,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
 
   // --- All hooks MUST be above early returns (rules-of-hooks) ---
 
-  const exercises = activeWorkout?.exercises ?? [];
+  const exercises = useMemo(() => activeWorkout?.exercises ?? [], [activeWorkout?.exercises]);
 
   const totalExercises = exercises.length;
   const activeExerciseData = exercises[currentExerciseIndex] ?? null;

@@ -7,7 +7,6 @@ import {
   Clock,
   Flame,
   Zap,
-  Trophy,
   Dumbbell,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -125,6 +124,7 @@ const History: React.FC = () => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            aria-label="Buscar sesiones por nombre"
             placeholder="Buscar por nombre..."
             className={cn(
               'w-full pl-10 pr-4 py-2.5 rounded-xl text-sm',
@@ -138,7 +138,7 @@ const History: React.FC = () => {
 
         {/* Muscle filter pills */}
         {allMuscleGroups.length > 0 && (
-          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <div role="group" aria-label="Filtrar por grupo muscular" className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <button
               onClick={() => setMuscleFilter(null)}
               className={cn(
@@ -186,7 +186,7 @@ const History: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div role="list" aria-label="Sesiones de entrenamiento" className="space-y-3">
           {filteredSessions.map(session => {
             const isExpanded = expandedId === session.id;
             const volume = calculateSessionVolume(session);
@@ -196,6 +196,7 @@ const History: React.FC = () => {
             return (
               <div
                 key={session.id}
+                role="listitem"
                 className={cn(
                   'rounded-xl border overflow-hidden transition-all duration-200',
                   isExpanded
@@ -206,6 +207,8 @@ const History: React.FC = () => {
                 {/* Session summary row */}
                 <button
                   onClick={() => toggleExpand(session.id)}
+                  aria-expanded={isExpanded}
+                  aria-controls={`session-detail-${session.id}`}
                   className="w-full text-left px-4 py-3.5"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -263,7 +266,7 @@ const History: React.FC = () => {
 
                 {/* Expanded detail */}
                 {isExpanded && (
-                  <div className="border-t border-gray-800/50 px-4 py-3 space-y-3">
+                  <div id={`session-detail-${session.id}`} className="border-t border-gray-800/50 px-4 py-3 space-y-3">
                     {session.exercises.map((ex, exIdx) => {
                       const name = getExerciseName(ex.exerciseId);
                       const completedSets = ex.sets.filter(s => s.completed);

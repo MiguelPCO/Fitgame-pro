@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="es" class="dark">
   <head>
+    <script>
+      // Prevent flash: apply theme before render
+      (function(){var t=localStorage.getItem('fitgame-theme')||'dark';var r=t==='system'?window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light':t;document.documentElement.className=r;})();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FitGame Pro — Gamified Fitness Tracker</title>

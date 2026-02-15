@@ -33,14 +33,14 @@ const getTierName = (level: number): string => {
 };
 
 /** Convert a template to a preview WorkoutSession (for display, not for starting) */
-const templateToPreviewSession = (template: { id: string; name: string; duration: string; muscleFocus: string[]; exercises: any[] }): WorkoutSession => ({
+const templateToPreviewSession = (template: { id: string; name: string; duration: string; muscleFocus: string[]; exercises: { exerciseId: string; restTimer?: number; sets: number; targetReps?: string; targetRPE?: number }[] }): WorkoutSession => ({
   id: `preview-${template.id}`,
   name: template.name,
   duration: template.duration,
   muscleFocus: template.muscleFocus,
   completed: false,
   xpReward: 0,
-  exercises: template.exercises.map((ex: any) => ({
+  exercises: template.exercises.map((ex) => ({
     exerciseId: ex.exerciseId,
     restTimer: ex.restTimer || DEFAULT_SET_CONFIG.restTimer,
     sets: Array.from({ length: ex.sets || 3 }).map((_, idx) => ({

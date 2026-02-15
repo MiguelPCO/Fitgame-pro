@@ -53,7 +53,7 @@ interface AppState {
   startSession: (session: WorkoutSession) => void;
   startSessionFromTemplate: (template: WorkoutTemplate) => void;
   completeSession: () => void;
-  updateSet: (exerciseIndex: number, setIndex: number, field: keyof WorkoutSet, value: any) => void;
+  updateSet: (exerciseIndex: number, setIndex: number, field: keyof WorkoutSet, value: WorkoutSet[keyof WorkoutSet]) => void;
   addSet: (exerciseIndex: number) => void;
   deleteSet: (exerciseIndex: number, setIndex: number) => void;
   addExerciseToSession: (exerciseId: string) => void;
@@ -158,7 +158,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Load additional user data (templates, history, PRs)
       await loadUserData(uid);
     }
-  }, [loadUserData]);
+  }, [loadUserData, toast]);
 
   // Initialize auth state
   useEffect(() => {
@@ -233,7 +233,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Rest Timer Logic
   useEffect(() => {
-    let interval: any;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (restTimer.isActive && restTimer.endTime) {
       interval = setInterval(() => {
         const now = Date.now();
@@ -330,7 +330,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (isSupabaseConfigured() && supabase && userId) {
       const { error } = await supabase
         .from('profiles')
-        .update({ weekly_schedule: schedule as any })
+        .update({ weekly_schedule: schedule as Record<string, string> })
         .eq('id', userId);
 
       if (error) {
@@ -367,7 +367,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (Object.keys(updatePayload).length > 0) {
         const { error } = await supabase
           .from('profiles')
-          .update(updatePayload as any)
+          .update(updatePayload as Record<string, unknown>)
           .eq('id', userId);
 
         if (error) {
@@ -537,7 +537,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Workout Modifiers
-  const updateSet = (exerciseIndex: number, setIndex: number, field: keyof WorkoutSet, value: any) => {
+  const updateSet = (exerciseIndex: number, setIndex: number, field: keyof WorkoutSet, value: WorkoutSet[keyof WorkoutSet]) => {
     setActiveWorkout(prev => {
       if (!prev) return null;
       const newExercises = [...prev.exercises];

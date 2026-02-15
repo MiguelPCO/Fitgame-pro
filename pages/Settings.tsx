@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, User, Target, Clock, Dumbbell, Shield, ChevronRight, Download } from 'lucide-react';
+import { Save, User, Target, Clock, Dumbbell, Shield, ChevronRight, Download, Sun, Moon, Monitor } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { useToast } from '../components/ui/Toast';
 import { resetPassword, deleteAccount } from '../services/auth';
@@ -9,6 +9,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { cn } from '../lib/utils';
 import { Goal, ExperienceLevel } from '../types';
+import { useTheme, ThemeMode } from '../hooks/useTheme';
 
 const GOALS: { value: Goal; label: string; icon: string }[] = [
   { value: 'Strength', label: 'Fuerza', icon: '💪' },
@@ -51,6 +52,7 @@ const Settings: React.FC = () => {
     setHasChanges(changed);
   }, [name, goal, daysPerWeek, minutesPerSession, experienceLevel, equipment, user]);
 
+  const { mode: themeMode, setMode: setThemeMode } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
@@ -294,6 +296,35 @@ const Settings: React.FC = () => {
               )}
             >
               {item}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      {/* Theme */}
+      <Card className="p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Sun className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-white">Tema</h2>
+        </div>
+        <div className="flex gap-3">
+          {([
+            { value: 'dark' as ThemeMode, label: 'Oscuro', icon: <Moon className="w-4 h-4" /> },
+            { value: 'light' as ThemeMode, label: 'Claro', icon: <Sun className="w-4 h-4" /> },
+            { value: 'system' as ThemeMode, label: 'Sistema', icon: <Monitor className="w-4 h-4" /> },
+          ]).map(t => (
+            <button
+              key={t.value}
+              onClick={() => setThemeMode(t.value)}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-medium transition-all',
+                themeMode === t.value
+                  ? 'border-primary bg-primary/10 text-white'
+                  : 'border-gray-700 text-text-muted hover:border-gray-600'
+              )}
+            >
+              {t.icon}
+              {t.label}
             </button>
           ))}
         </div>

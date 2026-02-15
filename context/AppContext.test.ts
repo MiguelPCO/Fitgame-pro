@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { calculateWorkoutXP, calculateNewUserStats, calculateTier } from '../services/xp';
 import { getRecommendedWeight, getWarmupWeight } from '../lib/weightRecommendation';
 import { WorkoutSession, WorkoutSet } from '../types';
@@ -153,7 +153,7 @@ describe('Session Lifecycle Integration', () => {
 
   describe('User stats progression', () => {
     it('levels up when XP exceeds threshold', () => {
-      const user = { level: 1, xp: 90, xpToNextLevel: 100, streak: 0, tier: 'Novice' as const } as any;
+      const user = { level: 1, xp: 90, xpToNextLevel: 100, streak: 0, tier: 'Novice' as const } as Parameters<typeof calculateNewUserStats>[0];
       const stats = calculateNewUserStats(user, 20);
 
       // XP overflow after level up: 90 + 20 = 110, minus 100 threshold = 10 remaining
@@ -162,7 +162,7 @@ describe('Session Lifecycle Integration', () => {
     });
 
     it('increments streak', () => {
-      const user = { level: 1, xp: 0, xpToNextLevel: 100, streak: 3, tier: 'Novice' as const } as any;
+      const user = { level: 1, xp: 0, xpToNextLevel: 100, streak: 3, tier: 'Novice' as const } as Parameters<typeof calculateNewUserStats>[0];
       const stats = calculateNewUserStats(user, 10);
 
       expect(stats.streak).toBe(4);

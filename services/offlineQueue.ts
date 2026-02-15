@@ -70,14 +70,17 @@ async function executeOperation(op: QueuedOperation): Promise<boolean> {
 
     switch (op.action) {
       case 'insert':
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         result = await supabase.from(table).insert(op.payload as any);
         break;
       case 'update': {
         const { id, ...rest } = op.payload;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         result = await supabase.from(table).update(rest as any).eq('id', id as string);
         break;
       }
       case 'upsert':
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         result = await supabase.from(table).upsert(op.payload as any);
         break;
       case 'delete': {
@@ -141,7 +144,7 @@ export async function withOfflineQueue<T>(
   table: string,
   action: QueuedOperation['action'],
   payload: Record<string, unknown>,
-  supabaseFn: () => Promise<{ error: any; data?: T }>
+  supabaseFn: () => Promise<{ error: unknown; data?: T }>
 ): Promise<{ data?: T; queued: boolean }> {
   if (!isSupabaseConfigured()) {
     enqueue(table, action, payload);

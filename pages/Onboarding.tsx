@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { CheckCircle2, ChevronRight, ChevronLeft, Dumbbell, Activity, Calendar, Target, Sparkles, CalendarDays, Rocket, Coffee, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { UserProfile, WorkoutTemplate, WeeklySchedule } from '../types';
@@ -78,7 +78,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     }
   };
 
-  const updateData = (key: keyof UserProfile, value: any) => {
+  const updateData = (key: keyof UserProfile, value: UserProfile[keyof UserProfile]) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
@@ -277,7 +277,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             </p>
 
             <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
-              {generatedTemplates.map((template, idx) => (
+              {generatedTemplates.map((template) => (
                 <div
                   key={template.id}
                   className="p-4 rounded-xl border border-gray-700 bg-background/50 hover:border-purple-500/50 transition-colors"

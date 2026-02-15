@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { TrendingUp, Activity, Trophy, Calendar, Flame, Award } from 'lucide-react';
+import { Activity, Trophy, Calendar, Flame, Award } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { WorkoutSession } from '../types';
 import { exerciseBlueprints as exerciseDB } from '../data/exerciseBlueprints';
@@ -85,8 +85,8 @@ const Progress: React.FC = () => {
     <div className="space-y-6 pb-10">
       <div className="flex justify-between items-end border-b border-gray-800 pb-6">
         <div>
-           <h1 className="text-3xl font-black text-white">Your Progress</h1>
-           <p className="text-text-muted mt-1">Analytics based on your {totalWorkouts} completed sessions.</p>
+           <h1 className="text-3xl font-black text-white">Tu Progreso</h1>
+           <p className="text-text-muted mt-1">Estadisticas basadas en tus {totalWorkouts} sesiones completadas.</p>
         </div>
       </div>
 
@@ -120,7 +120,7 @@ const Progress: React.FC = () => {
              </div>
            </div>
            <div className="mt-4 pt-4 border-t border-gray-700/50">
-             <p className="text-sm text-gray-400">Keep showing up. Consistency is key.</p>
+             <p className="text-sm text-gray-400">Sigue apareciendo. La constancia es clave.</p>
            </div>
         </div>
 
@@ -153,7 +153,7 @@ const Progress: React.FC = () => {
                  </BarChart>
                </ResponsiveContainer>
              ) : (
-               <div className="h-full flex items-center justify-center text-xs text-gray-400">No workout data yet</div>
+               <div className="h-full flex items-center justify-center text-xs text-gray-400">Sin datos de entrenamiento</div>
              )}
            </div>
         </div>
@@ -176,7 +176,7 @@ const Progress: React.FC = () => {
 
       {/* Detailed Chart */}
       <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
-         <h3 className="text-lg font-bold text-white mb-6">Volume Progression</h3>
+         <h3 className="text-lg font-bold text-white mb-6">Progresion de Volumen</h3>
          <div className="h-64">
            {workoutHistory.length > 0 ? (
              <ResponsiveContainer width="100%" height="100%">
@@ -199,7 +199,7 @@ const Progress: React.FC = () => {
            ) : (
              <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-2">
                 <Activity className="w-8 h-8 opacity-50" />
-                <p>Complete a workout to see your analytics</p>
+                <p className="text-sm">Completa un entrenamiento para ver tu progreso</p>
              </div>
            )}
          </div>
@@ -209,7 +209,7 @@ const Progress: React.FC = () => {
       <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
         <div className="flex items-center gap-3 mb-6">
           <Award className="w-5 h-5 text-yellow-500" />
-          <h3 className="text-lg font-bold text-white">Personal Records</h3>
+          <h3 className="text-lg font-bold text-white">Records Personales</h3>
         </div>
 
         {prList.length > 0 ? (
@@ -231,17 +231,22 @@ const Progress: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-8 text-gray-400 gap-2">
-            <Trophy className="w-8 h-8 opacity-50" />
-            <p className="text-sm">Complete workouts to set your first PR</p>
+          <div className="flex flex-col items-center justify-center py-8 text-gray-400 gap-3">
+            <div className="w-14 h-14 bg-gray-800/50 rounded-full flex items-center justify-center">
+              <Trophy className="w-7 h-7 opacity-50" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-white">Sin records personales</p>
+              <p className="text-xs text-gray-400 mt-1">Completa entrenamientos para establecer tus primeros PRs</p>
+            </div>
           </div>
         )}
       </div>
 
       {/* Consistency Heatmap */}
       <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
-         <h3 className="text-lg font-bold text-white mb-4">Consistency Heatmap (Last 60 Days)</h3>
-         <div className="grid grid-cols-10 sm:grid-cols-[repeat(20,minmax(0,1fr))] gap-1 sm:gap-2">
+         <h3 className="text-lg font-bold text-white mb-4">Mapa de Consistencia (Ultimos 60 Dias)</h3>
+         <div role="img" aria-label="Mapa de consistencia de los ultimos 60 dias" className="grid grid-cols-10 sm:grid-cols-[repeat(20,minmax(0,1fr))] gap-1 sm:gap-2">
             {heatmapDays.map((day, i) => (
               <div
                 key={i}

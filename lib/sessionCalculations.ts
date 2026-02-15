@@ -1,4 +1,4 @@
-import { WorkoutSession, WorkoutSet, ActiveExercise } from '../types';
+import { WorkoutSession, ActiveExercise } from '../types';
 import { XP } from './constants';
 import { PRRecord, XPBreakdown } from '../services/xp';
 
@@ -93,7 +93,6 @@ export function calculateXPBreakdown(
 
   for (const exercise of session.exercises) {
     let bestWeight = 0;
-    let bestReps = 0;
 
     for (const set of exercise.sets) {
       totalSets++;
@@ -107,7 +106,6 @@ export function calculateXPBreakdown(
       // Mejor set del ejercicio (para detectar PR)
       if (set.weight > bestWeight) {
         bestWeight = set.weight;
-        bestReps = set.reps;
       }
 
       // Bonus RPE 9+

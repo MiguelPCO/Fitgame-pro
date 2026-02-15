@@ -1,4 +1,4 @@
-import { UserProfile, WorkoutSession, WorkoutSet } from '../types';
+import { UserProfile, WorkoutSession } from '../types';
 import { XP } from '../lib/constants';
 
 /**
@@ -63,12 +63,9 @@ export function calculateWorkoutXP(
 
   let totalSets = 0;
   let completedSets = 0;
-  let highRPESets = 0;
-
   // Calculate per-set XP and check for PRs
   for (const exercise of session.exercises) {
     let exerciseBestWeight = 0;
-    let exerciseBestReps = 0;
 
     for (const set of exercise.sets) {
       totalSets++;
@@ -80,12 +77,10 @@ export function calculateWorkoutXP(
         // Track best performance for this exercise
         if (set.weight > exerciseBestWeight) {
           exerciseBestWeight = set.weight;
-          exerciseBestReps = set.reps;
         }
 
         // RPE 9+ bonus
         if (set.rpe && set.rpe >= 9) {
-          highRPESets++;
           breakdown.rpeBonus += XP.BONUS_RPE_9_PLUS;
         }
       }

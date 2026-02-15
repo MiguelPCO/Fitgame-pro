@@ -2,11 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme variables */
+:root, .dark {
+  --color-bg: #0f172a;
+  --color-bg-card: #1e293b;
+  --color-bg-lighter: #334155;
+  --color-text-main: #f8fafc;
+  --color-text-muted: #cbd5e1;
+  --color-border: #374151;
+  --color-surface: #1e293b;
+  --color-scrollbar-track: #0f172a;
+  --color-scrollbar-thumb: #334155;
+  --color-scrollbar-hover: #475569;
+  --color-autofill-bg: #1e293b;
+  color-scheme: dark;
+}
+
+.light {
+  --color-bg: #f1f5f9;
+  --color-bg-card: #ffffff;
+  --color-bg-lighter: #e2e8f0;
+  --color-text-main: #0f172a;
+  --color-text-muted: #64748b;
+  --color-border: #cbd5e1;
+  --color-surface: #ffffff;
+  --color-scrollbar-track: #f1f5f9;
+  --color-scrollbar-thumb: #cbd5e1;
+  --color-scrollbar-hover: #94a3b8;
+  --color-autofill-bg: #ffffff;
+  color-scheme: light;
+}
+
 body {
-  background-color: #0f172a;
-  background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 60%);
+  background-color: var(--color-bg);
+  background-image: radial-gradient(circle at 50% 0%, var(--color-bg-card) 0%, var(--color-bg) 60%);
   background-attachment: fixed;
-  color: #f8fafc;
+  color: var(--color-text-main);
+}
+
+/* Light mode overrides for hardcoded dark classes */
+.light .bg-background { background-color: var(--color-bg) !important; }
+.light .bg-background-card, .light .bg-background\/50 { background-color: var(--color-bg-card) !important; }
+.light .bg-gray-800 { background-color: #e2e8f0 !important; }
+.light .bg-gray-800\/50 { background-color: rgba(226, 232, 240, 0.5) !important; }
+.light .bg-gray-700 { background-color: #cbd5e1 !important; }
+.light .bg-gray-900 { background-color: #f8fafc !important; }
+.light .bg-gray-900\/50 { background-color: rgba(248, 250, 252, 0.5) !important; }
+.light .bg-black\/50 { background-color: rgba(255, 255, 255, 0.5) !important; }
+.light .bg-black\/20 { background-color: rgba(0, 0, 0, 0.05) !important; }
+
+.light .text-white { color: #0f172a !important; }
+.light .text-gray-400 { color: #64748b !important; }
+.light .text-gray-300 { color: #475569 !important; }
+.light .text-gray-500 { color: #64748b !important; }
+.light .text-text-muted { color: var(--color-text-muted) !important; }
+
+.light .border-gray-700 { border-color: #e2e8f0 !important; }
+.light .border-gray-800 { border-color: #e2e8f0 !important; }
+.light .border-gray-600 { border-color: #cbd5e1 !important; }
+.light .divide-gray-800 > :not([hidden]) ~ :not([hidden]) { border-color: #e2e8f0 !important; }
+
+.light .hover\:bg-gray-700:hover { background-color: #e2e8f0 !important; }
+.light .hover\:bg-gray-800:hover { background-color: #f1f5f9 !important; }
+.light .hover\:text-white:hover { color: #0f172a !important; }
+.light .hover\:bg-white\/5:hover { background-color: rgba(0, 0, 0, 0.03) !important; }
+
+/* Card shadows in light mode */
+.light [class*="bg-background-card"],
+.light [class*="rounded-2xl"][class*="border"] {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 /* Custom Scrollbar */
@@ -15,22 +79,22 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: var(--color-scrollbar-track);
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--color-scrollbar-thumb);
   border-radius: 4px;
-  border: 2px solid #0f172a;
+  border: 2px solid var(--color-scrollbar-track);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--color-scrollbar-hover);
 }
 
-/* Input autofill fix for dark mode */
+/* Input autofill fix */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
-  -webkit-text-fill-color: white !important;
+  -webkit-box-shadow: 0 0 0 30px var(--color-autofill-bg) inset !important;
+  -webkit-text-fill-color: var(--color-text-main) !important;
 }

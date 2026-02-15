@@ -58,7 +58,7 @@ export default [
       ...js.configs.recommended.rules,
       ...tsPlugin.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true, allowExportNames: ['useApp', 'useToast', 'getDifficultyVariant'] }],
       // TypeScript handles these better
       'no-unused-vars': 'off',
       'no-undef': 'off',

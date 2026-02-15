@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Share2, Home, Star, Trophy, Activity, Dumbbell, Calendar, Clock, CheckCircle2, ArrowRight, Download } from 'lucide-react';
+import { Share2, Home, Star, Trophy, Activity, Dumbbell, Calendar, Clock, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { exerciseBlueprints as allExercises } from '../data/exerciseBlueprints';
 
@@ -37,14 +37,11 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
 
   let totalVolume = 0;
   let totalSets = 0;
-  let totalReps = 0;
-
   lastCompletedSession.exercises.forEach(ex => {
     ex.sets.forEach(set => {
       if (set.completed) {
         totalVolume += (set.weight * set.reps);
         totalSets++;
-        totalReps += set.reps;
       }
     });
   });
@@ -131,7 +128,7 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
           <div className="divide-y divide-gray-800">
             {lastCompletedSession.exercises.map((ex, i) => {
               const info = allExercises.find(e => e.id === ex.exerciseId);
-              const bestSet = ex.sets.reduce((prev, current) => (current.weight > prev.weight && current.completed) ? current : prev, { weight: 0, reps: 0 } as any);
+              const bestSet = ex.sets.reduce((prev, current) => (current.weight > prev.weight && current.completed) ? current : prev, { weight: 0, reps: 0 } as { weight: number; reps: number });
               const setsCompleted = ex.sets.filter(s => s.completed).length;
 
               return (

@@ -85,7 +85,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
     setTemplateExercises(prev => prev.filter((_, i) => i !== index));
   };
 
-  const updateExercise = (index: number, field: keyof TemplateExercise, value: any) => {
+  const updateExercise = (index: number, field: keyof TemplateExercise, value: TemplateExercise[keyof TemplateExercise]) => {
     setTemplateExercises(prev => prev.map((ex, i) => i === index ? { ...ex, [field]: value } : ex));
   };
 
@@ -149,7 +149,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
                    <label className="block text-xs font-bold text-text-muted uppercase mb-1">Difficulty</label>
                    <select 
                       value={difficulty} 
-                      onChange={(e) => setDifficulty(e.target.value as any)}
+                      onChange={(e) => setDifficulty(e.target.value as 'Beginner' | 'Intermediate' | 'Advanced')}
                       className="w-full bg-background border border-gray-700 rounded-lg px-2 py-2 text-white text-sm"
                    >
                      <option>Beginner</option>

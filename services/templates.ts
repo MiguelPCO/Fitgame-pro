@@ -91,6 +91,7 @@ export async function createTemplate(
 
     const { data, error } = await supabase
       .from('templates')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert(insert as any)
       .select()
       .single();
@@ -128,7 +129,7 @@ export async function updateTemplate(
 
     const { error } = await supabase
       .from('templates')
-      .update(dbUpdates as any)
+      .update(dbUpdates as Record<string, unknown>)
       .eq('id', templateId);
 
     if (error) {
@@ -181,6 +182,7 @@ export async function upsertTemplate(
 
     const { data, error } = await supabase
       .from('templates')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .upsert(insert as any, { onConflict: 'id' })
       .select()
       .single();

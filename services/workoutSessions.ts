@@ -126,6 +126,7 @@ export async function saveCompletedSession(
 
     const { data, error } = await supabase
       .from('workout_sessions')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert(insert as any)
       .select()
       .single();
@@ -168,7 +169,7 @@ export async function updateSession(
 
     const { error } = await supabase
       .from('workout_sessions')
-      .update(dbUpdates as any)
+      .update(dbUpdates as Record<string, unknown>)
       .eq('id', sessionId);
 
     if (error) {

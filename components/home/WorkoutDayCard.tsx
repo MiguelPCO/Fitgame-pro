@@ -50,7 +50,7 @@ function getBadgeConfig(variant: CardVariant, hasWorkout: boolean): BadgeConfig 
   }
 }
 
-export function WorkoutDayCard({ workout, date, variant, onStartWorkout }: WorkoutDayCardProps) {
+export function WorkoutDayCard({ workout, variant, onStartWorkout }: WorkoutDayCardProps) {
   const hasWorkout = Boolean(workout);
   const badge = getBadgeConfig(variant, hasWorkout);
   const isActionable = variant === 'today' && hasWorkout && onStartWorkout;

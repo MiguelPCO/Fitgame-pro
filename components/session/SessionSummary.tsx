@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PartyPopper, Zap, Trophy, ArrowRight } from 'lucide-react';
+import { PartyPopper, Trophy, ArrowRight } from 'lucide-react';
 import { WorkoutSession, UserProfile } from '../../types';
 import { XPBreakdown as XPBreakdownType } from '../../services/xp';
 import { exerciseBlueprints as allExercises } from '../../data/exerciseBlueprints';
