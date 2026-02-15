@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext';
 import DateSelector from '../components/DateSelector';
 import { Card } from '../components/ui/Card';
 import { WorkoutDayCard } from '../components/home/WorkoutDayCard';
+import { WelcomeChecklist } from '../components/home/WelcomeChecklist';
 import { LevelBadge } from '../components/progress/LevelBadge';
 import { XPBar } from '../components/progress/XPBar';
 import { WorkoutSession } from '../types';
@@ -13,6 +14,9 @@ import { isSameDay, isPastDay, getTimeAgo } from '../lib/dateUtils';
 interface DashboardProps {
   onStartWorkout: () => void;
   onNavigateProgress?: () => void;
+  onNavigateTemplates?: () => void;
+  onNavigateSchedule?: () => void;
+  onNavigateSettings?: () => void;
 }
 
 // Helper to format date as 'YYYY-MM-DD'
@@ -55,8 +59,13 @@ const templateToPreviewSession = (template: { id: string; name: string; duration
   }))
 });
 
-const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgress }) => {
-  const { user, selectedDate, setSelectedDate, startSessionFromTemplate, workoutHistory, getScheduledTemplate, weeklySchedule } = useApp();
+const CHECKLIST_DISMISSED_KEY = 'fitgame_checklist_dismissed';
+
+const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgress, onNavigateTemplates, onNavigateSchedule, onNavigateSettings }) => {
+  const { user, selectedDate, setSelectedDate, startSessionFromTemplate, workoutHistory, getScheduledTemplate, weeklySchedule, templates } = useApp();
+  const [checklistDismissed, setChecklistDismissed] = React.useState(() =>
+    localStorage.getItem(CHECKLIST_DISMISSED_KEY) === 'true'
+  );
 
   // Build a Set of completed workout date strings from real history
   const completedDateSet = useMemo(() => {
@@ -182,6 +191,53 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
     }
   };
 
+  const handleDismissChecklist = () => {
+    setChecklistDismissed(true);
+    localStorage.setItem(CHECKLIST_DISMISSED_KEY, 'true');
+  };
+
+  const hasSchedule = Object.values(weeklySchedule).some(Boolean);
+
+  const checklistItems = useMemo(() => [
+    {
+      id: 'profile',
+      label: 'Configura tu perfil',
+      description: 'Nombre, objetivo y preferencias de entrenamiento',
+      completed: !!(user?.name && user.name !== 'Usuario'),
+      action: 'Ir',
+    },
+    {
+      id: 'template',
+      label: 'Crea tu primera rutina',
+      description: 'Arma una plantilla con tus ejercicios favoritos',
+      completed: templates.length > 0,
+      action: 'Crear',
+    },
+    {
+      id: 'schedule',
+      label: 'Programa tu semana',
+      description: 'Asigna rutinas a los dias de la semana',
+      completed: hasSchedule,
+      action: 'Programar',
+    },
+    {
+      id: 'workout',
+      label: 'Completa tu primer entrenamiento',
+      description: 'Inicia una sesion y registra tus series',
+      completed: workoutHistory.some(s => s.completed),
+      action: 'Empezar',
+    },
+  ], [user, templates, hasSchedule, workoutHistory]);
+
+  const handleChecklistAction = (itemId: string) => {
+    switch (itemId) {
+      case 'profile': onNavigateSettings?.(); break;
+      case 'template': onNavigateTemplates?.(); break;
+      case 'schedule': onNavigateSchedule?.(); break;
+      case 'workout': if (scheduledTemplate) handleStartWorkout(); break;
+    }
+  };
+
   const levelName = getTierName(user?.level || 1);
   const daysTarget = user?.daysPerWeek || 5;
 
@@ -236,6 +292,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
           </div>
         </div>
       </div>
+
+      {/* Welcome Checklist for new users */}
+      {!checklistDismissed && (
+        <WelcomeChecklist
+          items={checklistItems}
+          onDismiss={handleDismissChecklist}
+          onAction={handleChecklistAction}
+        />
+      )}
 
       {/* Date Selector */}
       <DateSelector

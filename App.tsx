@@ -99,7 +99,7 @@ const AppContent: React.FC = () => {
   const renderContent = () => {
     switch (currentView) {
       case ROUTES.DASHBOARD:
-        return <Dashboard onStartWorkout={() => navigate(ROUTES.WORKOUT)} onNavigateProgress={() => navigate(ROUTES.PROGRESS)} />;
+        return <Dashboard onStartWorkout={() => navigate(ROUTES.WORKOUT)} onNavigateProgress={() => navigate(ROUTES.PROGRESS)} onNavigateTemplates={() => navigate(ROUTES.TEMPLATES)} onNavigateSchedule={() => navigate(ROUTES.SCHEDULE)} onNavigateSettings={() => navigate(ROUTES.SETTINGS)} />;
       case ROUTES.TEMPLATES:
         return (
           <Templates
@@ -132,7 +132,7 @@ const AppContent: React.FC = () => {
       case ROUTES.ONBOARDING:
         return <Onboarding onComplete={handleOnboardingComplete} />;
       default:
-        return <Dashboard onStartWorkout={() => navigate(ROUTES.WORKOUT)} onNavigateProgress={() => navigate(ROUTES.PROGRESS)} />;
+        return <Dashboard onStartWorkout={() => navigate(ROUTES.WORKOUT)} onNavigateProgress={() => navigate(ROUTES.PROGRESS)} onNavigateTemplates={() => navigate(ROUTES.TEMPLATES)} onNavigateSchedule={() => navigate(ROUTES.SCHEDULE)} onNavigateSettings={() => navigate(ROUTES.SETTINGS)} />;
     }
   };
 
