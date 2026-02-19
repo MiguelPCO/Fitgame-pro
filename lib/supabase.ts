@@ -1,23 +1,33 @@
-import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  if (import.meta.env.DEV) {
-    console.warn('Supabase credentials not found. Running in offline mode with localStorage.');
-  }
-}
+export const isSupabaseConfigured = () => !!(supabaseUrl && supabaseAnonKey);
 
-export const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient<Database>(supabaseUrl, supabaseAnonKey, {
+let _client: SupabaseClient<Database> | null = null;
+let _initPromise: Promise<SupabaseClient<Database> | null> | null = null;
+
+/**
+ * Lazy-loads @supabase/supabase-js and returns the client.
+ * The module is only downloaded when first called, keeping the main bundle lean.
+ */
+export async function getSupabase(): Promise<SupabaseClient<Database> | null> {
+  if (!isSupabaseConfigured()) return null;
+  if (_client) return _client;
+  if (_initPromise) return _initPromise;
+
+  _initPromise = import('@supabase/supabase-js').then(({ createClient }) => {
+    _client = createClient<Database>(supabaseUrl!, supabaseAnonKey!, {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
       },
-    })
-  : null;
+    });
+    return _client;
+  });
 
-export const isSupabaseConfigured = () => !!supabase;
+  return _initPromise;
+}

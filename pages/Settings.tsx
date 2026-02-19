@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Save, User, Target, Clock, Dumbbell, Shield, ChevronRight, Download, Sun, Moon, Monitor } from 'lucide-react';
+import { Save, User, Target, Clock, Dumbbell, Shield, ChevronRight, Download, FileText, Bell, Sun, Moon, Monitor } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { exerciseBlueprints } from '../data/exerciseBlueprints';
 import { useToast } from '../components/ui/Toast';
 import { resetPassword, deleteAccount } from '../services/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -10,6 +11,13 @@ import { Card } from '../components/ui/Card';
 import { cn } from '../lib/utils';
 import { Goal, ExperienceLevel } from '../types';
 import { useTheme, ThemeMode } from '../hooks/useTheme';
+import {
+  getReminderSettings,
+  saveReminderSettings,
+  getNotificationPermission,
+  requestNotificationPermission,
+  ReminderSettings,
+} from '../lib/notifications';
 
 const GOALS: { value: Goal; label: string; icon: string }[] = [
   { value: 'Strength', label: 'Fuerza', icon: '💪' },
@@ -29,7 +37,7 @@ const EQUIPMENT_OPTIONS = [
 ];
 
 const Settings: React.FC = () => {
-  const { user, updateUser } = useApp();
+  const { user, updateUser, workoutHistory } = useApp();
   const { toast } = useToast();
 
   const [name, setName] = useState(user?.name || '');
@@ -54,6 +62,46 @@ const Settings: React.FC = () => {
 
   const { mode: themeMode, setMode: setThemeMode } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
+
+  // Notification / reminder state
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(getNotificationPermission);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderHour, setReminderHour] = useState(19);
+  const [reminderMinute, setReminderMinute] = useState(0);
+
+  useEffect(() => {
+    const s = getReminderSettings();
+    setReminderEnabled(s.enabled);
+    setReminderHour(s.hour);
+    setReminderMinute(s.minute);
+  }, []);
+
+  const handleRequestPermission = async () => {
+    const perm = await requestNotificationPermission();
+    setNotifPermission(perm);
+  };
+
+  const saveReminder = (patch: Partial<ReminderSettings>) => {
+    const next: ReminderSettings = {
+      enabled: reminderEnabled,
+      hour: reminderHour,
+      minute: reminderMinute,
+      ...patch,
+    };
+    saveReminderSettings(next);
+  };
+
+  const handleToggleReminder = (enabled: boolean) => {
+    setReminderEnabled(enabled);
+    saveReminder({ enabled });
+  };
+
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [h, m] = e.target.value.split(':').map(Number);
+    setReminderHour(h);
+    setReminderMinute(m);
+    saveReminder({ hour: h, minute: m });
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -93,6 +141,42 @@ const Settings: React.FC = () => {
     a.click();
     URL.revokeObjectURL(url);
     toast('Datos exportados', 'success');
+  };
+
+  const handleExportCSV = () => {
+    const headers = ['Fecha', 'Sesion', 'Ejercicio', 'Set', 'Peso (kg)', 'Reps', 'Completado', 'RPE'];
+    const rows: string[][] = [headers];
+
+    for (const session of workoutHistory) {
+      const date = session.date ? new Date(session.date).toLocaleDateString('es-ES') : '';
+      for (const ex of session.exercises) {
+        const exerciseName = exerciseBlueprints.find(e => e.id === ex.exerciseId)?.name ?? ex.exerciseId;
+        ex.sets.forEach((set, idx) => {
+          rows.push([
+            date,
+            session.name,
+            exerciseName,
+            String(idx + 1),
+            String(set.weight),
+            String(set.reps),
+            set.completed ? 'Si' : 'No',
+            set.rpe != null ? String(set.rpe) : '',
+          ]);
+        });
+      }
+    }
+
+    const csv = rows
+      .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fitgame-historial-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Historial exportado como CSV', 'success');
   };
 
   const handleResetPassword = async () => {
@@ -330,19 +414,97 @@ const Settings: React.FC = () => {
         </div>
       </Card>
 
+      {/* Notifications Section */}
+      <Card className="p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Bell className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-white">Notificaciones</h2>
+        </div>
+
+        {!('Notification' in window) ? (
+          <p className="text-sm text-text-muted">
+            Tu navegador no soporta notificaciones.
+          </p>
+        ) : notifPermission === 'denied' ? (
+          <p className="text-sm text-red-400">
+            Notificaciones bloqueadas. Activaelas desde los ajustes del navegador.
+          </p>
+        ) : notifPermission === 'default' ? (
+          <button
+            onClick={handleRequestPermission}
+            className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-primary/50 bg-primary/5 text-primary hover:bg-primary/10 transition-all text-sm font-medium"
+          >
+            <span>Permitir notificaciones</span>
+            <Bell className="w-4 h-4" />
+          </button>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-white">Recordatorio diario</p>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Aviso si aun no entrenaste despues de la hora elegida
+                </p>
+              </div>
+              <button
+                role="switch"
+                aria-checked={reminderEnabled}
+                onClick={() => handleToggleReminder(!reminderEnabled)}
+                className={cn(
+                  'relative w-12 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background',
+                  reminderEnabled ? 'bg-primary' : 'bg-gray-700'
+                )}
+              >
+                <span
+                  className={cn(
+                    'block w-5 h-5 bg-white rounded-full shadow transition-transform',
+                    reminderEnabled ? 'translate-x-6' : 'translate-x-0.5'
+                  )}
+                />
+              </button>
+            </div>
+
+            {reminderEnabled && (
+              <div>
+                <label
+                  htmlFor="reminder-time"
+                  className="text-sm font-medium text-text-muted block mb-1.5"
+                >
+                  Hora del recordatorio
+                </label>
+                <input
+                  id="reminder-time"
+                  type="time"
+                  value={`${String(reminderHour).padStart(2, '0')}:${String(reminderMinute).padStart(2, '0')}`}
+                  onChange={handleTimeChange}
+                  className="px-4 py-3 bg-background border border-gray-700 rounded-xl text-white focus:border-primary focus:outline-none transition-colors"
+                />
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+
       {/* Data Section */}
       <Card className="p-6 space-y-3">
         <div className="flex items-center gap-3 mb-2">
           <Download className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-bold text-white">Datos</h2>
         </div>
-        <p className="text-sm text-text-muted">Exporta tu perfil, templates, historial y records como archivo JSON.</p>
+        <p className="text-sm text-text-muted">Exporta tu perfil, templates, historial y records.</p>
         <button
           onClick={handleExportData}
           className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-gray-700 text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm"
         >
-          <span>Exportar datos</span>
+          <span>Exportar backup completo (JSON)</span>
           <Download className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleExportCSV}
+          className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-gray-700 text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm"
+        >
+          <span>Exportar historial de entrenos (CSV)</span>
+          <FileText className="w-4 h-4" />
         </button>
       </Card>
 

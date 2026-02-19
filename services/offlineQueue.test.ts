@@ -2,12 +2,15 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getQueue, enqueue, dequeue, processQueue, withOfflineQueue } from './offlineQueue';
 import { STORAGE_KEYS } from '../lib/constants';
 
-// Mock supabase module
+// Shared mock client — tests modify its `from` mock directly
+const mockClient = {
+  from: vi.fn(),
+};
+
+// Mock supabase module — getSupabase returns the shared mock client
 vi.mock('../lib/supabase', () => ({
   isSupabaseConfigured: vi.fn(() => true),
-  supabase: {
-    from: vi.fn(),
-  },
+  getSupabase: vi.fn(() => Promise.resolve(mockClient)),
 }));
 
 // Mock logger to suppress output
@@ -15,12 +18,14 @@ vi.mock('../lib/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 describe('Offline Queue', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+    // Reset mock client's from to a safe default
+    mockClient.from.mockReset();
   });
 
   describe('getQueue', () => {
@@ -95,10 +100,9 @@ describe('Offline Queue', () => {
     });
 
     it('processes successful operations and clears queue', async () => {
-      const mockFrom = vi.fn().mockReturnValue({
+      mockClient.from.mockReturnValue({
         insert: vi.fn().mockResolvedValue({ error: null }),
       });
-      vi.mocked(supabase!.from).mockImplementation(mockFrom);
 
       enqueue('profiles', 'insert', { name: 'Test' });
       const processed = await processQueue();
@@ -108,10 +112,9 @@ describe('Offline Queue', () => {
     });
 
     it('retries failed operations with incremented retry count', async () => {
-      const mockFrom = vi.fn().mockReturnValue({
+      mockClient.from.mockReturnValue({
         insert: vi.fn().mockResolvedValue({ error: { message: 'Network error' } }),
       });
-      vi.mocked(supabase!.from).mockImplementation(mockFrom);
 
       enqueue('profiles', 'insert', { name: 'Test' });
       await processQueue();
@@ -124,10 +127,9 @@ describe('Offline Queue', () => {
     it('drops operations after MAX_RETRIES (5)', async () => {
       vi.useFakeTimers();
 
-      const mockFrom = vi.fn().mockReturnValue({
+      mockClient.from.mockReturnValue({
         insert: vi.fn().mockResolvedValue({ error: { message: 'fail' } }),
       });
-      vi.mocked(supabase!.from).mockImplementation(mockFrom);
 
       // Manually insert an operation at max retries
       const ops = [{
@@ -149,13 +151,12 @@ describe('Offline Queue', () => {
       const mockUpdate = vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({ error: null }),
       });
-      const mockFrom = vi.fn().mockReturnValue({ update: mockUpdate });
-      vi.mocked(supabase!.from).mockImplementation(mockFrom);
+      mockClient.from.mockReturnValue({ update: mockUpdate });
 
       enqueue('profiles', 'update', { id: 'user-1', name: 'Updated' });
       await processQueue();
 
-      expect(mockFrom).toHaveBeenCalledWith('profiles');
+      expect(mockClient.from).toHaveBeenCalledWith('profiles');
       expect(mockUpdate).toHaveBeenCalledWith({ name: 'Updated' });
     });
 
@@ -163,19 +164,17 @@ describe('Offline Queue', () => {
       const mockDelete = vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({ error: null }),
       });
-      const mockFrom = vi.fn().mockReturnValue({ delete: mockDelete });
-      vi.mocked(supabase!.from).mockImplementation(mockFrom);
+      mockClient.from.mockReturnValue({ delete: mockDelete });
 
       enqueue('templates', 'delete', { id: 'tmpl-1' });
       await processQueue();
 
-      expect(mockFrom).toHaveBeenCalledWith('templates');
+      expect(mockClient.from).toHaveBeenCalledWith('templates');
     });
 
     it('handles upsert action', async () => {
       const mockUpsert = vi.fn().mockResolvedValue({ error: null });
-      const mockFrom = vi.fn().mockReturnValue({ upsert: mockUpsert });
-      vi.mocked(supabase!.from).mockImplementation(mockFrom);
+      mockClient.from.mockReturnValue({ upsert: mockUpsert });
 
       enqueue('profiles', 'upsert', { id: 'u1', name: 'Test' });
       await processQueue();

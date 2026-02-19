@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { getSupabase, isSupabaseConfigured } from '../lib/supabase';
 import { WorkoutTemplate, TemplateExercise } from '../types';
 import { logger } from '../lib/logger';
 
@@ -56,10 +56,11 @@ function toTemplateInsert(template: WorkoutTemplate, userId: string) {
  * Fetch all templates for the current user
  */
 export async function fetchTemplates(userId: string): Promise<WorkoutTemplate[]> {
-  if (!isSupabaseConfigured() || !supabase) return [];
+  const sb = await getSupabase();
+  if (!sb) return [];
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('templates')
       .select('*')
       .eq('user_id', userId)
@@ -84,12 +85,13 @@ export async function createTemplate(
   template: WorkoutTemplate,
   userId: string
 ): Promise<WorkoutTemplate | null> {
-  if (!isSupabaseConfigured() || !supabase) return null;
+  const sb = await getSupabase();
+  if (!sb) return null;
 
   try {
     const insert = toTemplateInsert(template, userId);
 
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('templates')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert(insert as any)
@@ -115,7 +117,8 @@ export async function updateTemplate(
   templateId: string,
   updates: Partial<WorkoutTemplate>
 ): Promise<boolean> {
-  if (!isSupabaseConfigured() || !supabase) return false;
+  const sb = await getSupabase();
+  if (!sb) return false;
 
   try {
     const dbUpdates: Record<string, unknown> = {};
@@ -127,7 +130,7 @@ export async function updateTemplate(
     if (updates.difficulty !== undefined) dbUpdates.difficulty = updates.difficulty;
     if (updates.lastPerformed !== undefined) dbUpdates.last_performed = updates.lastPerformed || null;
 
-    const { error } = await supabase
+    const { error } = await sb
       .from('templates')
       .update(dbUpdates as Record<string, unknown>)
       .eq('id', templateId);
@@ -148,10 +151,11 @@ export async function updateTemplate(
  * Delete a template
  */
 export async function deleteTemplateFromDB(templateId: string): Promise<boolean> {
-  if (!isSupabaseConfigured() || !supabase) return false;
+  const sb = await getSupabase();
+  if (!sb) return false;
 
   try {
-    const { error } = await supabase
+    const { error } = await sb
       .from('templates')
       .delete()
       .eq('id', templateId);
@@ -175,12 +179,13 @@ export async function upsertTemplate(
   template: WorkoutTemplate,
   userId: string
 ): Promise<WorkoutTemplate | null> {
-  if (!isSupabaseConfigured() || !supabase) return null;
+  const sb = await getSupabase();
+  if (!sb) return null;
 
   try {
     const insert = toTemplateInsert(template, userId);
 
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('templates')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .upsert(insert as any, { onConflict: 'id' })

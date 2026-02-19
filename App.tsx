@@ -1,4 +1,4 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -7,6 +7,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/ui/Toast';
 import { ROUTES } from './lib/constants';
 import { InstallBanner } from './components/InstallBanner';
+import { checkAndSendReminder } from './lib/notifications';
 import { DashboardSkeleton, ProgressSkeleton, HistorySkeleton } from './components/ui/Skeleton';
 
 // Lazy-loaded page components
@@ -29,7 +30,26 @@ const PageLoader: React.FC = () => (
 );
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, isLoading, user } = useApp();
+  const { isAuthenticated, isLoading, user, workoutHistory } = useApp();
+
+  const hasWorkedOutToday = useMemo(() => {
+    const today = new Date().toDateString();
+    return workoutHistory.some(
+      (s) => s.endTime && new Date(s.endTime).toDateString() === today
+    );
+  }, [workoutHistory]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    checkAndSendReminder(hasWorkedOutToday);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkAndSendReminder(hasWorkedOutToday);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [isAuthenticated, hasWorkedOutToday]);
   const [currentView, setCurrentView] = useState(ROUTES.DASHBOARD);
   const [previousView, setPreviousView] = useState(ROUTES.DASHBOARD);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);

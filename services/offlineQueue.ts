@@ -1,6 +1,6 @@
 import { QueuedOperation } from '../types';
 import { STORAGE_KEYS } from '../lib/constants';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { getSupabase, isSupabaseConfigured } from '../lib/supabase';
 import { logger } from '../lib/logger';
 
 type TableName = 'profiles' | 'templates' | 'workout_sessions' | 'personal_records';
@@ -61,7 +61,8 @@ export function dequeue(): QueuedOperation | undefined {
  * Execute a single queued operation against Supabase
  */
 async function executeOperation(op: QueuedOperation): Promise<boolean> {
-  if (!isSupabaseConfigured() || !supabase) return false;
+  const sb = await getSupabase();
+  if (!sb) return false;
 
   try {
     let result;
@@ -71,21 +72,21 @@ async function executeOperation(op: QueuedOperation): Promise<boolean> {
     switch (op.action) {
       case 'insert':
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        result = await supabase.from(table).insert(op.payload as any);
+        result = await sb.from(table).insert(op.payload as any);
         break;
       case 'update': {
         const { id, ...rest } = op.payload;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        result = await supabase.from(table).update(rest as any).eq('id', id as string);
+        result = await sb.from(table).update(rest as any).eq('id', id as string);
         break;
       }
       case 'upsert':
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        result = await supabase.from(table).upsert(op.payload as any);
+        result = await sb.from(table).upsert(op.payload as any);
         break;
       case 'delete': {
         const deleteId = op.payload.id as string;
-        result = await supabase.from(table).delete().eq('id', deleteId);
+        result = await sb.from(table).delete().eq('id', deleteId);
         break;
       }
     }

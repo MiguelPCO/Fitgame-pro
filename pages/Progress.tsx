@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Activity, Trophy, Calendar, Flame, Award, Target, Zap } from 'lucide-react';
+import { Activity, Trophy, Calendar, Flame, Award, Target, Zap, TrendingUp, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { WorkoutSession } from '../types';
 import { exerciseBlueprints as exerciseDB } from '../data/exerciseBlueprints';
@@ -233,6 +233,48 @@ const Progress: React.FC = () => {
     list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return list;
   }, [personalRecords]);
+
+  // PR history by exercise — top weight per session over time
+  const [selectedPRExercise, setSelectedPRExercise] = useState<string>('');
+
+  const exercisesWithHistory = useMemo(() => {
+    const ids = new Set<string>();
+    for (const session of workoutHistory) {
+      for (const ex of session.exercises) {
+        const hasCompletedSet = ex.sets.some(s => s.completed && s.weight > 0);
+        if (hasCompletedSet) ids.add(ex.exerciseId);
+      }
+    }
+    return Array.from(ids).map(id => ({
+      id,
+      name: exerciseDB.find(e => e.id === id)?.name || id,
+    })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [workoutHistory]);
+
+  // Auto-select first exercise
+  const activePRExercise = selectedPRExercise || exercisesWithHistory[0]?.id || '';
+
+  const prHistoryData = useMemo(() => {
+    if (!activePRExercise) return [];
+    const points: { label: string; value: number }[] = [];
+    const sorted = [...workoutHistory].sort((a, b) =>
+      (a.endTime || 0) - (b.endTime || 0)
+    );
+    for (const session of sorted) {
+      const ex = session.exercises.find(e => e.exerciseId === activePRExercise);
+      if (!ex) continue;
+      const best = ex.sets
+        .filter(s => s.completed && s.weight > 0)
+        .reduce((max, s) => s.weight > max ? s.weight : max, 0);
+      if (best > 0) {
+        points.push({
+          label: new Date(session.endTime || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          value: best,
+        });
+      }
+    }
+    return points;
+  }, [workoutHistory, activePRExercise]);
 
   // Volume by muscle group
   const muscleVolumeData = useMemo(() => {
@@ -509,6 +551,64 @@ const Progress: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* PR History Chart */}
+      {exercisesWithHistory.length > 0 && (
+        <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-5 h-5 text-green-500" />
+              <h3 className="text-lg font-bold text-white">Progresion de Peso por Ejercicio</h3>
+            </div>
+            <div className="relative">
+              <select
+                value={activePRExercise}
+                onChange={e => setSelectedPRExercise(e.target.value)}
+                className="appearance-none bg-gray-800 border border-gray-700 text-white text-sm rounded-xl px-4 py-2 pr-8 focus:outline-none focus:border-primary cursor-pointer"
+                aria-label="Seleccionar ejercicio"
+              >
+                {exercisesWithHistory.map(ex => (
+                  <option key={ex.id} value={ex.id}>{ex.name}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {prHistoryData.length >= 2 ? (
+            <div className="h-56">
+              <VolumeAreaChart data={prHistoryData} />
+            </div>
+          ) : prHistoryData.length === 1 ? (
+            <div className="h-56 flex flex-col items-center justify-center text-gray-400 gap-2">
+              <p className="text-sm">Solo 1 sesion registrada. Entrena mas para ver la progresion.</p>
+              <div className="mt-2 text-center">
+                <span className="text-3xl font-black text-white">{prHistoryData[0].value}</span>
+                <span className="text-gray-400 ml-1">kg</span>
+                <p className="text-xs text-gray-500 mt-1">{prHistoryData[0].label}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="h-56 flex flex-col items-center justify-center text-gray-400 gap-2">
+              <TrendingUp className="w-8 h-8 opacity-50" />
+              <p className="text-sm">Sin datos para este ejercicio</p>
+            </div>
+          )}
+
+          {prHistoryData.length >= 2 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700/50 text-xs text-gray-400">
+              <span>Inicio: <span className="text-white font-bold">{prHistoryData[0].value} kg</span></span>
+              <span className="text-green-400 font-bold">
+                {prHistoryData[prHistoryData.length - 1].value > prHistoryData[0].value
+                  ? `+${(prHistoryData[prHistoryData.length - 1].value - prHistoryData[0].value).toFixed(1)} kg`
+                  : `${(prHistoryData[prHistoryData.length - 1].value - prHistoryData[0].value).toFixed(1)} kg`
+                }
+              </span>
+              <span>Actual: <span className="text-white font-bold">{prHistoryData[prHistoryData.length - 1].value} kg</span></span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Consistency Heatmap */}
       <div className="bg-background-card p-6 rounded-2xl border border-gray-800">

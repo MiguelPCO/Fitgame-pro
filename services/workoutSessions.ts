@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { getSupabase } from '../lib/supabase';
 import { WorkoutSession, ActiveExercise } from '../types';
 import { logger } from '../lib/logger';
 
@@ -63,10 +63,11 @@ export async function fetchWorkoutHistory(
   userId: string,
   limit: number = 50
 ): Promise<WorkoutSession[]> {
-  if (!isSupabaseConfigured() || !supabase) return [];
+  const sb = await getSupabase();
+  if (!sb) return [];
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('workout_sessions')
       .select('*')
       .eq('user_id', userId)
@@ -90,10 +91,11 @@ export async function fetchWorkoutHistory(
  * Fetch all sessions (including active, completed, skipped)
  */
 export async function fetchAllSessions(userId: string): Promise<WorkoutSession[]> {
-  if (!isSupabaseConfigured() || !supabase) return [];
+  const sb = await getSupabase();
+  if (!sb) return [];
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('workout_sessions')
       .select('*')
       .eq('user_id', userId)
@@ -118,13 +120,14 @@ export async function saveCompletedSession(
   session: WorkoutSession,
   userId: string
 ): Promise<WorkoutSession | null> {
-  if (!isSupabaseConfigured() || !supabase) return null;
+  const sb = await getSupabase();
+  if (!sb) return null;
 
   try {
     const insert = toSessionInsert(session, userId);
     insert.status = 'completed';
 
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('workout_sessions')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert(insert as any)
@@ -150,7 +153,8 @@ export async function updateSession(
   sessionId: string,
   updates: Partial<WorkoutSession>
 ): Promise<boolean> {
-  if (!isSupabaseConfigured() || !supabase) return false;
+  const sb = await getSupabase();
+  if (!sb) return false;
 
   try {
     const dbUpdates: Record<string, unknown> = {};
@@ -167,7 +171,7 @@ export async function updateSession(
       dbUpdates.end_time = updates.endTime ? new Date(updates.endTime).toISOString() : null;
     }
 
-    const { error } = await supabase
+    const { error } = await sb
       .from('workout_sessions')
       .update(dbUpdates as Record<string, unknown>)
       .eq('id', sessionId);
@@ -191,10 +195,11 @@ export async function getLastSessionForExercise(
   userId: string,
   exerciseId: string
 ): Promise<{ weight: number; reps: number } | null> {
-  if (!isSupabaseConfigured() || !supabase) return null;
+  const sb = await getSupabase();
+  if (!sb) return null;
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('workout_sessions')
       .select('exercises')
       .eq('user_id', userId)
@@ -232,10 +237,11 @@ export async function getLastSessionForExercise(
 export async function getPersonalRecords(
   userId: string
 ): Promise<Map<string, { weight: number; reps: number; date: string }>> {
-  if (!isSupabaseConfigured() || !supabase) return new Map();
+  const sb = await getSupabase();
+  if (!sb) return new Map();
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('personal_records')
       .select('exercise_id, weight, reps, achieved_at')
       .eq('user_id', userId);
@@ -266,7 +272,8 @@ export async function upsertPersonalRecords(
   userId: string,
   records: { exerciseId: string; weight: number; reps: number }[]
 ): Promise<boolean> {
-  if (!isSupabaseConfigured() || !supabase || records.length === 0) return false;
+  const sb = await getSupabase();
+  if (!sb || records.length === 0) return false;
 
   try {
     const rows = records.map(r => ({
@@ -277,7 +284,7 @@ export async function upsertPersonalRecords(
       achieved_at: new Date().toISOString(),
     }));
 
-    const { error } = await supabase
+    const { error } = await sb
       .from('personal_records')
       .upsert(rows, { onConflict: 'user_id,exercise_id' });
 

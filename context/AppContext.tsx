@@ -5,7 +5,7 @@ import { STORAGE_KEYS, DEFAULT_SET_CONFIG } from '../lib/constants';
 import { playNotification } from '../services/audio';
 import { calculateNewUserStats, calculateWorkoutXP, PRRecord, XPBreakdown } from '../services/xp';
 import { loadFromStorage } from '../hooks/usePersist';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { getSupabase, isSupabaseConfigured } from '../lib/supabase';
 import { onAuthStateChange, signOut, getSession } from '../services/auth';
 import { fetchTemplates, upsertTemplate, deleteTemplateFromDB } from '../services/templates';
 import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, upsertPersonalRecords } from '../services/workoutSessions';
@@ -105,9 +105,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Load user profile from Supabase
   const loadUserProfile = useCallback(async (uid: string) => {
-    if (!supabase) return;
+    const sb = await getSupabase();
+    if (!sb) return;
 
-    const { data: profile, error } = await supabase
+    const { data: profile, error } = await sb
       .from('profiles')
       .select('*')
       .eq('id', uid)
@@ -327,14 +328,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return updated;
     });
 
-    if (isSupabaseConfigured() && supabase && userId) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ weekly_schedule: schedule as Record<string, string> })
-        .eq('id', userId);
+    if (isSupabaseConfigured() && userId) {
+      const sb = await getSupabase();
+      if (sb) {
+        const { error } = await sb
+          .from('profiles')
+          .update({ weekly_schedule: schedule as Record<string, string> })
+          .eq('id', userId);
 
-      if (error) {
-        logger.error('Error saving schedule:', error);
+        if (error) {
+          logger.error('Error saving schedule:', error);
+        }
       }
     }
   };
@@ -354,7 +358,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     // Sync to Supabase if configured
-    if (isSupabaseConfigured() && supabase && userId) {
+    if (isSupabaseConfigured() && userId) {
       const updatePayload: Record<string, unknown> = {};
       if (data.name !== undefined) updatePayload.name = data.name;
       if (data.goal !== undefined) updatePayload.goal = data.goal;
@@ -365,14 +369,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (data.onboardingCompleted !== undefined) updatePayload.onboarding_completed = data.onboardingCompleted;
 
       if (Object.keys(updatePayload).length > 0) {
-        const { error } = await supabase
-          .from('profiles')
-          .update(updatePayload as Record<string, unknown>)
-          .eq('id', userId);
+        const sb = await getSupabase();
+        if (sb) {
+          const { error } = await sb
+            .from('profiles')
+            .update(updatePayload as Record<string, unknown>)
+            .eq('id', userId);
 
-        if (error) {
-          logger.error('Error updating profile:', error);
-          toast('Error al actualizar perfil', 'error');
+          if (error) {
+            logger.error('Error updating profile:', error);
+            toast('Error al actualizar perfil', 'error');
+          }
         }
       }
     }
@@ -500,7 +507,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // Sync to Supabase
-    if (isSupabaseConfigured() && supabase && userId) {
+    if (isSupabaseConfigured() && userId) {
       // Save completed session
       await saveCompletedSession(completedSession, userId);
 
@@ -518,20 +525,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       // Update user profile with new XP
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          xp: newStats.xp,
-          level: newStats.level,
-          xp_to_next_level: newStats.xpToNextLevel,
-          streak: newStats.streak,
-          tier: newStats.tier,
-        })
-        .eq('id', userId);
+      const sb = await getSupabase();
+      if (sb) {
+        const { error } = await sb
+          .from('profiles')
+          .update({
+            xp: newStats.xp,
+            level: newStats.level,
+            xp_to_next_level: newStats.xpToNextLevel,
+            streak: newStats.streak,
+            tier: newStats.tier,
+          })
+          .eq('id', userId);
 
-      if (error) {
-        logger.error('Error syncing XP to Supabase:', error);
-        toast('Error al sincronizar XP', 'error');
+        if (error) {
+          logger.error('Error syncing XP to Supabase:', error);
+          toast('Error al sincronizar XP', 'error');
+        }
       }
     }
   };
