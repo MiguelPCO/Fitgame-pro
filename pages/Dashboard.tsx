@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Flame, ChevronRight, TrendingUp, Dumbbell, Clock, Zap, Shield, Trophy, Target, CheckCircle, Share2 } from 'lucide-react';
+import { Flame, ChevronRight, TrendingUp, Dumbbell, Clock, Zap, Shield, Trophy, Target, CheckCircle, Share2, Sparkles, CalendarCheck, BedDouble } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import DateSelector from '../components/DateSelector';
 import { Card } from '../components/ui/Card';
@@ -14,6 +14,7 @@ import { getBadgeDefinition, ALL_BADGES } from '../lib/badges';
 import { challengeProgressPct, challengeProgressLabel } from '../lib/challenges';
 import { muscleFatigueScore, FatigueLevel, MuscleLoadData } from '../lib/calculations';
 import { shareBadge } from '../lib/share';
+import { getWorkoutRecommendation, MUSCLE_LABELS } from '../lib/recommendations';
 
 interface DashboardProps {
   onStartWorkout: () => void;
@@ -288,6 +289,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
   // Fatigue score per muscle group (exponential decay, last 7 days)
   const muscleFatigue = useMemo(() => muscleFatigueScore(workoutHistory), [workoutHistory]);
 
+  // Today's recommendation
+  const recommendation = useMemo(() => getWorkoutRecommendation({
+    workoutHistory,
+    muscleFatigue,
+    user,
+    templates,
+    scheduledTemplate,
+  }), [workoutHistory, muscleFatigue, user, templates, scheduledTemplate]);
+
   // Challenge progress
   const challengePct = weeklyChallenge ? challengeProgressPct(weeklyChallenge) : 0;
   const challengeLabel = weeklyChallenge ? challengeProgressLabel(weeklyChallenge) : '';
@@ -484,6 +494,89 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
               </div>
             </div>
           </Card>
+
+          {/* Recommendation Card */}
+          {recommendation.type !== 'new_user' && (() => {
+            const isScheduled = recommendation.type === 'scheduled';
+            const isRest      = recommendation.type === 'rest';
+
+            const accentBg    = isScheduled ? 'bg-primary/10 border-primary/20'
+                              : isRest      ? 'bg-green-900/20 border-green-700/30'
+                              : 'bg-violet-900/20 border-violet-700/30';
+            const accentText  = isScheduled ? 'text-primary'
+                              : isRest      ? 'text-green-400'
+                              : 'text-violet-400';
+            const Icon        = isScheduled ? CalendarCheck
+                              : isRest      ? BedDouble
+                              : Sparkles;
+
+            return (
+              <Card>
+                <div className="flex items-center gap-2 mb-3">
+                  <Icon className={`w-4 h-4 ${accentText}`} />
+                  <h3 className="text-xs font-bold text-text-muted uppercase tracking-wide">
+                    {isScheduled ? 'Hoy' : isRest ? 'Descanso' : 'Recomendación'}
+                  </h3>
+                  {recommendation.readinessScore > 0 && (
+                    <span className={`ml-auto text-xs font-bold ${accentText}`}>
+                      {recommendation.readinessScore}% listo
+                    </span>
+                  )}
+                </div>
+
+                {/* Readiness bar */}
+                {recommendation.readinessScore > 0 && (
+                  <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden mb-3">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${
+                        isScheduled ? 'bg-primary' : 'bg-violet-500'
+                      }`}
+                      style={{ width: `${recommendation.readinessScore}%` }}
+                    />
+                  </div>
+                )}
+
+                <div className={`rounded-xl p-3 mb-3 border ${accentBg}`}>
+                  <p className="text-white font-bold text-sm leading-tight mb-1">{recommendation.headline}</p>
+                  <p className="text-gray-400 text-xs leading-relaxed">{recommendation.reason}</p>
+                </div>
+
+                {recommendation.targetMuscles.length > 0 && (
+                  <div className="flex gap-1.5 flex-wrap mb-3">
+                    {recommendation.targetMuscles.map(m => (
+                      <span
+                        key={m}
+                        className="px-2 py-0.5 text-xs font-medium bg-gray-800 text-gray-300 rounded-full"
+                      >
+                        {MUSCLE_LABELS[m] ?? m}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {!isRest && recommendation.suggestedTemplate && (
+                  <button
+                    onClick={() => {
+                      startSessionFromTemplate(recommendation.suggestedTemplate!);
+                      onStartWorkout();
+                    }}
+                    className="w-full py-2 text-sm font-bold bg-primary/20 text-primary border border-primary/30 rounded-xl hover:bg-primary/30 transition-colors"
+                  >
+                    Empezar ahora
+                  </button>
+                )}
+
+                {!isRest && !recommendation.suggestedTemplate && (
+                  <button
+                    onClick={onNavigateTemplates}
+                    className="w-full py-2 text-sm font-bold bg-gray-800/50 text-gray-300 border border-gray-700/30 rounded-xl hover:bg-gray-700/30 transition-colors"
+                  >
+                    Crear plantilla →
+                  </button>
+                )}
+              </Card>
+            );
+          })()}
 
           {/* Last Session Card */}
           {lastSession && (
