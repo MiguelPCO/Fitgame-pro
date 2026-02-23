@@ -36,16 +36,16 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
   }, [currentPage]);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'templates', label: 'Templates', icon: ClipboardList },
+    { id: 'dashboard', label: 'Inicio', icon: LayoutDashboard },
+    { id: 'templates', label: 'Plantillas', icon: ClipboardList },
     { id: 'schedule', label: 'Programa', icon: CalendarDays },
     { id: 'programs', label: 'Programas', icon: BookOpen },
     { id: 'challenges', label: 'Retos', icon: Swords },
-    { id: 'workout', label: 'Active Workout', icon: Dumbbell, highlight: true },
-    { id: 'exercises', label: 'Exercises', icon: Users },
-    { id: 'progress', label: 'Progress', icon: LineChart },
+    { id: 'workout', label: 'Entrenamiento', icon: Dumbbell, highlight: true },
+    { id: 'exercises', label: 'Ejercicios', icon: Users },
+    { id: 'progress', label: 'Progreso', icon: LineChart },
     { id: 'history', label: 'Historial', icon: History },
-    { id: 'settings', label: 'Configuracion', icon: Settings },
+    { id: 'settings', label: 'Configuración', icon: Settings },
   ];
 
   return (
@@ -134,9 +134,11 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
           </button>
 
           <div className="hidden md:flex items-center gap-4 text-sm text-text-muted">
-             <span>Dashboard</span>
+             <span>Inicio</span>
              <span className="text-gray-400">/</span>
-             <span className="text-white capitalize font-medium">{currentPage.replace('-', ' ')}</span>
+             <span className="text-white capitalize font-medium">
+               {navItems.find((n) => n.id === currentPage)?.label ?? currentPage.replace('-', ' ')}
+             </span>
           </div>
 
           <div className="flex items-center gap-4 ml-auto">
