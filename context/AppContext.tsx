@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { UserProfile, WorkoutSession, WorkoutTemplate, WorkoutSet, ActiveExercise, WeeklySchedule } from '../types';
+import { UserProfile, WorkoutSession, WorkoutTemplate, WorkoutSet, ActiveExercise, WeeklySchedule, EarnedBadge, WeeklyChallenge, StreakFreezeState } from '../types';
 import { currentUser as mockUser, mockTemplates } from '../data/mockData';
 import { STORAGE_KEYS, DEFAULT_SET_CONFIG } from '../lib/constants';
 import { playNotification } from '../services/audio';
@@ -14,6 +14,11 @@ import { processQueue, getQueue } from '../services/offlineQueue';
 import { getRecommendedWeight, getWarmupWeight } from '../lib/weightRecommendation';
 import { logger } from '../lib/logger';
 import { useToast } from '../components/ui/Toast';
+import { checkForNewBadges } from '../lib/badges';
+import { getBadgeDefinition } from '../lib/badges';
+import { generateWeeklyChallenge, evaluateChallengeProgress, getWeekStart } from '../lib/challenges';
+import { notifyBadgeUnlocked, notifyPRAchieved, notifyChallengeCompleted } from '../lib/notifications';
+import { exerciseBlueprints } from '../data/exerciseBlueprints';
 
 interface RestTimerState {
   remaining: number;
@@ -35,6 +40,14 @@ interface AppState {
   workoutHistory: WorkoutSession[];
   personalRecords: Map<string, PRRecord>;
   weeklySchedule: WeeklySchedule;
+
+  // Gamification
+  earnedBadges: EarnedBadge[];
+  newlyEarnedBadges: EarnedBadge[]; // Cleared after Dashboard reads them
+  weeklyChallenge: WeeklyChallenge | null;
+  streakFreezes: StreakFreezeState;
+  useStreakFreeze: () => boolean;
+  clearNewlyEarnedBadges: () => void;
 
   // Rest Timer
   restTimer: RestTimerState;
@@ -76,6 +89,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+  // Gamification state
+  const [earnedBadges, setEarnedBadges] = useState<EarnedBadge[]>(() => loadFromStorage(STORAGE_KEYS.BADGES, []));
+  const [newlyEarnedBadges, setNewlyEarnedBadges] = useState<EarnedBadge[]>([]);
+  const [weeklyChallenge, setWeeklyChallenge] = useState<WeeklyChallenge | null>(() => {
+    const stored = loadFromStorage<WeeklyChallenge | null>(STORAGE_KEYS.WEEKLY_CHALLENGE, null);
+    const currentWeek = getWeekStart();
+    if (!stored || stored.weekStart !== currentWeek) {
+      return generateWeeklyChallenge(currentWeek);
+    }
+    return stored;
+  });
+  const [streakFreezes, setStreakFreezes] = useState<StreakFreezeState>(() => {
+    const stored = loadFromStorage<StreakFreezeState | null>(STORAGE_KEYS.STREAK_FREEZES, null);
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    if (!stored || stored.resetMonth !== currentMonth) {
+      return { count: 2, resetMonth: currentMonth };
+    }
+    return stored;
+  });
 
   // Rest Timer State
   const [restTimer, setRestTimer] = useState<RestTimerState>({ remaining: 0, duration: 0, isActive: false });
@@ -231,6 +264,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(workoutHistory)); }, [workoutHistory]);
   useEffect(() => { if (lastCompletedSession) localStorage.setItem(STORAGE_KEYS.LAST_SESSION, JSON.stringify(lastCompletedSession)); }, [lastCompletedSession]);
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(weeklySchedule)); }, [weeklySchedule]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.BADGES, JSON.stringify(earnedBadges)); }, [earnedBadges]);
+  useEffect(() => { if (weeklyChallenge) localStorage.setItem(STORAGE_KEYS.WEEKLY_CHALLENGE, JSON.stringify(weeklyChallenge)); }, [weeklyChallenge]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.STREAK_FREEZES, JSON.stringify(streakFreezes)); }, [streakFreezes]);
 
   // Rest Timer Logic
   useEffect(() => {
@@ -287,6 +323,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  // Gamification actions
+  const clearNewlyEarnedBadges = () => setNewlyEarnedBadges([]);
+
+  const useStreakFreeze = (): boolean => {
+    if (streakFreezes.count <= 0) return false;
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const newCount = streakFreezes.count - 1;
+    const updated: StreakFreezeState = { count: newCount, resetMonth: currentMonth };
+    setStreakFreezes(updated);
+    localStorage.setItem(STORAGE_KEYS.STREAK_FREEZES, JSON.stringify(updated));
+    toast(`Freeze activado — racha protegida. Te quedan ${newCount} freeze${newCount !== 1 ? 's' : ''}.`, 'info');
+    return true;
+  };
+
   // Auth Functions
   const login = (email: string) => {
     // Mock login for offline mode
@@ -311,12 +361,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWeeklyScheduleState({});
     stopRestTimer();
 
+    setEarnedBadges([]);
+    setNewlyEarnedBadges([]);
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    setStreakFreezes({ count: 2, resetMonth: currentMonth });
+    const currentWeek = getWeekStart();
+    setWeeklyChallenge(generateWeeklyChallenge(currentWeek));
+
     localStorage.removeItem(STORAGE_KEYS.SESSION);
     localStorage.removeItem(STORAGE_KEYS.USER);
     localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT);
     localStorage.removeItem(STORAGE_KEYS.LAST_SESSION);
     localStorage.removeItem(STORAGE_KEYS.HISTORY);
     localStorage.removeItem(STORAGE_KEYS.SCHEDULE);
+    localStorage.removeItem(STORAGE_KEYS.BADGES);
+    localStorage.removeItem(STORAGE_KEYS.WEEKLY_CHALLENGE);
+    localStorage.removeItem(STORAGE_KEYS.STREAK_FREEZES);
   };
 
   const setWeeklySchedule = async (schedule: WeeklySchedule) => {
@@ -484,29 +544,57 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUser(updatedUser);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
 
-    // Update personal records for PRs achieved
+    // ── Gamification: badges ───────────────────────────────────────
+    // Build updated PRs map (also handles setPersonalRecords below)
+    const updatedPRs = new Map<string, PRRecord>(personalRecords);
     if (xpBreakdown.prsAchieved.length > 0) {
-      const newPRs = new Map(personalRecords);
       for (const exerciseId of xpBreakdown.prsAchieved) {
         const exercise = completedSession.exercises.find(e => e.exerciseId === exerciseId);
         if (exercise) {
           const bestSet = exercise.sets
             .filter(s => s.completed && s.weight > 0)
             .reduce((max, set) => set.weight > max.weight ? set : max, { weight: 0, reps: 0 });
-
           if (bestSet.weight > 0) {
-            newPRs.set(exerciseId, {
-              weight: bestSet.weight,
-              reps: bestSet.reps,
-              date: new Date().toISOString(),
-            });
+            updatedPRs.set(exerciseId, { weight: bestSet.weight, reps: bestSet.reps, date: new Date().toISOString() });
+            // PR notification
+            const exBlueprint = exerciseBlueprints.find(e => e.id === exerciseId);
+            if (exBlueprint) notifyPRAchieved(exBlueprint.name, bestSet.weight);
           }
         }
       }
-      setPersonalRecords(newPRs);
+    }
+    setPersonalRecords(updatedPRs);
+
+    const newBadges = checkForNewBadges(updatedUser, newHistory, updatedPRs, earnedBadges);
+    if (newBadges.length > 0) {
+      const allBadges = [...earnedBadges, ...newBadges];
+      setEarnedBadges(allBadges);
+      setNewlyEarnedBadges(newBadges);
+      localStorage.setItem(STORAGE_KEYS.BADGES, JSON.stringify(allBadges));
+      // Notify first new badge
+      const firstDef = getBadgeDefinition(newBadges[0].badgeId);
+      if (firstDef) notifyBadgeUnlocked(firstDef.name);
     }
 
-    // Sync to Supabase
+    // ── Gamification: weekly challenge ─────────────────────────────
+    if (weeklyChallenge) {
+      const currentWeek = getWeekStart();
+      const activeChallenge = weeklyChallenge.weekStart === currentWeek
+        ? weeklyChallenge
+        : generateWeeklyChallenge(currentWeek);
+
+      const prsThisWeek = xpBreakdown.prsAchieved.length;
+      const updatedChallenge = evaluateChallengeProgress(activeChallenge, newHistory, prsThisWeek);
+
+      if (updatedChallenge.completed && !activeChallenge.completed) {
+        notifyChallengeCompleted(updatedChallenge.title, updatedChallenge.bonusXP);
+        toast(`🎯 Reto completado: ${updatedChallenge.title} · +${updatedChallenge.bonusXP} XP`, 'success');
+      }
+      setWeeklyChallenge(updatedChallenge);
+      localStorage.setItem(STORAGE_KEYS.WEEKLY_CHALLENGE, JSON.stringify(updatedChallenge));
+    }
+
+    // ── Sync to Supabase ───────────────────────────────────────────
     if (isSupabaseConfigured() && userId) {
       // Save completed session
       await saveCompletedSession(completedSession, userId);
@@ -631,6 +719,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider value={{
       user, userId, isAuthenticated, isLoading, selectedDate, templates, activeWorkout,
       lastCompletedSession, lastXPBreakdown, workoutHistory, personalRecords, weeklySchedule,
+      earnedBadges, newlyEarnedBadges, weeklyChallenge, streakFreezes,
+      useStreakFreeze, clearNewlyEarnedBadges,
       restTimer, startRestTimer, stopRestTimer, addRestTime,
       login, logout, updateUser, setSelectedDate, saveTemplate, deleteTemplate,
       setWeeklySchedule, getScheduledTemplate,

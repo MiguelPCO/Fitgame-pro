@@ -7,8 +7,11 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/ui/Toast';
 import { ROUTES } from './lib/constants';
 import { InstallBanner } from './components/InstallBanner';
-import { checkAndSendReminder } from './lib/notifications';
+import { checkAndSendReminder, notifyStreakAtRisk } from './lib/notifications';
 import { DashboardSkeleton, ProgressSkeleton, HistorySkeleton } from './components/ui/Skeleton';
+import WeeklySummaryModal from './components/WeeklySummaryModal';
+import { getWeeklySummaryData, shouldShowWeeklySummary, markWeeklySummaryShown } from './lib/weeklySummary';
+import type { WeeklySummaryData } from './lib/weeklySummary';
 
 // Lazy-loaded page components
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
@@ -39,17 +42,39 @@ const AppContent: React.FC = () => {
     );
   }, [workoutHistory]);
 
+  const streakAtRisk = !hasWorkedOutToday && (user?.streak || 0) > 0;
+
+  // Weekly summary modal
+  const [weeklySummary, setWeeklySummary] = useState<WeeklySummaryData | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated || workoutHistory.length === 0) return;
+    if (!shouldShowWeeklySummary()) return;
+    const data = getWeeklySummaryData(workoutHistory);
+    if (data) setWeeklySummary(data);
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleCloseSummary = () => {
+    markWeeklySummaryShown();
+    setWeeklySummary(null);
+  };
+
+  // Reminder + streak-at-risk push notifications
   useEffect(() => {
     if (!isAuthenticated) return;
     checkAndSendReminder(hasWorkedOutToday);
+    if (streakAtRisk) notifyStreakAtRisk();
+
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
         checkAndSendReminder(hasWorkedOutToday);
+        if (streakAtRisk) notifyStreakAtRisk();
       }
     };
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [isAuthenticated, hasWorkedOutToday]);
+  }, [isAuthenticated, hasWorkedOutToday, streakAtRisk]);
+
   const [currentView, setCurrentView] = useState(ROUTES.DASHBOARD);
   const [previousView, setPreviousView] = useState(ROUTES.DASHBOARD);
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
@@ -159,29 +184,38 @@ const AppContent: React.FC = () => {
   // Workout Player takes over the full screen
   if (currentView === ROUTES.WORKOUT) {
     return (
-      <Suspense fallback={<PageLoader />}>
-        <div className="bg-background min-h-screen animate-fade-in">{renderContent()}</div>
-      </Suspense>
+      <>
+        <Suspense fallback={<PageLoader />}>
+          <div className="bg-background min-h-screen animate-fade-in">{renderContent()}</div>
+        </Suspense>
+        {weeklySummary && <WeeklySummaryModal data={weeklySummary} onClose={handleCloseSummary} />}
+      </>
     );
   }
 
   // Template Editor also takes over, or at least no sidebar for focus
   if (currentView === ROUTES.TEMPLATE_EDITOR) {
     return (
-      <Suspense fallback={<PageLoader />}>
-        <div className="bg-background min-h-screen p-4 md:p-8 animate-fade-in">{renderContent()}</div>
-      </Suspense>
+      <>
+        <Suspense fallback={<PageLoader />}>
+          <div className="bg-background min-h-screen p-4 md:p-8 animate-fade-in">{renderContent()}</div>
+        </Suspense>
+        {weeklySummary && <WeeklySummaryModal data={weeklySummary} onClose={handleCloseSummary} />}
+      </>
     );
   }
 
   return (
-    <Layout currentPage={currentView} onNavigate={navigate}>
-      <Suspense fallback={getPageFallback()}>
-        <div key={currentView} className="animate-fade-in-up">
-          {renderContent()}
-        </div>
-      </Suspense>
-    </Layout>
+    <>
+      <Layout currentPage={currentView} onNavigate={navigate}>
+        <Suspense fallback={getPageFallback()}>
+          <div key={currentView} className="animate-fade-in-up">
+            {renderContent()}
+          </div>
+        </Suspense>
+      </Layout>
+      {weeklySummary && <WeeklySummaryModal data={weeklySummary} onClose={handleCloseSummary} />}
+    </>
   );
 };
 

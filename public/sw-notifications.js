@@ -17,17 +17,23 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Show a notification on demand — triggered by postMessage from the app
+// Show a notification on demand — triggered by postMessage from the app.
+// Supports an optional `tag` field so different notification types
+// (reminders, badges, PRs, challenges) don't suppress each other.
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SHOW_REMINDER') {
-    event.waitUntil(
-      self.registration.showNotification(event.data.title ?? 'FitGame Pro', {
-        body: event.data.body ?? '\u00a1Es hora de entrenar!',
-        icon: '/pwa-192x192.png',
-        badge: '/pwa-192x192.png',
-        tag: 'workout-reminder',
-        renotify: false,
-      })
-    );
-  }
+  if (event.data?.type !== 'SHOW_REMINDER') return;
+
+  const title = event.data.title ?? 'FitGame Pro';
+  const body  = event.data.body  ?? '¡Es hora de entrenar!';
+  const tag   = event.data.tag   ?? 'workout-reminder';
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: '/pwa-192x192.png',
+      badge: '/pwa-192x192.png',
+      tag,
+      renotify: true,
+    })
+  );
 });

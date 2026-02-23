@@ -105,3 +105,29 @@ export interface WorkoutTemplate {
   difficulty: Difficulty;
   lastPerformed?: string;
 }
+
+export type BadgeCategory = 'milestone' | 'streak' | 'strength' | 'consistency' | 'volume';
+
+export interface EarnedBadge {
+  badgeId: string;
+  earnedAt: string; // ISO date string
+}
+
+export type ChallengeType = 'workouts' | 'pr' | 'volume' | 'sets';
+
+export interface WeeklyChallenge {
+  id: string;
+  type: ChallengeType;
+  title: string;
+  description: string;
+  target: number;
+  progress: number;
+  completed: boolean;
+  weekStart: string; // ISO date of Monday
+  bonusXP: number;
+}
+
+export interface StreakFreezeState {
+  count: number;
+  resetMonth: string; // 'YYYY-MM' — resets on 1st of each month
+}

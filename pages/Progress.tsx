@@ -3,6 +3,7 @@ import { Activity, Trophy, Calendar, Flame, Award, Target, Zap, TrendingUp, Chev
 import { useApp } from '../context/AppContext';
 import { WorkoutSession } from '../types';
 import { exerciseBlueprints as exerciseDB } from '../data/exerciseBlueprints';
+import { epley1RM } from '../lib/calculations';
 
 // Helper to format date as 'YYYY-MM-DD'
 const formatDateString = (date: Date): string => {
@@ -165,10 +166,36 @@ const VolumeAreaChart: React.FC<{ data: AreaChartData[] }> = ({ data }) => {
   );
 };
 
+// --- Date range options ---
+type DateRange = '7d' | '30d' | '90d' | 'all';
+const DATE_RANGE_OPTIONS: { label: string; value: DateRange }[] = [
+  { label: '7 días', value: '7d' },
+  { label: '30 días', value: '30d' },
+  { label: '90 días', value: '90d' },
+  { label: 'Todo', value: 'all' },
+];
+
+function applyDateRange(history: WorkoutSession[], range: DateRange): WorkoutSession[] {
+  if (range === 'all') return history;
+  const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  return history.filter(s => {
+    const t = s.endTime || (s.date ? new Date(s.date).getTime() : 0);
+    return t >= cutoff;
+  });
+}
+
 // --- Main Progress Page ---
 
 const Progress: React.FC = () => {
   const { workoutHistory, user, personalRecords } = useApp();
+  const [dateRange, setDateRange] = useState<DateRange>('all');
+
+  // Apply date range filter
+  const filteredHistory = useMemo(
+    () => applyDateRange(workoutHistory, dateRange),
+    [workoutHistory, dateRange]
+  );
 
   // Helper to calculate total volume for a session
   const calculateSessionVolume = (session: WorkoutSession) => {
@@ -177,20 +204,20 @@ const Progress: React.FC = () => {
     }, 0);
   };
 
-  // Transform history for charts
+  // Transform history for charts (uses filtered history)
   const volumeData = useMemo(() => {
-    if (workoutHistory.length === 0) return [];
-    return workoutHistory.map(session => ({
+    if (filteredHistory.length === 0) return [];
+    return filteredHistory.map(session => ({
       label: new Date(session.endTime || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       value: calculateSessionVolume(session),
       name: session.name,
     })).slice(-7);
-  }, [workoutHistory]);
+  }, [filteredHistory]);
 
   const totalLifetimeVolume = workoutHistory.reduce((acc, s) => acc + calculateSessionVolume(s), 0);
-  const totalWorkouts = workoutHistory.length;
+  const totalWorkouts = filteredHistory.length;
 
-  // Build Set of dates with completed workouts for heatmap
+  // Build Set of dates with completed workouts for heatmap (always uses all history)
   const completedDates = useMemo(() => {
     const set = new Set<string>();
     for (const session of workoutHistory) {
@@ -216,9 +243,9 @@ const Progress: React.FC = () => {
     return days;
   }, [completedDates]);
 
-  // PR list from personalRecords Map
+  // PR list from personalRecords Map — with 1RM
   const prList = useMemo(() => {
-    const list: { exerciseId: string; name: string; weight: number; reps: number; date: string }[] = [];
+    const list: { exerciseId: string; name: string; weight: number; reps: number; date: string; oneRM: number }[] = [];
     personalRecords.forEach((record, exerciseId) => {
       const ex = exerciseDB.find(e => e.id === exerciseId);
       list.push({
@@ -227,6 +254,7 @@ const Progress: React.FC = () => {
         weight: record.weight,
         reps: record.reps,
         date: record.date,
+        oneRM: epley1RM(record.weight, record.reps),
       });
     });
     // Sort by most recent
@@ -234,12 +262,12 @@ const Progress: React.FC = () => {
     return list;
   }, [personalRecords]);
 
-  // PR history by exercise — top weight per session over time
+  // PR history by exercise — top weight per session over time (filtered)
   const [selectedPRExercise, setSelectedPRExercise] = useState<string>('');
 
   const exercisesWithHistory = useMemo(() => {
     const ids = new Set<string>();
-    for (const session of workoutHistory) {
+    for (const session of filteredHistory) {
       for (const ex of session.exercises) {
         const hasCompletedSet = ex.sets.some(s => s.completed && s.weight > 0);
         if (hasCompletedSet) ids.add(ex.exerciseId);
@@ -249,7 +277,7 @@ const Progress: React.FC = () => {
       id,
       name: exerciseDB.find(e => e.id === id)?.name || id,
     })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [workoutHistory]);
+  }, [filteredHistory]);
 
   // Auto-select first exercise
   const activePRExercise = selectedPRExercise || exercisesWithHistory[0]?.id || '';
@@ -257,7 +285,7 @@ const Progress: React.FC = () => {
   const prHistoryData = useMemo(() => {
     if (!activePRExercise) return [];
     const points: { label: string; value: number }[] = [];
-    const sorted = [...workoutHistory].sort((a, b) =>
+    const sorted = [...filteredHistory].sort((a, b) =>
       (a.endTime || 0) - (b.endTime || 0)
     );
     for (const session of sorted) {
@@ -274,12 +302,12 @@ const Progress: React.FC = () => {
       }
     }
     return points;
-  }, [workoutHistory, activePRExercise]);
+  }, [filteredHistory, activePRExercise]);
 
-  // Volume by muscle group
+  // Volume by muscle group (filtered)
   const muscleVolumeData = useMemo(() => {
     const volumeMap: Record<string, number> = {};
-    for (const session of workoutHistory) {
+    for (const session of filteredHistory) {
       for (const ex of session.exercises) {
         const blueprint = exerciseDB.find(e => e.id === ex.exerciseId);
         if (!blueprint) continue;
@@ -292,21 +320,21 @@ const Progress: React.FC = () => {
     return Object.entries(volumeMap)
       .map(([muscle, volume]) => ({ muscle, volume }))
       .sort((a, b) => b.volume - a.volume);
-  }, [workoutHistory]);
+  }, [filteredHistory]);
 
-  // XP per session over time
+  // XP per session over time (filtered)
   const xpPerSession = useMemo(() => {
-    if (workoutHistory.length === 0) return [];
-    return workoutHistory
+    if (filteredHistory.length === 0) return [];
+    return filteredHistory
       .filter(s => s.completed)
       .map(s => ({
         label: new Date(s.endTime || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         value: s.xpReward || 0,
       }))
       .slice(-10);
-  }, [workoutHistory]);
+  }, [filteredHistory]);
 
-  // Weekly frequency (last 8 weeks)
+  // Weekly frequency (last 8 weeks, always all history)
   const weeklyFrequency = useMemo(() => {
     const weeks: { label: string; count: number }[] = [];
     const now = new Date();
@@ -330,10 +358,31 @@ const Progress: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-10">
-      <div className="flex justify-between items-end border-b border-gray-800 pb-6">
+      {/* Header + date range filter */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-800 pb-6">
         <div>
-           <h1 className="text-3xl font-black text-white">Tu Progreso</h1>
-           <p className="text-text-muted mt-1">Estadisticas basadas en tus {totalWorkouts} sesiones completadas.</p>
+          <h1 className="text-3xl font-black text-white">Tu Progreso</h1>
+          <p className="text-text-muted mt-1">
+            {dateRange === 'all'
+              ? `Estadisticas basadas en tus ${workoutHistory.length} sesiones completadas.`
+              : `Mostrando ${totalWorkouts} sesiones · últimos ${dateRange === '7d' ? '7' : dateRange === '30d' ? '30' : '90'} días`}
+          </p>
+        </div>
+        {/* Date range selector */}
+        <div className="flex gap-1 bg-gray-800/60 rounded-xl p-1">
+          {DATE_RANGE_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setDateRange(opt.value)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                dateRange === opt.value
+                  ? 'bg-primary text-white'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -514,7 +563,7 @@ const Progress: React.FC = () => {
         )}
       </div>
 
-      {/* Personal Records */}
+      {/* Personal Records — with 1RM column */}
       <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
         <div className="flex items-center gap-3 mb-6">
           <Award className="w-5 h-5 text-yellow-500" />
@@ -533,6 +582,11 @@ const Progress: React.FC = () => {
                   <span className="text-2xl font-black text-primary">{pr.weight}</span>
                   <span className="text-sm text-gray-400">kg x {pr.reps}</span>
                 </div>
+                {pr.oneRM > 0 && pr.reps > 1 && (
+                  <p className="text-xs text-yellow-500/80 font-medium">
+                    1RM estimado: <span className="font-bold text-yellow-400">{pr.oneRM} kg</span>
+                  </p>
+                )}
                 <p className="text-xs text-text-muted mt-1">
                   {new Date(pr.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>

@@ -40,6 +40,9 @@ export const STORAGE_KEYS = {
   SESSION: 'fitgame_session',
   SCHEDULE: 'fitgame_schedule',
   OFFLINE_QUEUE: 'fitgame_offlineQueue',
+  BADGES: 'fitgame_badges',
+  WEEKLY_CHALLENGE: 'fitgame_weekly_challenge',
+  STREAK_FREEZES: 'fitgame_streak_freezes',
 } as const;
 
 /**

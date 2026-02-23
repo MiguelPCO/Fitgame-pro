@@ -88,3 +88,34 @@ export function checkAndSendReminder(hasWorkedOutToday: boolean): void {
     }
   }
 }
+
+/** Send an in-game milestone notification (badge, PR, challenge) */
+function sendGameNotification(title: string, body: string, tag = 'game-milestone'): void {
+  if (getNotificationPermission() !== 'granted') return;
+  const payload = { type: 'SHOW_REMINDER', title, body, tag };
+  if (navigator.serviceWorker?.controller) {
+    navigator.serviceWorker.controller.postMessage(payload);
+  } else {
+    try {
+      new Notification(title, { body, icon: '/pwa-192x192.png' });
+    } catch (err) {
+      logger.error('Error showing game notification:', err);
+    }
+  }
+}
+
+export function notifyBadgeUnlocked(badgeName: string): void {
+  sendGameNotification('🏅 ¡Logro desbloqueado!', `Obtuviste el logro: ${badgeName}`, 'badge-unlocked');
+}
+
+export function notifyPRAchieved(exerciseName: string, weight: number): void {
+  sendGameNotification('🏆 ¡Nuevo Record Personal!', `${exerciseName}: ${weight} kg`, 'pr-achieved');
+}
+
+export function notifyChallengeCompleted(challengeTitle: string, bonusXP: number): void {
+  sendGameNotification('🎯 ¡Reto semanal completado!', `${challengeTitle} · +${bonusXP} XP`, 'challenge-complete');
+}
+
+export function notifyStreakAtRisk(): void {
+  sendGameNotification('🔥 ¡Tu racha está en riesgo!', '¡Entrena hoy o usa un Freeze para protegerla!', 'streak-risk');
+}

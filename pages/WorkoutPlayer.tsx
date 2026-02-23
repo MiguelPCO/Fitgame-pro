@@ -25,6 +25,7 @@ import { SessionSummary } from '../components/session/SessionSummary';
 import { SetInputModal, SetData } from '../components/session/SetInputModal';
 import { RestTimerCompact } from '../components/session/RestTimer';
 import { AddExerciseModal } from '../components/workout/AddExerciseModal';
+import { muscleFatigueScore, MuscleLoadData } from '../lib/calculations';
 
 interface WorkoutPlayerProps {
   onFinish: () => void;
@@ -44,6 +45,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
     restTimer,
     startRestTimer,
     stopRestTimer,
+    workoutHistory,
   } = useApp();
 
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -59,6 +61,11 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
   } | null>(null);
 
   const { duration: sessionTime } = useSessionTimer(activeWorkout?.startTime);
+
+  const muscleFatigue = useMemo<Record<string, MuscleLoadData>>(
+    () => muscleFatigueScore(workoutHistory),
+    [workoutHistory]
+  );
 
   // Bounds check when exercises are removed mid-workout
   useEffect(() => {
@@ -367,6 +374,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
               isActive
               targetReps={activeExerciseData.sets[0]?.targetReps}
               targetRPE={activeExerciseData.sets[0]?.targetRPE}
+              muscleFatigue={muscleFatigue}
             />
 
             {/* Add set button */}

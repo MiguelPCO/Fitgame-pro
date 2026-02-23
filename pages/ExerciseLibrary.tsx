@@ -7,8 +7,13 @@ import {
   X,
   CheckCircle2,
   Plus,
-  Zap
+  Zap,
+  Youtube,
 } from 'lucide-react';
+
+function youtubeSearchUrl(exerciseName: string): string {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + ' exercise form tutorial')}`;
+}
 import { exerciseBlueprints as allExercises } from '../data/exerciseBlueprints';
 import { useApp } from '../context/AppContext';
 import { Exercise } from '../types';
@@ -359,6 +364,15 @@ const ExerciseDetailModal: React.FC<ModalProps> = ({ exercise, onClose, onAdd, i
              <Button variant="ghost" onClick={onClose}>
                Close
              </Button>
+             <a
+               href={youtubeSearchUrl(exercise.name)}
+               target="_blank"
+               rel="noopener noreferrer"
+               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600/15 border border-red-600/30 text-red-400 hover:bg-red-600/25 transition-colors text-sm font-bold"
+             >
+               <Youtube className="w-4 h-4" />
+               Ver técnica
+             </a>
              {isActiveSession && (
                <Button
                  onClick={onAdd}

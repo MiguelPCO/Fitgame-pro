@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Flame, ChevronRight, TrendingUp, Dumbbell, Clock, Zap } from 'lucide-react';
+import { Flame, ChevronRight, TrendingUp, Dumbbell, Clock, Zap, Shield, Trophy, Target, CheckCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import DateSelector from '../components/DateSelector';
 import { Card } from '../components/ui/Card';
@@ -10,6 +10,9 @@ import { XPBar } from '../components/progress/XPBar';
 import { WorkoutSession } from '../types';
 import { DEFAULT_SET_CONFIG } from '../lib/constants';
 import { isSameDay, isPastDay, getTimeAgo } from '../lib/dateUtils';
+import { getBadgeDefinition, ALL_BADGES } from '../lib/badges';
+import { challengeProgressPct, challengeProgressLabel } from '../lib/challenges';
+import { muscleFatigueScore, FatigueLevel, MuscleLoadData } from '../lib/calculations';
 
 interface DashboardProps {
   onStartWorkout: () => void;
@@ -61,11 +64,28 @@ const templateToPreviewSession = (template: { id: string; name: string; duration
 
 const CHECKLIST_DISMISSED_KEY = 'fitgame_checklist_dismissed';
 
+// Muscle groups to display in the heatmap
+const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Core', 'Glutes', 'Biceps', 'Triceps'];
+
 const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgress, onNavigateTemplates, onNavigateSchedule, onNavigateSettings }) => {
-  const { user, selectedDate, setSelectedDate, startSessionFromTemplate, workoutHistory, getScheduledTemplate, weeklySchedule, templates } = useApp();
+  const {
+    user, selectedDate, setSelectedDate, startSessionFromTemplate, workoutHistory,
+    getScheduledTemplate, weeklySchedule, templates,
+    earnedBadges, newlyEarnedBadges, clearNewlyEarnedBadges,
+    weeklyChallenge, streakFreezes, useStreakFreeze,
+  } = useApp();
+
   const [checklistDismissed, setChecklistDismissed] = React.useState(() =>
     localStorage.getItem(CHECKLIST_DISMISSED_KEY) === 'true'
   );
+
+  // Clear newly earned badge flash after render
+  React.useEffect(() => {
+    if (newlyEarnedBadges.length > 0) {
+      const t = setTimeout(clearNewlyEarnedBadges, 5000);
+      return () => clearTimeout(t);
+    }
+  }, [newlyEarnedBadges, clearNewlyEarnedBadges]);
 
   // Build a Set of completed workout date strings from real history
   const completedDateSet = useMemo(() => {
@@ -246,8 +266,46 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
     return String(v);
   };
 
+  // Streak at risk: hasn't worked out today
+  const todayStr = formatDateString(new Date());
+  const workedOutToday = completedDateSet.has(todayStr);
+  const streakAtRisk = !workedOutToday && (user?.streak || 0) > 0;
+
+  // Recent badges (last 3 earned)
+  const recentBadges = useMemo(() =>
+    [...earnedBadges]
+      .sort((a, b) => new Date(b.earnedAt).getTime() - new Date(a.earnedAt).getTime())
+      .slice(0, 3),
+    [earnedBadges]
+  );
+
+  // Newly earned badge flash (first one)
+  const flashBadge = newlyEarnedBadges.length > 0
+    ? getBadgeDefinition(newlyEarnedBadges[0].badgeId)
+    : null;
+
+  // Fatigue score per muscle group (exponential decay, last 7 days)
+  const muscleFatigue = useMemo(() => muscleFatigueScore(workoutHistory), [workoutHistory]);
+
+  // Challenge progress
+  const challengePct = weeklyChallenge ? challengeProgressPct(weeklyChallenge) : 0;
+  const challengeLabel = weeklyChallenge ? challengeProgressLabel(weeklyChallenge) : '';
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
+
+      {/* Newly earned badge flash */}
+      {flashBadge && (
+        <div className="bg-gradient-to-r from-yellow-600/30 to-yellow-400/10 border border-yellow-500/40 rounded-2xl p-4 flex items-center gap-4 animate-in slide-in-from-top duration-300">
+          <span className="text-4xl">{flashBadge.icon}</span>
+          <div>
+            <p className="text-yellow-400 text-xs font-bold uppercase tracking-wider">¡Logro desbloqueado!</p>
+            <p className="text-white font-bold">{flashBadge.name}</p>
+            <p className="text-gray-400 text-xs">{flashBadge.description}</p>
+          </div>
+        </div>
+      )}
+
       {/* Header: Level + XP + Streak */}
       <div className="bg-background-card border border-gray-800 rounded-3xl p-6">
         <div className="flex flex-col md:flex-row md:items-center gap-6">
@@ -277,21 +335,66 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
             />
           </div>
 
-          {/* Right: Streak Badge */}
-          <div className="bg-gradient-to-br from-primary to-red-900 p-4 rounded-2xl shadow-lg shadow-red-900/20 relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-white/10 rounded-full blur-xl" />
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="p-2 bg-black/20 rounded-xl backdrop-blur-sm">
-                <Flame className="w-6 h-6 text-white" fill="currentColor" />
-              </div>
-              <div>
-                <p className="text-white/80 text-[10px] font-bold uppercase tracking-wider">Streak</p>
-                <p className="text-2xl font-black text-white">{user?.streak}</p>
+          {/* Right: Streak Badge + Freeze */}
+          <div className="flex flex-col gap-2">
+            <div className="bg-gradient-to-br from-primary to-red-900 p-4 rounded-2xl shadow-lg shadow-red-900/20 relative overflow-hidden">
+              <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+              <div className="relative z-10 flex items-center gap-3">
+                <div className="p-2 bg-black/20 rounded-xl backdrop-blur-sm">
+                  <Flame className="w-6 h-6 text-white" fill="currentColor" />
+                </div>
+                <div>
+                  <p className="text-white/80 text-[10px] font-bold uppercase tracking-wider">Streak</p>
+                  <p className="text-2xl font-black text-white">{user?.streak}</p>
+                </div>
               </div>
             </div>
+
+            {/* Streak Freeze button */}
+            {streakAtRisk && streakFreezes.count > 0 && (
+              <button
+                onClick={() => useStreakFreeze()}
+                className="flex items-center gap-2 px-3 py-2 bg-blue-600/20 border border-blue-500/40 rounded-xl text-blue-400 text-xs font-bold hover:bg-blue-600/30 transition-colors"
+                title="Usa un Freeze para proteger tu racha"
+              >
+                <Shield className="w-4 h-4" />
+                Usar Freeze ({streakFreezes.count})
+              </button>
+            )}
+            {!streakAtRisk && streakFreezes.count > 0 && (
+              <p className="text-center text-xs text-gray-600">{streakFreezes.count} freeze{streakFreezes.count !== 1 ? 's' : ''} disponible{streakFreezes.count !== 1 ? 's' : ''}</p>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Weekly Challenge */}
+      {weeklyChallenge && (
+        <div className="bg-background-card border border-gray-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-orange-400" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wide">Reto Semanal</h3>
+            </div>
+            {weeklyChallenge.completed && (
+              <span className="flex items-center gap-1 text-green-400 text-xs font-bold">
+                <CheckCircle className="w-4 h-4" /> Completado · +{weeklyChallenge.bonusXP} XP
+              </span>
+            )}
+          </div>
+          <p className="text-white font-bold mb-1">{weeklyChallenge.title}</p>
+          <p className="text-gray-400 text-xs mb-3">{weeklyChallenge.description}</p>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${weeklyChallenge.completed ? 'bg-green-500' : 'bg-gradient-to-r from-orange-600 to-yellow-400'}`}
+                style={{ width: `${challengePct}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-400 whitespace-nowrap">{challengeLabel}</span>
+          </div>
+        </div>
+      )}
 
       {/* Welcome Checklist for new users */}
       {!checklistDismissed && (
@@ -399,6 +502,80 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
               </div>
             </Card>
           )}
+        </div>
+      </div>
+
+      {/* Recent Badges */}
+      {earnedBadges.length > 0 && (
+        <div className="bg-background-card border border-gray-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-yellow-500" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wide">Logros Recientes</h3>
+            </div>
+            <span className="text-xs text-gray-500">{earnedBadges.length} / {ALL_BADGES.length}</span>
+          </div>
+          <div className="flex gap-3 flex-wrap">
+            {recentBadges.map(eb => {
+              const def = getBadgeDefinition(eb.badgeId);
+              if (!def) return null;
+              return (
+                <div
+                  key={eb.badgeId}
+                  className="flex flex-col items-center gap-1 bg-gray-800/50 border border-gray-700/50 rounded-xl p-3 min-w-[80px]"
+                  title={def.description}
+                >
+                  <span className="text-3xl">{def.icon}</span>
+                  <p className="text-white text-xs font-bold text-center leading-tight">{def.name}</p>
+                </div>
+              );
+            })}
+            {earnedBadges.length === 0 && (
+              <p className="text-gray-500 text-sm">Completa entrenamientos para desbloquear logros</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Fatigue Heatmap */}
+      <div className="bg-background-card border border-gray-800 rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wide">Fatiga Muscular</h3>
+          <span className="text-xs text-gray-500">últimos 7 días</span>
+        </div>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+          {MUSCLE_GROUPS.map(muscle => {
+            const data: MuscleLoadData | undefined = muscleFatigue[muscle];
+            const level: FatigueLevel = data?.level ?? 'fresh';
+            const hasData = !!data;
+            const styleMap: Record<string, { bg: string; text: string; label: string }> = {
+              none:       { bg: 'bg-gray-800/40 border-gray-700/30',     text: 'text-gray-600',   label: '' },
+              fresh:      { bg: 'bg-green-900/40 border-green-700/30',   text: 'text-green-400',  label: 'Fresco' },
+              moderate:   { bg: 'bg-yellow-900/40 border-yellow-700/30', text: 'text-yellow-400', label: 'Activo' },
+              fatigued:   { bg: 'bg-orange-900/40 border-orange-700/30', text: 'text-orange-400', label: 'Cargado' },
+              overloaded: { bg: 'bg-red-900/40 border-red-700/30',       text: 'text-red-400',    label: 'Agotado' },
+            };
+            const style = styleMap[hasData ? level : 'none'];
+            return (
+              <div
+                key={muscle}
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl border p-2 transition-colors ${style.bg}`}
+                title={hasData ? `${muscle}: ${style.label} (${Math.round(data!.score)}%)` : `${muscle}: Sin entrenar`}
+              >
+                <p className={`text-xs font-bold text-center ${hasData ? 'text-white' : 'text-gray-600'}`}>{muscle}</p>
+                {hasData && (
+                  <p className={`text-[10px] font-semibold ${style.text}`}>{style.label}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="flex items-center gap-3 mt-3 flex-wrap text-xs text-gray-500">
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-gray-800/40 border border-gray-700/30" /><span>Sin datos</span></div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-green-900/40 border border-green-700/30" /><span>Fresco</span></div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-yellow-900/40 border border-yellow-700/30" /><span>Activo</span></div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-orange-900/40 border border-orange-700/30" /><span>Cargado</span></div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-red-900/40 border border-red-700/30" /><span>Agotado</span></div>
         </div>
       </div>
     </div>

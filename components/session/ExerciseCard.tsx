@@ -1,8 +1,48 @@
 import React from 'react';
-import { Dumbbell, Target } from 'lucide-react';
+import { Dumbbell, Target, Youtube, AlertTriangle } from 'lucide-react';
 import { Exercise, WorkoutSet } from '../../types';
 import { cn } from '../../lib/utils';
+import { MuscleLoadData } from '../../lib/calculations';
 import { SetCard } from './SetCard';
+
+function youtubeSearchUrl(exerciseName: string): string {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + ' exercise form tutorial')}`;
+}
+
+// Maps specific muscle names (from exercise blueprints) to the higher-level
+// muscleFocus names used in session templates (so fatigue lookup works correctly).
+const MUSCLE_TO_FOCUS: Record<string, string> = {
+  Quadriceps: 'Legs',
+  Hamstrings: 'Legs',
+};
+
+function getHighestFatigue(
+  muscles: string[],
+  fatigue: Record<string, MuscleLoadData>
+): MuscleLoadData | undefined {
+  return muscles
+    .map(m => fatigue[m] ?? fatigue[MUSCLE_TO_FOCUS[m] ?? ''])
+    .filter((d): d is MuscleLoadData => d !== undefined)
+    .reduce<MuscleLoadData | undefined>(
+      (max, d) => (!max || d.score > max.score ? d : max),
+      undefined
+    );
+}
+
+const FATIGUE_BADGE: Record<string, { color: string; label: string }> = {
+  moderate: {
+    color: 'text-yellow-400 bg-yellow-900/20 border-yellow-700/40',
+    label: 'Activo',
+  },
+  fatigued: {
+    color: 'text-orange-400 bg-orange-900/20 border-orange-700/40',
+    label: 'Cargado',
+  },
+  overloaded: {
+    color: 'text-red-400 bg-red-900/20 border-red-700/40',
+    label: '⚠ Agotado',
+  },
+};
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -13,6 +53,8 @@ interface ExerciseCardProps {
   isActive: boolean;
   targetReps?: string;
   targetRPE?: number;
+  /** Optional per-muscle fatigue scores to show a warning badge */
+  muscleFatigue?: Record<string, MuscleLoadData>;
 }
 
 function getRPEColor(rpe: number): string {
@@ -43,6 +85,7 @@ export function ExerciseCard({
   isActive,
   targetReps,
   targetRPE,
+  muscleFatigue,
 }: ExerciseCardProps) {
   const completedSets = sets.filter(s => s.completed);
   const totalSets = sets.length;
@@ -52,6 +95,15 @@ export function ExerciseCard({
   const avgRPE = completedSets.length > 0
     ? completedSets.reduce((sum, set) => sum + (set.rpe || 0), 0) / completedSets.length
     : 0;
+
+  // Compute the highest fatigue level among this exercise's targeted muscles
+  const fatigueData = muscleFatigue
+    ? getHighestFatigue(exercise.muscleGroup, muscleFatigue)
+    : undefined;
+  const fatigueBadge =
+    fatigueData && fatigueData.level !== 'fresh'
+      ? FATIGUE_BADGE[fatigueData.level]
+      : undefined;
 
   return (
     <div
@@ -68,9 +120,7 @@ export function ExerciseCard({
         <div className={cn(
           'relative overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900',
           'flex items-center justify-center',
-          // Mobile: banner on top
           'h-36 w-full',
-          // Desktop: square on left
           'md:h-auto md:w-44 md:shrink-0'
         )}>
           {exercise.videoUrl ? (
@@ -81,7 +131,6 @@ export function ExerciseCard({
             />
           ) : (
             <>
-              {/* Decorative pattern */}
               <div className="absolute inset-0 opacity-[0.03]"
                 style={{
                   backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)',
@@ -114,12 +163,25 @@ export function ExerciseCard({
 
         {/* Exercise info */}
         <div className="flex-1 p-4">
-          {/* Name */}
-          <h3 className="text-xl font-black text-white leading-tight">
-            {exercise.name}
-          </h3>
+          {/* Name + Ver técnica */}
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-xl font-black text-white leading-tight">
+              {exercise.name}
+            </h3>
+            <a
+              href={youtubeSearchUrl(exercise.name)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-red-600/15 border border-red-600/25 text-red-400 hover:bg-red-600/25 transition-colors text-[11px] font-bold"
+              title="Ver técnica en YouTube"
+              onClick={e => e.stopPropagation()}
+            >
+              <Youtube className="w-3.5 h-3.5" />
+              Ver técnica
+            </a>
+          </div>
 
-          {/* Muscle group badges */}
+          {/* Muscle group badges + fatigue indicator */}
           <div className="flex flex-wrap gap-1.5 mt-2">
             {exercise.muscleGroup.map((muscle, idx) => (
               <span
@@ -140,6 +202,17 @@ export function ExerciseCard({
             )}>
               {exercise.type}
             </span>
+
+            {/* Fatigue warning badge */}
+            {fatigueBadge && (
+              <span className={cn(
+                'flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border',
+                fatigueBadge.color
+              )}>
+                <AlertTriangle className="w-3 h-3" />
+                {fatigueBadge.label}
+              </span>
+            )}
           </div>
 
           {/* Target info */}
@@ -147,7 +220,7 @@ export function ExerciseCard({
             <div className="flex items-center gap-2 mt-3 text-sm">
               <Target className="w-3.5 h-3.5 text-gray-400" />
               <span className="text-gray-400">
-                {totalSets} sets × {targetReps || '8-12'} reps
+                {totalSets} sets · {targetReps || '8-12'} reps
                 {targetRPE && <span className="text-gray-400"> @ RPE {targetRPE}</span>}
               </span>
             </div>
