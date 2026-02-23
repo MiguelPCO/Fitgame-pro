@@ -25,6 +25,7 @@ const TemplateEditor = React.lazy(() => import('./pages/TemplateEditor'));
 const Schedule = React.lazy(() => import('./pages/Schedule'));
 const History = React.lazy(() => import('./pages/History'));
 const Settings = React.lazy(() => import('./pages/Settings'));
+const Programs = React.lazy(() => import('./pages/Programs'));
 
 const PageLoader: React.FC = () => (
   <div className="flex items-center justify-center h-64">
@@ -174,6 +175,8 @@ const AppContent: React.FC = () => {
         return <History />;
       case ROUTES.SETTINGS:
         return <Settings />;
+      case ROUTES.PROGRAMS:
+        return <Programs />;
       case ROUTES.ONBOARDING:
         return <Onboarding onComplete={handleOnboardingComplete} />;
       default:

@@ -9,7 +9,8 @@ import {
   Menu,
   ClipboardList,
   CalendarDays,
-  History
+  History,
+  BookOpen,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { USER_DEFAULTS } from '../lib/constants';
@@ -37,6 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'templates', label: 'Templates', icon: ClipboardList },
     { id: 'schedule', label: 'Programa', icon: CalendarDays },
+    { id: 'programs', label: 'Programas', icon: BookOpen },
     { id: 'workout', label: 'Active Workout', icon: Dumbbell, highlight: true },
     { id: 'exercises', label: 'Exercises', icon: Users },
     { id: 'progress', label: 'Progress', icon: LineChart },

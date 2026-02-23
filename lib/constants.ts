@@ -13,6 +13,7 @@ export const ROUTES = {
   SCHEDULE: 'schedule',
   HISTORY: 'history',
   SETTINGS: 'settings',
+  PROGRAMS: 'programs',
 } as const;
 
 export type Route = (typeof ROUTES)[keyof typeof ROUTES];
