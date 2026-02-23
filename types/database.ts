@@ -125,6 +125,62 @@ export interface Database {
         };
         Relationships: [];
       };
+      social_challenges: {
+        Row: {
+          id: string;
+          code: string;
+          creator_id: string;
+          creator_name: string;
+          type: 'workouts' | 'volume' | 'streak';
+          title: string;
+          target: number;
+          bonus_xp: number;
+          starts_at: string;
+          ends_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          code: string;
+          creator_id: string;
+          creator_name: string;
+          type: 'workouts' | 'volume' | 'streak';
+          title: string;
+          target: number;
+          bonus_xp?: number;
+          starts_at: string;
+          ends_at: string;
+        };
+        Update: {
+          title?: string;
+          target?: number;
+          bonus_xp?: number;
+          ends_at?: string;
+        };
+        Relationships: [];
+      };
+      challenge_participants: {
+        Row: {
+          id: string;
+          challenge_id: string;
+          user_id: string;
+          user_name: string;
+          progress: number;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          challenge_id: string;
+          user_id: string;
+          user_name: string;
+          progress?: number;
+        };
+        Update: {
+          progress?: number;
+          user_name?: string;
+        };
+        Relationships: [];
+      };
       workout_sessions: {
         Row: {
           id: string;

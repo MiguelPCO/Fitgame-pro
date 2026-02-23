@@ -26,6 +26,7 @@ const Schedule = React.lazy(() => import('./pages/Schedule'));
 const History = React.lazy(() => import('./pages/History'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const Programs = React.lazy(() => import('./pages/Programs'));
+const Challenges = React.lazy(() => import('./pages/Challenges'));
 
 const PageLoader: React.FC = () => (
   <div className="flex items-center justify-center h-64">
@@ -177,6 +178,8 @@ const AppContent: React.FC = () => {
         return <Settings />;
       case ROUTES.PROGRAMS:
         return <Programs />;
+      case ROUTES.CHALLENGES:
+        return <Challenges />;
       case ROUTES.ONBOARDING:
         return <Onboarding onComplete={handleOnboardingComplete} />;
       default:

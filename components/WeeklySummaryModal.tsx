@@ -1,6 +1,8 @@
 import React from 'react';
-import { X, Dumbbell, TrendingUp, Zap, TrendingDown } from 'lucide-react';
+import { X, Dumbbell, TrendingUp, Zap, TrendingDown, Share2 } from 'lucide-react';
 import { WeeklySummaryData } from '../lib/weeklySummary';
+import { shareWeeklySummary } from '../lib/share';
+import { useApp } from '../context/AppContext';
 
 interface Props {
   data: WeeklySummaryData;
@@ -59,6 +61,7 @@ function StatCard({
 
 const WeeklySummaryModal: React.FC<Props> = ({ data, onClose }) => {
   const { lastWeek, prevWeek } = data;
+  const { user } = useApp();
 
   const lastWeekDate = new Date(lastWeek.weekStart);
   const weekLabel = lastWeekDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
@@ -130,12 +133,23 @@ const WeeklySummaryModal: React.FC<Props> = ({ data, onClose }) => {
               Esta semana viene con más fuerza. ¡Tú puedes! 💪
             </p>
           )}
-          <button
-            onClick={onClose}
-            className="w-full py-3 bg-primary hover:bg-red-700 text-white font-bold rounded-xl transition-colors"
-          >
-            ¡A por esta semana!
-          </button>
+          <div className="flex gap-3">
+            {user && (
+              <button
+                onClick={() => shareWeeklySummary(data, user)}
+                className="flex items-center gap-2 px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-bold rounded-xl transition-colors"
+                title="Compartir resumen"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="flex-1 py-3 bg-primary hover:bg-red-700 text-white font-bold rounded-xl transition-colors"
+            >
+              ¡A por esta semana!
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Share2, Home, Star, Trophy, Activity, Dumbbell, Calendar, Clock, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { exerciseBlueprints as allExercises } from '../data/exerciseBlueprints';
+import { shareWorkout } from '../lib/share';
 
 interface Props {
   onHome: () => void;
@@ -47,13 +48,7 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
   });
 
   const handleShare = () => {
-    const text = `I just crushed my ${lastCompletedSession.name} workout on FitGame Pro! 🏋️‍♂️\n\n⏱️ ${durationMin} mins\n💪 ${totalSets} sets\n🔥 ${(totalVolume/1000).toFixed(1)}k kg volume\n\nLevel ${user.level} ${user.tier}`;
-    if (navigator.share) {
-      navigator.share({ title: 'Workout Complete', text, url: window.location.origin }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(text);
-      alert('Stats copied to clipboard!');
-    }
+    shareWorkout(lastCompletedSession, user);
   };
 
   return (

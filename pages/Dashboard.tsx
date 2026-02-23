@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Flame, ChevronRight, TrendingUp, Dumbbell, Clock, Zap, Shield, Trophy, Target, CheckCircle } from 'lucide-react';
+import { Flame, ChevronRight, TrendingUp, Dumbbell, Clock, Zap, Shield, Trophy, Target, CheckCircle, Share2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import DateSelector from '../components/DateSelector';
 import { Card } from '../components/ui/Card';
@@ -13,6 +13,7 @@ import { isSameDay, isPastDay, getTimeAgo } from '../lib/dateUtils';
 import { getBadgeDefinition, ALL_BADGES } from '../lib/badges';
 import { challengeProgressPct, challengeProgressLabel } from '../lib/challenges';
 import { muscleFatigueScore, FatigueLevel, MuscleLoadData } from '../lib/calculations';
+import { shareBadge } from '../lib/share';
 
 interface DashboardProps {
   onStartWorkout: () => void;
@@ -295,14 +296,21 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
     <div className="space-y-6 animate-in fade-in duration-500">
 
       {/* Newly earned badge flash */}
-      {flashBadge && (
+      {flashBadge && newlyEarnedBadges[0] && (
         <div className="bg-gradient-to-r from-yellow-600/30 to-yellow-400/10 border border-yellow-500/40 rounded-2xl p-4 flex items-center gap-4 animate-in slide-in-from-top duration-300">
           <span className="text-4xl">{flashBadge.icon}</span>
-          <div>
+          <div className="flex-1">
             <p className="text-yellow-400 text-xs font-bold uppercase tracking-wider">¡Logro desbloqueado!</p>
             <p className="text-white font-bold">{flashBadge.name}</p>
             <p className="text-gray-400 text-xs">{flashBadge.description}</p>
           </div>
+          <button
+            onClick={() => shareBadge(newlyEarnedBadges[0])}
+            className="shrink-0 p-2 rounded-xl bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-colors"
+            title="Compartir logro"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
         </div>
       )}
 

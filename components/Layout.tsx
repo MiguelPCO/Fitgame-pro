@@ -11,6 +11,7 @@ import {
   CalendarDays,
   History,
   BookOpen,
+  Swords,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { USER_DEFAULTS } from '../lib/constants';
@@ -39,6 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onNavigate }) =>
     { id: 'templates', label: 'Templates', icon: ClipboardList },
     { id: 'schedule', label: 'Programa', icon: CalendarDays },
     { id: 'programs', label: 'Programas', icon: BookOpen },
+    { id: 'challenges', label: 'Retos', icon: Swords },
     { id: 'workout', label: 'Active Workout', icon: Dumbbell, highlight: true },
     { id: 'exercises', label: 'Exercises', icon: Users },
     { id: 'progress', label: 'Progress', icon: LineChart },
