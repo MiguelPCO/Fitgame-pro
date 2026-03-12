@@ -17,6 +17,7 @@ interface DBWorkoutSession {
   start_time: string | null;
   end_time: string | null;
   created_at: string;
+  notes?: string | null;
 }
 
 /**
@@ -35,6 +36,7 @@ function toWorkoutSession(dbSession: DBWorkoutSession): WorkoutSession {
     endTime: dbSession.end_time ? new Date(dbSession.end_time).getTime() : undefined,
     completed: dbSession.status === 'completed',
     date: dbSession.created_at,
+    notes: dbSession.notes || undefined,
   };
 }
 
@@ -53,6 +55,7 @@ function toSessionInsert(session: WorkoutSession, userId: string) {
     xp_reward: session.xpReward,
     start_time: session.startTime ? new Date(session.startTime).toISOString() : null,
     end_time: session.endTime ? new Date(session.endTime).toISOString() : null,
+    notes: session.notes || null,
   };
 }
 
@@ -170,6 +173,7 @@ export async function updateSession(
     if (updates.endTime !== undefined) {
       dbUpdates.end_time = updates.endTime ? new Date(updates.endTime).toISOString() : null;
     }
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
 
     const { error } = await sb
       .from('workout_sessions')

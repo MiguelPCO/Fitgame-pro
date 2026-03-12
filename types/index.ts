@@ -85,6 +85,7 @@ export interface WorkoutSession {
   xpReward: number;
   date?: string;
   status?: 'pending' | 'active' | 'completed' | 'skipped';
+  notes?: string;
 }
 
 export interface TemplateExercise {

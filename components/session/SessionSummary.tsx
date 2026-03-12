@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PartyPopper, Trophy, ArrowRight } from 'lucide-react';
+import { PartyPopper, Trophy, ArrowRight, MessageSquare } from 'lucide-react';
 import { WorkoutSession, UserProfile } from '../../types';
 import { XPBreakdown as XPBreakdownType } from '../../services/xp';
 import { exerciseBlueprints as allExercises } from '../../data/exerciseBlueprints';
@@ -14,7 +14,7 @@ interface SessionSummaryProps {
   xpBreakdown: XPBreakdownType;
   user: UserProfile;
   previousRecords?: Map<string, { weight: number; reps: number }>;
-  onClose: () => void;
+  onClose: (notes?: string) => void;
 }
 
 export function SessionSummary({
@@ -25,6 +25,7 @@ export function SessionSummary({
   onClose,
 }: SessionSummaryProps) {
   const [visibleSections, setVisibleSections] = useState(0);
+  const [notes, setNotes] = useState('');
 
   // Staggered entrance: reveal sections one by one
   useEffect(() => {
@@ -235,14 +236,30 @@ export function SessionSummary({
           </div>
         </div>
 
-        {/* Section 5: CTA */}
+        {/* Section 5: Notas + CTA */}
         <div className={sectionClass(4)}>
+          <div className="mb-4 rounded-xl border border-gray-800/50 bg-background-card/50 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <MessageSquare className="w-4 h-4 text-gray-400" aria-hidden="true" />
+              <label htmlFor="session-notes" className="text-sm font-bold text-gray-400">
+                Notas de la sesión
+              </label>
+            </div>
+            <textarea
+              id="session-notes"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="¿Cómo fue el entreno? ¿Algo a mejorar?"
+              rows={3}
+              className="w-full bg-gray-800/50 border border-gray-700 rounded-xl p-3 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
+            />
+          </div>
           <Button
             variant="primary"
             size="lg"
             fullWidth
-            onClick={onClose}
-            rightIcon={<ArrowRight className="w-5 h-5" />}
+            onClick={() => onClose(notes.trim() || undefined)}
+            rightIcon={<ArrowRight className="w-5 h-5" aria-hidden="true" />}
           >
             Finalizar
           </Button>

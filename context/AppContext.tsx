@@ -8,7 +8,7 @@ import { loadFromStorage } from '../hooks/usePersist';
 import { getSupabase, isSupabaseConfigured } from '../lib/supabase';
 import { onAuthStateChange, signOut, getSession } from '../services/auth';
 import { fetchTemplates, upsertTemplate, deleteTemplateFromDB } from '../services/templates';
-import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, upsertPersonalRecords } from '../services/workoutSessions';
+import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, upsertPersonalRecords, updateSession } from '../services/workoutSessions';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { processQueue, getQueue } from '../services/offlineQueue';
 import { getRecommendedWeight, getWarmupWeight } from '../lib/weightRecommendation';
@@ -66,6 +66,7 @@ interface AppState {
   startSession: (session: WorkoutSession) => void;
   startSessionFromTemplate: (template: WorkoutTemplate) => void;
   completeSession: () => void;
+  updateSessionNotes: (sessionId: string, notes: string) => void;
   updateSet: (exerciseIndex: number, setIndex: number, field: keyof WorkoutSet, value: WorkoutSet[keyof WorkoutSet]) => void;
   addSet: (exerciseIndex: number) => void;
   deleteSet: (exerciseIndex: number, setIndex: number) => void;
@@ -634,6 +635,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const updateSessionNotes = useCallback((sessionId: string, notes: string) => {
+    const updated = workoutHistory.map(s =>
+      s.id === sessionId ? { ...s, notes } : s
+    );
+    setWorkoutHistory(updated);
+    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(updated));
+    // Fire-and-forget Supabase sync
+    if (isSupabaseConfigured()) {
+      updateSession(sessionId, { notes }).catch(e => logger.error('Error syncing session notes:', e));
+    }
+  }, [workoutHistory]);
+
   // Workout Modifiers
   const updateSet = (exerciseIndex: number, setIndex: number, field: keyof WorkoutSet, value: WorkoutSet[keyof WorkoutSet]) => {
     setActiveWorkout(prev => {
@@ -724,7 +737,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       restTimer, startRestTimer, stopRestTimer, addRestTime,
       login, logout, updateUser, setSelectedDate, saveTemplate, deleteTemplate,
       setWeeklySchedule, getScheduledTemplate,
-      startSession, startSessionFromTemplate, completeSession,
+      startSession, startSessionFromTemplate, completeSession, updateSessionNotes,
       updateSet, addSet, deleteSet, addExerciseToSession, removeExerciseFromSession
     }}>
       {children}

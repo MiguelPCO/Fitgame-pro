@@ -8,6 +8,8 @@ import {
   Flame,
   Zap,
   Dumbbell,
+  CalendarDays,
+  MessageSquare,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { exerciseBlueprints } from '../data/exerciseBlueprints';
@@ -47,6 +49,8 @@ const History: React.FC = () => {
   const [search, setSearch] = useState('');
   const [muscleFilter, setMuscleFilter] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Get completed sessions sorted by date desc
   const completedSessions = useMemo(() => {
@@ -77,6 +81,16 @@ const History: React.FC = () => {
 
     if (muscleFilter) {
       result = result.filter(s => s.muscleFocus?.includes(muscleFilter));
+    }
+
+    if (dateFrom) {
+      const from = new Date(dateFrom).getTime();
+      result = result.filter(s => (s.endTime || s.startTime || 0) >= from);
+    }
+
+    if (dateTo) {
+      const to = new Date(dateTo).getTime() + 86400000; // include full day
+      result = result.filter(s => (s.endTime || s.startTime || 0) <= to);
     }
 
     return result;
@@ -134,6 +148,37 @@ const History: React.FC = () => {
               'transition-all'
             )}
           />
+        </div>
+
+        {/* Date range filter */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 text-xs text-gray-400 shrink-0">
+            <CalendarDays className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>Rango:</span>
+          </div>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={e => setDateFrom(e.target.value)}
+            aria-label="Fecha desde"
+            className="flex-1 min-w-[130px] px-3 py-1.5 rounded-lg text-sm bg-background-card border border-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
+          />
+          <span className="text-xs text-gray-500">—</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={e => setDateTo(e.target.value)}
+            aria-label="Fecha hasta"
+            className="flex-1 min-w-[130px] px-3 py-1.5 rounded-lg text-sm bg-background-card border border-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => { setDateFrom(''); setDateTo(''); }}
+              className="text-xs text-gray-400 hover:text-white underline shrink-0"
+            >
+              Limpiar
+            </button>
+          )}
         </div>
 
         {/* Muscle filter pills */}
@@ -267,6 +312,12 @@ const History: React.FC = () => {
                 {/* Expanded detail */}
                 {isExpanded && (
                   <div id={`session-detail-${session.id}`} className="border-t border-gray-800/50 px-4 py-3 space-y-3">
+                    {session.notes && (
+                      <div className="flex gap-2 px-3 py-2 rounded-lg bg-gray-800/40 border border-gray-700/40">
+                        <MessageSquare className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" aria-hidden="true" />
+                        <p className="text-xs text-gray-300 leading-relaxed">{session.notes}</p>
+                      </div>
+                    )}
                     {session.exercises.map((ex, exIdx) => {
                       const name = getExerciseName(ex.exerciseId);
                       const completedSets = ex.sets.filter(s => s.completed);

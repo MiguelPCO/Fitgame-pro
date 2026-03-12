@@ -7,7 +7,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './components/ui/Toast';
 import { ROUTES } from './lib/constants';
 import { InstallBanner } from './components/InstallBanner';
-import { checkAndSendReminder, notifyStreakAtRisk } from './lib/notifications';
+import { checkAndSendReminder, notifyStreakAtRisk, notifyWeeklySummary } from './lib/notifications';
 import { DashboardSkeleton, ProgressSkeleton, HistorySkeleton } from './components/ui/Skeleton';
 import WeeklySummaryModal from './components/WeeklySummaryModal';
 import { getWeeklySummaryData, shouldShowWeeklySummary, markWeeklySummaryShown } from './lib/weeklySummary';
@@ -53,7 +53,10 @@ const AppContent: React.FC = () => {
     if (!isAuthenticated || workoutHistory.length === 0) return;
     if (!shouldShowWeeklySummary()) return;
     const data = getWeeklySummaryData(workoutHistory);
-    if (data) setWeeklySummary(data);
+    if (data) {
+      setWeeklySummary(data);
+      notifyWeeklySummary(data.lastWeek.workouts, data.lastWeek.volumeKg);
+    }
   }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCloseSummary = () => {

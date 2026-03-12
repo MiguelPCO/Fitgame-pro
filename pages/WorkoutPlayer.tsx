@@ -42,6 +42,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
     deleteSet,
     addExerciseToSession,
     completeSession,
+    updateSessionNotes,
     restTimer,
     startRestTimer,
     stopRestTimer,
@@ -121,7 +122,10 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
     setShowSummary(true);
   };
 
-  const handleSummaryClose = () => {
+  const handleSummaryClose = (notes?: string) => {
+    if (notes && summarySnapshot.current) {
+      updateSessionNotes(summarySnapshot.current.session.id, notes);
+    }
     summarySnapshot.current = null;
     onFinish();
   };

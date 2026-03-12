@@ -119,3 +119,14 @@ export function notifyChallengeCompleted(challengeTitle: string, bonusXP: number
 export function notifyStreakAtRisk(): void {
   sendGameNotification('🔥 ¡Tu racha está en riesgo!', '¡Entrena hoy o usa un Freeze para protegerla!', 'streak-risk');
 }
+
+export function notifyWeeklySummary(workouts: number, volumeKg: number): void {
+  const vol = volumeKg >= 1000
+    ? `${(volumeKg / 1000).toFixed(1)}k kg`
+    : `${volumeKg} kg`;
+  sendGameNotification(
+    '📊 Resumen Semanal',
+    `Semana pasada: ${workouts} entreno${workouts !== 1 ? 's' : ''} · ${vol} de volumen`,
+    'weekly-summary'
+  );
+}
