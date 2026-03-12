@@ -49,9 +49,11 @@ function NumberInput({ value, onChange, step, min, max, label, unit, size = 'lg'
     onChange(Math.max(min, Math.min(max, newValue)));
   };
 
+  const inputId = `number-input-${label.toLowerCase().replace(/\s+/g, '-')}`;
+
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-400">{label}</label>
+      <label htmlFor={inputId} className="text-sm font-medium text-gray-400">{label}</label>
       <div className="flex items-center gap-2">
         {/* Decrement button */}
         <button
@@ -64,15 +66,17 @@ function NumberInput({ value, onChange, step, min, max, label, unit, size = 'lg'
             'transition-all duration-150',
             size === 'lg' ? 'w-14 h-14' : 'w-11 h-11'
           )}
-          aria-label={`Decrease ${label}`}
+          aria-label={`Disminuir ${label}`}
         >
-          <Minus className={size === 'lg' ? 'w-6 h-6' : 'w-5 h-5'} />
+          <Minus className={size === 'lg' ? 'w-6 h-6' : 'w-5 h-5'} aria-hidden="true" />
         </button>
 
         {/* Value input */}
         <div className="flex-1 relative">
           <input
+            id={inputId}
             type="number"
+            inputMode="numeric"
             value={value}
             onChange={handleInputChange}
             step={step}
@@ -106,9 +110,9 @@ function NumberInput({ value, onChange, step, min, max, label, unit, size = 'lg'
             'transition-all duration-150',
             size === 'lg' ? 'w-14 h-14' : 'w-11 h-11'
           )}
-          aria-label={`Increase ${label}`}
+          aria-label={`Aumentar ${label}`}
         >
-          <Plus className={size === 'lg' ? 'w-6 h-6' : 'w-5 h-5'} />
+          <Plus className={size === 'lg' ? 'w-6 h-6' : 'w-5 h-5'} aria-hidden="true" />
         </button>
       </div>
 
@@ -120,8 +124,9 @@ function NumberInput({ value, onChange, step, min, max, label, unit, size = 'lg'
               key={delta}
               type="button"
               onClick={() => onChange(Math.max(min, Math.min(max, value + delta)))}
+              aria-label={`${delta > 0 ? 'Sumar' : 'Restar'} ${Math.abs(delta)} kg`}
               className={cn(
-                'px-3 py-1 rounded-lg text-xs font-bold',
+                'px-3 py-2 min-h-[36px] rounded-lg text-xs font-bold',
                 'bg-gray-800/50 border border-gray-700',
                 'text-gray-400 hover:text-white hover:border-gray-600',
                 'transition-colors duration-150'
@@ -187,7 +192,7 @@ export function SetInputModal({
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-primary/10 text-primary">
-            <Dumbbell className="w-5 h-5" />
+            <Dumbbell className="w-5 h-5" aria-hidden="true" />
           </div>
           <div>
             <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">
@@ -248,7 +253,7 @@ export function SetInputModal({
               'hover:bg-primary/15 active:scale-[0.98] transition-all duration-150'
             )}
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4" aria-hidden="true" />
             Sugerido: {recommendedWeight} kg
           </button>
         )}

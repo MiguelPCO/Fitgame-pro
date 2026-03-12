@@ -106,7 +106,7 @@ export const Modal: React.FC<ModalProps> = ({
                 aria-label="Cerrar"
                 className="p-2 hover:bg-gray-700 rounded-lg text-text-muted hover:text-white transition-colors ml-auto"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             )}
           </div>

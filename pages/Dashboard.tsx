@@ -380,7 +380,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
               </button>
             )}
             {!streakAtRisk && streakFreezes.count > 0 && (
-              <p className="text-center text-xs text-gray-600">{streakFreezes.count} freeze{streakFreezes.count !== 1 ? 's' : ''} disponible{streakFreezes.count !== 1 ? 's' : ''}</p>
+              <p className="text-center text-xs text-gray-400">{streakFreezes.count} freeze{streakFreezes.count !== 1 ? 's' : ''} disponible{streakFreezes.count !== 1 ? 's' : ''}</p>
             )}
           </div>
         </div>
@@ -663,7 +663,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
                 className={`flex flex-col items-center justify-center gap-1 rounded-xl border p-2 transition-colors ${style.bg}`}
                 title={hasData ? `${muscle}: ${style.label} (${Math.round(data!.score)}%)` : `${muscle}: Sin entrenar`}
               >
-                <p className={`text-xs font-bold text-center ${hasData ? 'text-white' : 'text-gray-600'}`}>{muscle}</p>
+                <p className={`text-xs font-bold text-center ${hasData ? 'text-white' : 'text-gray-400'}`}>{muscle}</p>
                 {hasData && (
                   <p className={`text-[10px] font-semibold ${style.text}`}>{style.label}</p>
                 )}

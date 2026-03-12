@@ -282,6 +282,7 @@ const Settings: React.FC = () => {
             <button
               key={g.value}
               onClick={() => setGoal(g.value)}
+              aria-pressed={goal === g.value}
               className={cn(
                 'p-4 rounded-xl border text-left transition-all',
                 goal === g.value
@@ -289,7 +290,7 @@ const Settings: React.FC = () => {
                   : 'border-gray-700 text-text-muted hover:border-gray-600'
               )}
             >
-              <span className="text-xl">{g.icon}</span>
+              <span className="text-xl" aria-hidden="true">{g.icon}</span>
               <p className="font-medium mt-1.5">{g.label}</p>
             </button>
           ))}
@@ -347,6 +348,7 @@ const Settings: React.FC = () => {
               <button
                 key={l.value}
                 onClick={() => setExperienceLevel(l.value)}
+                aria-pressed={experienceLevel === l.value}
                 className={cn(
                   'flex-1 py-3 rounded-xl border text-sm font-medium transition-all',
                   experienceLevel === l.value
