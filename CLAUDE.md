@@ -10,172 +10,248 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado del Proyecto
 
-### Fase actual: Post-MVP — Production-Ready
+**Fase actual: Production-Ready** — Última actualización: 2026-03-19
 
-- [x] Auth básico (mock + Supabase)
-- [x] Onboarding
-- [x] WorkoutPlayer funcional
-- [x] Sistema XP completo (PRs, bonuses, streaks, morning bonus)
-- [x] Refactor estructura (componentes UI, hooks, services, lib)
-- [x] Backend Supabase (auth + profiles + sessions + personal_records)
-- [x] Componentes Home: WorkoutDayCard, LevelBadge, XPBar
-- [x] DateSelector mejorado (navegación semanal)
-- [x] Fase 2: SessionHeader + integración WorkoutPlayer + XP en vivo + QA
-- [x] Fase 3: Rediseño WorkoutPlayer (2-col layout, ExerciseSidebar, ExerciseCard, SetCard)
-- [x] Fase 3b: Session Summary (SessionStats, XPBreakdown, PRBadge, SessionSummary, confetti)
-- [x] Sprint Consolidación: PRs persistidos, Dashboard real, Progress real
-- [x] Fix: 0 errores TypeScript
-- [x] Sistema de Scheduling (asignar templates a días de la semana)
-- [x] Onboarding Flow completo (wizard 7 pasos, 35 ejercicios, template auto-generado)
-- [x] Offline Queue (sync pendientes al recuperar conexión)
-- [x] Historial de sesiones (página dedicada con búsqueda, filtros por músculo, detalle expandible)
-- [x] Recommended Weight System (double progression automático desde historial)
-- [x] Alta prioridad: ErrorBoundary, logger dev-only, .gitignore mejorado, error handling en servicios
-- [x] Media prioridad: MIT License, SEO/OG meta tags, PWA (manifest + service worker), Testing, Accesibilidad (ARIA, focus trap, skip-nav)
-- [x] Baja prioridad: Code splitting (React.lazy), memoización WorkoutPlayer, migraciones DB
-- [x] Prioridad crítica: Toast system, Settings/Profile page, OG image SVG, viewport WCAG fix
-- [x] Alta prioridad (2): CI/CD GitHub Actions, password reset, account deletion, integration tests (18)
-- [x] Media prioridad (2): Offline queue tests (19), data export JSON, sync failure notifications
-- [x] Baja prioridad (2): Constantes extraídas (UI_TIMING, USER_DEFAULTS), lib/dateUtils.ts, a11y forms (htmlFor/id), Slider aria, dead code cleanup (SetRow removed), avatar SVG inline
-- [x] Production-ready: Tailwind CDN → PostCSS build (66.3 kB CSS tree-shaken), Vercel config (SPA rewrites)
-- [x] UX Polish: PWA Install Prompt (beforeinstallprompt + banner), Skeleton Loaders (Dashboard/Progress/History), Loading states (Settings/Onboarding/TemplateEditor buttons), Mobile responsiveness audit (320px fixes)
-- [x] UI Contrast Overhaul: text-muted bumped to slate-300, all gray text levels raised for WCAG compliance, Card/Modal borders lightened, badge opacity increased, min font 10px
+Todos los sprints completados: auth, onboarding, WorkoutPlayer, XP, scheduling, offline queue, recommended weights, history, PWA, a11y, CI/CD, code splitting, mobile polish, E2E tests, performance sprint (lazy Supabase, vendor chunks, PWA notifications, CSV export, PR history chart).
 
-### Última actualización: 2026-02-10
+Estado: **0 TS errors · 138 unit tests · 36 E2E tests · 256 kB startup JS**
 
 ## Build & Development Commands
 
 ```bash
-npm run dev          # Dev server en http://localhost:3000
-npm run build        # Build producción a /dist
-npm run preview      # Preview del build
-npm run test         # Vitest run (66 tests)
-npm run test:watch   # Vitest watch mode
-npm run lint         # ESLint check
-npm run type-check   # TypeScript sin compilar
+npm run dev           # Dev server en http://localhost:3000
+npm run build         # Build producción a /dist
+npm run preview       # Preview del build
+npm run test          # Vitest run (138 unit tests)
+npm run test:watch    # Vitest watch mode
+npm run lint          # ESLint --max-warnings 0
+npm run type-check    # TypeScript sin compilar
+npm run test:e2e      # Playwright E2E (36 tests, chromium + mobile-chrome)
+npm run test:e2e:ui   # Playwright UI mode
+npm run test:e2e:headed  # Playwright con browser visible
+```
+
+**Run a single unit test file:**
+```bash
+npx vitest run services/xp.test.ts
+```
+
+**Run a single E2E spec:**
+```bash
+npx playwright test tests/e2e/auth.spec.ts
 ```
 
 ## Tech Stack
 
 ```
-Frontend: React 19 + TypeScript (strict) + Vite + Tailwind CSS v3 (PostCSS build)
-Estado:   Context API (AppContext) + localStorage (persistencia offline-first)
+Frontend: React 19 + TypeScript (strict) + Vite 6 + Tailwind CSS v3 (PostCSS build)
+Estado:   Context API (AppContext) + localStorage (offline-first)
 Backend:  Supabase v2.94 (auth + PostgreSQL + RLS)
-UI:       Lucide React (iconos)
+Icons:    Lucide React
 Charts:   Recharts
-Testing:  Vitest + React Testing Library + jest-dom
-PWA:      vite-plugin-pwa (workbox, manifest, service worker)
+Testing:  Vitest + React Testing Library + Playwright
+PWA:      vite-plugin-pwa (workbox generateSW, manifest, custom importScripts)
 Deploy:   Vercel (vercel.json SPA rewrites)
+CI/CD:    GitHub Actions (tsc + vitest + vite build)
 ```
 
 ## Folder Structure
 
 ```
 /
-├── /components
-│   ├── /ui           # Button, Input, Slider, Modal, Card, Toast, Skeleton
-│   ├── /home         # WorkoutDayCard
-│   ├── /progress     # LevelBadge, XPBar
-│   ├── /session      # SessionHeader, ExerciseSidebar, ExerciseCard, SetCard,
-│   │                 # SessionSummary, SessionStats, XPBreakdown, PRBadge
-│   ├── /workout      # ExerciseCard, SetInput, Timer
+├── components/
+│   ├── ui/         # Button, Input, Slider, Modal, Card, Toast, Skeleton
+│   ├── home/       # WorkoutDayCard, WelcomeChecklist
+│   ├── progress/   # LevelBadge, XPBar
+│   ├── session/    # SessionHeader, ExerciseSidebar, ExerciseCard, SetCard,
+│   │               # SessionSummary, SessionStats, XPBreakdown, PRBadge, RPESlider, RestTimer
+│   ├── workout/    # AddExerciseModal
 │   ├── DateSelector.tsx
 │   ├── ErrorBoundary.tsx
 │   ├── InstallBanner.tsx
 │   ├── SyncIndicator.tsx
+│   ├── WeeklySummaryModal.tsx
 │   └── Layout.tsx
-├── /pages            # Login, Signup, Onboarding, Dashboard, WorkoutPlayer, Progress,
-│                     # Templates, TemplateEditor, Schedule, History, Settings
-├── /context          # AppContext.tsx (estado global)
-├── /hooks            # usePersist, useSessionTimer, useRestTimer, useOnlineStatus, useInstallPrompt
-├── /lib              # supabase.ts, utils.ts, constants.ts, sessionCalculations.ts,
-│                     # weightRecommendation.ts, templateGenerator.ts, dateUtils.ts, logger.ts
-├── /services         # auth.ts, xp.ts, audio.ts, workoutSessions.ts, templates.ts,
-│                     # offlineQueue.ts
-├── /types            # index.ts, database.ts
-├── /data             # mockData.ts, exerciseBlueprints.ts
-├── /supabase         # schema.sql + migrations/
-├── /public           # favicon.svg, pwa-*.svg, og-image.svg
-├── /docs             # session-notes/
+├── pages/          # Dashboard, WorkoutPlayer, WorkoutSummary, Schedule, Templates,
+│                   # TemplateEditor, Onboarding, Progress, History, Programs,
+│                   # Challenges, ExerciseLibrary, Settings, Login, Signup
+├── context/        # AppContext.tsx (estado global + 18 integration tests)
+├── hooks/          # usePersist, useSessionTimer, useRestTimer, useOnlineStatus,
+│                   # useInstallPrompt, useTheme
+├── lib/            # supabase.ts, utils.ts, constants.ts, logger.ts, dateUtils.ts,
+│                   # calculations.ts, sessionCalculations.ts, weightRecommendation.ts,
+│                   # templateGenerator.ts, badges.ts, challenges.ts, notifications.ts,
+│                   # share.ts, weeklySummary.ts, recommendations.ts
+├── services/       # auth.ts, xp.ts, workoutSessions.ts, templates.ts,
+│                   # offlineQueue.ts, socialChallenges.ts, audio.ts
+├── types/          # index.ts (app types), database.ts (Supabase types)
+├── data/           # exerciseBlueprints.ts (67 exercises), mockData.ts, presetPrograms.ts
+├── supabase/       # schema.sql + migrations/ (5 timestamped files)
+├── tests/e2e/      # Playwright specs (auth, onboarding, dashboard, workout, navigation)
+├── public/         # favicon.svg, pwa-*.png/svg, og-image.svg, sw-notifications.js
 ├── tailwind.config.js
 ├── postcss.config.js
 ├── vercel.json
-└── index.css         # Tailwind directives + custom styles
+└── index.css       # Tailwind directives + scrollbar + autofill fix
 ```
 
-## Key Files Reference
+## Architecture Notes
 
-### Supabase
+### State Management (AppContext)
 
-- `/lib/supabase.ts` - Cliente con fallback offline
-- `/services/auth.ts` - signUp, signIn, signOut, resetPassword, deleteAccount
-- `/services/workoutSessions.ts` - CRUD sessions + getPersonalRecords + upsertPersonalRecords
-- `/services/templates.ts` - CRUD templates sincronizado
-- `/types/database.ts` - Tipos para 4 tablas Supabase (profiles, templates, workout_sessions, personal_records)
-- `/supabase/schema.sql` - Esquema de BD completo con RLS (4 tablas)
-- `/supabase/migrations/` - Migraciones timestamped (3 archivos)
+- Estado centralizado en `context/AppContext.tsx`
+- **localStorage-first**: todas las mutaciones persisten inmediatamente; Supabase sync es secondary/non-blocking
+- `updateUser()` persiste dentro de setState callback (sync, no useEffect race condition)
+- `initAuth()` tiene fallback a localStorage cuando Supabase falla
 
-### Componentes de sesión
+### Supabase (Lazy Singleton)
 
-- `/components/session/SessionHeader.tsx` - Header con timer, XP, exit modal
-- `/components/session/ExerciseSidebar.tsx` - Lista de ejercicios con estados
-- `/components/session/ExerciseCard.tsx` - Card rediseñada con imagen, badges, grid
-- `/components/session/SetCard.tsx` - Card individual de set con 3 estados
-- `/components/session/SessionSummary.tsx` - Resumen post-sesión con confetti
-- `/components/session/SessionStats.tsx` - 4 stat cards
-- `/components/session/XPBreakdown.tsx` - Desglose XP animado
-- `/components/session/PRBadge.tsx` - Badge de PR con animación
+`lib/supabase.ts` exporta `getSupabase()` — función async que crea el cliente solo al primer uso. Evita que el bundle de Supabase (174 kB) se cargue en startup. Todos los servicios hacen `await getSupabase()`.
 
-### Scheduling, Onboarding y Offline
+```typescript
+// ❌ Don't: import { supabase } from '@/lib/supabase'
+// ✅ Do:    const sb = await getSupabase()
+```
 
-- `/pages/Schedule.tsx` - Asignar templates a días de la semana
-- `/pages/Onboarding.tsx` - Wizard 7 pasos, genera plan personalizado
-- `/data/exerciseBlueprints.ts` - 35 ejercicios con metadata completa
-- `/lib/templateGenerator.ts` - Auto-genera templates según preferencias
-- `/hooks/useOnlineStatus.ts` - Detecta online/offline + reconnect callback
-- `/services/offlineQueue.ts` - Cola de operaciones pendientes con retry
-- `/components/SyncIndicator.tsx` - Indicador visual de sync
+### Routing
 
-### Recommended Weight y History
+Routing por estado, no por URL. Toda la navegación cambia `currentView` en AppContext (string enum de `ROUTES` en `lib/constants.ts`). Login/Signup NO son lazy-loaded (necesarios antes del auth gate). Las otras 13 páginas usan React.lazy + Suspense con skeletons específicos (DashboardSkeleton, ProgressSkeleton, HistorySkeleton).
 
-- `/lib/weightRecommendation.ts` - Double progression (getRecommendedWeight, getWarmupWeight)
-- `/pages/History.tsx` - Historial con búsqueda, filtros por músculo, detalle expandible
+### WorkoutPlayer
 
-### Hardening, UX y Production
+- Renderiza **fuera** del Layout shell (App.tsx bypasses sidebar) — pantalla completa
+- `summarySnapshot` useRef preserva datos del resumen cuando `activeWorkout` → null
+- Summary guard BEFORE derived state prevents null crash
+- Rest timer usa `endTime` (timestamp absoluto) para sobrevivir throttling del browser
+- `completeSession()`: snapshot data BEFORE calling (activeWorkout se pone null)
 
-- `/components/ErrorBoundary.tsx` - Error boundary con retry/reload (React 19 `declare` pattern, usa logger)
-- `/components/ui/Toast.tsx` - Toast notification system (ToastProvider + useToast hook)
-- `/components/ui/Skeleton.tsx` - Skeleton loaders reutilizables (Skeleton, SkeletonCard, DashboardSkeleton, ProgressSkeleton, HistorySkeleton)
-- `/components/InstallBanner.tsx` - Banner animado de instalación PWA (slide-up)
-- `/hooks/useInstallPrompt.ts` - Hook PWA install prompt (beforeinstallprompt + appinstalled)
-- `/lib/logger.ts` - Dev-only logger (reemplaza todos los console.log/error/warn)
-- `/lib/constants.ts` - ROUTES, XP, STORAGE_KEYS, UI_TIMING, USER_DEFAULTS, DEFAULT_SET_CONFIG
-- `/lib/dateUtils.ts` - Shared date utils (isSameDay, isPastDay, getTimeAgo, formatDuration, formatDateEs)
+### Offline Queue
 
-### Testing (66 tests)
+`services/offlineQueue.ts` encola operaciones cuando offline. Usa exponential backoff con MAX_RETRIES=5. En tests, usar `vi.useFakeTimers()` para evitar timeouts. Mock `getSupabase` (no `supabase`) con shared `mockClient` object.
 
-- `/lib/weightRecommendation.test.ts` - 13 tests (double progression)
-- `/services/xp.test.ts` - 16 tests (XP system completo)
-- `/services/offlineQueue.test.ts` - 19 tests (queue CRUD, processQueue, withOfflineQueue)
-- `/context/AppContext.test.ts` - 18 tests (session lifecycle, XP, PRs, stats, weight rec)
-- `/vitest.setup.ts` - Setup de testing
+### PWA Notifications
 
-### Config y Deploy
+`public/sw-notifications.js` se inyecta via workbox `importScripts` (no `injectManifest`). Está en `globIgnores` para no ser precacheado. App → SW via `postMessage({type:'SHOW_REMINDER',...})`. La lógica de negocio está en `lib/notifications.ts`.
 
-- `/tailwind.config.js` - Tailwind v3 config (colores custom, fuentes, animaciones)
-- `/postcss.config.js` - PostCSS con tailwindcss + autoprefixer
-- `/vercel.json` - SPA rewrites (excluye assets, SW, manifest)
-- `/index.css` - Tailwind directives (@tailwind base/components/utilities) + scrollbar + autofill fix
-- `/.env.example` - Template de variables de entorno
-- `/.github/workflows/ci.yml` - CI/CD pipeline (tsc + vitest + build)
-- `/LICENSE` - MIT License
-- `/public/favicon.svg`, `/public/pwa-*.svg`, `/public/og-image.svg` - Iconos PWA + OG image
+### Bundle Splits
 
-### Dashboard y Progress
+```
+react-vendor:    ~11.8 kB  (react + react-dom)
+supabase-vendor: ~174 kB   (lazy-loaded, not in startup)
+main chunk:      ~256 kB   (startup JS)
+CSS:             ~66.3 kB  (tree-shaken PostCSS)
+```
 
-- `/pages/Dashboard.tsx` - Stats semanales reales, calendario real, card "Last Session"
-- `/pages/Progress.tsx` - Heatmap real (60 días), lista de PRs, streak card, volume charts
-- `/lib/sessionCalculations.ts` - calculateSessionStats, calculateXPBreakdown, detectPRs
+## E2E Testing (Playwright)
+
+Dos proyectos: `chromium` (desktop 1280×720) + `mobile-chrome` (Pixel 5).
+
+**Setup**: `.env.test` tiene variables Supabase vacías → fuerza modo offline para E2E.
+
+```bash
+# E2E necesita Vite en modo test (no .env.local)
+npx vite --mode test   # lo lanza playwright.config.ts automáticamente
+```
+
+**Helpers en tests/e2e/helpers.ts**: `seedAuth()`, `seedFullState()`, `login()`, `completeOnboarding()`
+
+**Gotchas E2E críticos**:
+- Routing es estado, no URL — no navegar por URL, seed localStorage y clicar nav
+- `ACTIVE_WORKOUT` en localStorage no auto-navega al player — clicar "Start Session"
+- "Dashboard" aparece en sidebar en TODAS las páginas — no usar como indicador de dashboard
+- En mobile, nombres de ejercicio en sidebar están ocultos — usar `getByRole('heading')`
+- `getByText('X').first()` puede agarrar elementos ocultos del sidebar — preferir `getByRole`
+- Dashboard muestra `user.name.split(' ')[0]` (solo primer nombre)
+
+## XP System
+
+```typescript
+XP_PER_SET = 5
+XP_BONUS_RPE_9_PLUS = 10
+XP_BONUS_PR = 25
+XP_BONUS_FULL_COMPLETION = 30
+XP_BONUS_STREAK_MULTIPLIER = (streakDays) => streakDays  // multiplier
+XP_BONUS_MORNING = 0.2  // +20% si entrena 6-10am
+```
+
+Niveles: Novato(0) → Iniciado(100) → Regular(250) → Dedicado(500) → ...
+
+## Core Data Models
+
+```typescript
+interface WorkoutSession {
+  id: string; // MUST be crypto.randomUUID() for Supabase UUID columns
+  date: string;
+  type: "push" | "pull" | "legs" | "upper" | "lower" | "full";
+  exercises: Exercise[];
+  status: "scheduled" | "in_progress" | "completed" | "skipped";
+  xpEarned?: number;
+}
+
+interface UserProfile {
+  id: string;
+  goal: "Strength" | "Hypertrophy" | "Fat Loss" | "Endurance";
+  daysPerWeek: number;       // 3–6
+  minutesPerSession: number; // 30–90
+  equipment: string[];
+  experienceLevel: "Beginner" | "Intermediate" | "Advanced";
+  onboardingCompleted: boolean;
+}
+```
+
+## Supabase Tables
+
+```
+profiles          — XP, level, streak, tier, preferences, weekly_schedule
+templates         — Workout templates (JSONB exercises, UUID id)
+workout_sessions  — Sessions with exercises, XP, timestamps (UUID id)
+personal_records  — Best lifts per exercise, UNIQUE(user_id, exercise_id)
+```
+
+Migraciones en `supabase/migrations/` (5 archivos con timestamps).
+
+## Theme
+
+Dark mode con accent rojo (`#DC2626`) — definido en `tailwind.config.js`:
+
+- Background: `slate-950` (`#0f172a`)
+- Cards: `slate-800` (`#1e293b`)
+- Lighter: `slate-700` (`#334155`)
+- Text main: `slate-50`
+- Text muted: `slate-300` (mínimo para WCAG)
+- Glassmorphism: `backdrop-blur-xl`
+
+## Code Conventions
+
+- **`cn()`** para clases condicionales (cast `unknown[]` para `.flat(Infinity)` — evita TS2589)
+- **Mobile-first** (min-width breakpoints), touch targets ≥ 44×44px
+- **Logger**: `lib/logger.ts` reemplaza todos los `console.*` — solo activo en DEV
+- **IDs para Supabase**: siempre `crypto.randomUUID()`, nunca strings arbitrarios
+- **ErrorBoundary**: usa `declare` keyword para React 19 class component TS compatibility
+- **`types/database.ts`**: `Relationships: []` + `{ [_ in never]: never }` para mapped types vacíos
+
+## Important Rules
+
+```
+❌ NO usar "any" en TypeScript
+❌ NO crear componentes clase (solo funcionales, excepto ErrorBoundary)
+❌ NO hardcodear colores (usar Tailwind tokens de tailwind.config.js)
+❌ NO usar console.log (usar lib/logger.ts)
+❌ NO depender solo de Supabase para persistencia (localStorage-first siempre)
+❌ NO importar supabase directamente — usar await getSupabase()
+❌ NO olvidar estados loading/error en UI
+❌ NO ignorar accesibilidad (ARIA, keyboard nav, 44px touch targets)
+```
+
+## Pre-Commit Checklist
+
+```
+□ TypeScript compila sin errores (npm run type-check)
+□ Unit tests pasan (npm run test — 138 tests)
+□ Build exitoso (npm run build)
+□ Responsive verificado (320px mínimo)
+□ No console.log en código (usar logger.ts)
+```
 
 ## Custom Agents
 
@@ -190,201 +266,7 @@ Agentes disponibles en `.claude/agents/`:
 | **session-manager** | Gestión de sesiones, notas, tracking de progreso, CLAUDE.md       |
 | **github-expert**   | Git/GitHub: commits, branches, PRs, conflictos, CI/CD            |
 
-## Code Conventions
-
-### Naming
-
-```typescript
-// Componentes: PascalCase
-WorkoutDayCard.tsx;
-
-// Hooks: camelCase con prefijo "use"
-useSession.ts;
-
-// Utilidades: camelCase
-formatDate.ts;
-
-// Types: PascalCase
-(UserProfile, WorkoutSession, CompletedSet);
-```
-
-### Component Pattern
-
-```typescript
-interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  isLoading?: boolean;
-  children: React.ReactNode;
-}
-
-export function Button({ variant = 'primary', size = 'md', isLoading = false, children, ...props }: ButtonProps) {
-  return (
-    <button className={cn(baseStyles, variants[variant], sizes[size])} disabled={isLoading} {...props}>
-      {isLoading && <Spinner />}
-      {children}
-    </button>
-  );
-}
-```
-
-### Rules
-
-- Mobile-first (min-width breakpoints)
-- Touch targets mínimo 44x44px
-- Usar `cn()` para clases condicionales
-- Design tokens en tailwind.config.js
-
-## XP System (Gamification)
-
-```typescript
-const XP_PER_SET = 5;
-const XP_BONUS_RPE_9_PLUS = 10;
-const XP_BONUS_PR = 25;
-const XP_BONUS_FULL_COMPLETION = 30;
-const XP_BONUS_STREAK_MULTIPLIER = (streakDays) => streakDays;
-const XP_BONUS_MORNING = 0.2; // +20% si entrena 6-10am
-
-// Niveles: Novato(0) → Iniciado(100) → Regular(250) → Dedicado(500) → ...
-```
-
-## Core Data Models
-
-```typescript
-interface UserProfile {
-  id: string;
-  goal: "Strength" | "Hypertrophy" | "Fat Loss" | "Endurance";
-  daysPerWeek: number; // 3-6
-  minutesPerSession: number; // 30-90
-  equipment: string[];
-  experienceLevel: "Beginner" | "Intermediate" | "Advanced";
-  onboardingCompleted: boolean;
-  weeklySchedule: WeeklySchedule;
-}
-
-interface WorkoutSession {
-  id: string; // crypto.randomUUID() — MUST be UUID for Supabase
-  date: string;
-  type: "push" | "pull" | "legs" | "upper" | "lower" | "full";
-  exercises: Exercise[];
-  status: "scheduled" | "in_progress" | "completed" | "skipped";
-  xpEarned?: number;
-}
-
-interface CompletedSet {
-  exerciseId: string;
-  setNumber: number;
-  weight: number;
-  reps: number;
-  rpe: number;
-  isPR: boolean;
-}
-```
-
-## Supabase Tables
-
-```
-profiles          — User data (XP, level, streak, tier, preferences, onboarding_completed, weekly_schedule)
-templates         — Workout templates with JSONB exercises (UUID id)
-workout_sessions  — Completed/active sessions with exercises, XP, timestamps (UUID id)
-personal_records  — Best lifts per exercise, UNIQUE(user_id, exercise_id)
-```
-
-## Architecture Notes
-
-### State Management (AppContext)
-
-- Estado centralizado en `context/AppContext.tsx`
-- **localStorage-first**: todas las mutaciones persisten inmediatamente a localStorage, Supabase sync es secondary/non-blocking
-- `updateUser()` persiste dentro de setState callback (sync, no useEffect race condition)
-- `saveTemplate()` persiste a localStorage inmediato, Supabase es fire-and-forget
-- Rest timer usa `endTime` (timestamp absoluto) para sobrevivir throttling del browser
-- Audio notifications via Web Audio API + `navigator.vibrate()`
-- `completeSession()` persiste: session → PRs → profile XP (en ese orden)
-- `initAuth()` tiene fallback a localStorage cuando Supabase falla
-
-### Workout Flow
-
-```
-Dashboard → startSession() → WorkoutPlayer → completeSession() → SessionSummary → XP awarded
-                                                    ↓
-                                          saveCompletedSession()
-                                          upsertPersonalRecords()
-                                          updateProfile(XP/level)
-```
-
-### Key Patterns
-
-- WorkoutPlayer renders outside Layout shell (App.tsx bypasses sidebar)
-- `summarySnapshot` useRef preserva datos across null transition de activeWorkout
-- Summary guard BEFORE derived state prevents null crash
-- `personal_records` tabla con UNIQUE constraint para upsert eficiente
-- Dashboard/Progress usan `useMemo` con `workoutHistory` para stats reales
-- `startSessionFromTemplate` pre-rellena pesos via `getRecommendedWeight()` (double progression)
-- Warmup sets reciben 60% del peso top-set recomendado
-- History page: búsqueda + filtro por músculo + detalle expandible por sesión
-- Code splitting: React.lazy + Suspense para todas las páginas (bundle 431 kB main chunk)
-- Suspense fallbacks: page-specific skeletons (DashboardSkeleton, ProgressSkeleton, HistorySkeleton)
-- WorkoutPlayer: useMemo/useCallback para computaciones y handlers costosos
-- SyncIndicator: toast on sync success/failure, drops ops after MAX_RETRIES=5
-- Settings: data export (JSON backup), password reset, account deletion (double confirm)
-- Loading states: isLoading/isSaving en botones de Settings, Onboarding, TemplateEditor
-- Modal: focus trap, aria-modal, auto-focus, restore focus on close
-- Layout: skip-nav link, aria-label en navegación
-- ErrorBoundary: `declare` keyword para React 19 class component TS compatibility
-- Logger dev-only: `import.meta.env.DEV` gate, reemplaza todos los console.*
-- Template/Session IDs: `crypto.randomUUID()` obligatorio para columnas UUID de Supabase
-- PWA Install: `useInstallPrompt` hook + `InstallBanner` component (sessionStorage dismiss)
-
-## Important Rules
-
-```
-❌ NO usar "any" en TypeScript
-❌ NO crear componentes clase (solo funcionales, excepto ErrorBoundary)
-❌ NO hardcodear colores (usar Tailwind tokens de tailwind.config.js)
-❌ NO olvidar estados de loading/error
-❌ NO ignorar accesibilidad (ARIA, keyboard nav)
-❌ NO mezclar lógica de negocio en componentes UI
-❌ NO usar IDs no-UUID para entidades que van a Supabase (usar crypto.randomUUID())
-❌ NO depender solo de Supabase para persistencia (localStorage-first siempre)
-```
-
-## Pre-Commit Checklist
-
-```
-□ TypeScript compila sin errores (npx tsc --noEmit)
-□ Tests pasan (npx vitest run — 66 tests)
-□ Build exitoso (npx vite build)
-□ Props tipadas con interfaces
-□ Estados loading/error implementados
-□ Responsive verificado (320px mínimo)
-□ Touch targets >= 44px
-□ No console.log en código final (usar logger.ts)
-```
-
-## Theme
-
-Dark mode con accent rojo (`#DC2626`) — definido en `tailwind.config.js`:
-
-- Background: slate-950 (`#0f172a`)
-- Cards: slate-800 (`#1e293b`)
-- Lighter: slate-700 (`#334155`)
-- Text main: slate-50 (`#f8fafc`)
-- Text muted: slate-300 (`#cbd5e1`)
-- Glassmorphism: `backdrop-blur-xl`
-- Animaciones: `slide-up` (InstallBanner)
-
-## Environment
-
-`.env.local`:
-- `VITE_SUPABASE_URL` — URL del proyecto Supabase
-- `VITE_SUPABASE_ANON_KEY` — Anon key de Supabase
-
-## Comandos Personalizados
-
-### Notas de Sesión
-
-Cuando escribas alguno de estos comandos, Claude ejecutará el skill de notas:
+## Session Notes
 
 | Comando             | Acción                                           |
 | ------------------- | ------------------------------------------------ |
@@ -392,25 +274,16 @@ Cuando escribas alguno de estos comandos, Claude ejecutará el skill de notas:
 | `"cerrar sesión"`   | Igual que guardar notas + resumen para CLAUDE.md |
 | `"qué hicimos hoy"` | Muestra resumen sin guardar archivo              |
 
-### Actualización de Estado
-
-Al final de cada sesión productiva, Claude debe sugerir actualizaciones para la sección "Estado del Proyecto" de este CLAUDE.md.
+Al final de cada sesión productiva, Claude debe sugerir actualizaciones para la sección "Estado del Proyecto".
 
 ## MCP Servers
 
 ### Context7
 
-Usa Context7 automáticamente cuando necesites:
+Usar Context7 automáticamente para documentación de librerías sin que el usuario lo pida.
 
-- Documentación de librerías (React, Tailwind, Framer Motion, etc.)
-- Ejemplos de código actualizados
-- APIs y configuraciones
-
-**Regla**: Siempre usa Context7 MCP para obtener documentación de librerías sin que el usuario lo pida explícitamente.
-
-**Librerías frecuentes del proyecto**:
-
-- `/tailwindlabs/tailwindcss` - Tailwind CSS
-- `/framer/motion` - Framer Motion
-- `/react-hook-form/react-hook-form` - React Hook Form
-- `/colinhacks/zod` - Zod validation
+**Librerías frecuentes**:
+- `/tailwindlabs/tailwindcss`
+- `/vitejs/vite`
+- `/supabase/supabase-js`
+- `/microsoft/playwright`

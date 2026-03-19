@@ -1,4 +1,51 @@
 import { UserProfile, WorkoutSession } from '../types';
+
+/**
+ * Compute the new streak value based on the last workout date.
+ * - Same day → no change (already counted)
+ * - Yesterday → consecutive day, increment
+ * - 2+ days ago or no history → reset to 1
+ */
+function computeNewStreak(currentStreak: number, lastWorkoutDate: Date | null): number {
+  if (!lastWorkoutDate) return 1; // first workout ever
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const last = new Date(lastWorkoutDate);
+  last.setHours(0, 0, 0, 0);
+
+  if (last.getTime() === today.getTime()) return currentStreak; // already trained today
+  if (last.getTime() === yesterday.getTime()) return currentStreak + 1; // consecutive
+  return 1; // missed one or more days
+}
+
+/**
+ * Validate a persisted streak against the workout history.
+ * Resets to 0 if the last completed session was 2+ days ago.
+ * Call this on app load to correct stale streaks.
+ */
+export function getValidatedStreak(currentStreak: number, sessions: WorkoutSession[]): number {
+  if (currentStreak === 0) return 0;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const lastSession = sessions
+    .filter(s => s.endTime && s.status === 'completed')
+    .sort((a, b) => (b.endTime || 0) - (a.endTime || 0))[0];
+
+  if (!lastSession) return 0;
+
+  const lastDate = new Date(lastSession.endTime!);
+  lastDate.setHours(0, 0, 0, 0);
+
+  return lastDate.getTime() >= yesterday.getTime() ? currentStreak : 0;
+}
 import { XP } from '../lib/constants';
 
 /**
@@ -127,11 +174,14 @@ export function calculateWorkoutXP(
 }
 
 /**
- * Calculate new user stats after earning XP
+ * Calculate new user stats after earning XP.
+ * @param lastWorkoutDate - Date of the previous completed session (before this one).
+ *   Pass null for the very first workout. Omit to keep old +1 behaviour (legacy/tests).
  */
 export function calculateNewUserStats(
   user: UserProfile,
-  xpReward: number
+  xpReward: number,
+  lastWorkoutDate?: Date | null
 ): Pick<UserProfile, 'xp' | 'level' | 'xpToNextLevel' | 'streak' | 'tier'> {
   let newXp = user.xp + xpReward;
   let newLevel = user.level;
@@ -144,11 +194,16 @@ export function calculateNewUserStats(
     newXpToNextLevel = Math.round(newXpToNextLevel * LEVEL_MULTIPLIER);
   }
 
+  const newStreak =
+    lastWorkoutDate !== undefined
+      ? computeNewStreak(user.streak, lastWorkoutDate)
+      : user.streak + 1; // legacy path (no date info available)
+
   return {
     xp: newXp,
     level: newLevel,
     xpToNextLevel: newXpToNextLevel,
-    streak: user.streak + 1,
+    streak: newStreak,
     tier: calculateTier(newLevel),
   };
 }

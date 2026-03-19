@@ -29,7 +29,7 @@ export function XPBar({ currentXP, xpToNext, level, showLabel = true }: XPBarPro
       )}
 
       {/* Progress bar */}
-      <div className="relative w-full h-3 bg-gray-800 rounded-full overflow-hidden">
+      <div className="relative w-full h-3 bg-background rounded-full overflow-hidden ring-1 ring-slate-700/60">
         {/* Background glow */}
         <div
           className="absolute inset-y-0 left-0 bg-primary/20 blur-sm"

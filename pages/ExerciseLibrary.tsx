@@ -218,13 +218,18 @@ const ExerciseCard: React.FC<CardProps> = React.memo(({ exercise, onClick, onAdd
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-900 mb-3">
          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10"></div>
          
-         <img 
-           // Added signature to URL to encourage consistent caching and reduce random flickering
-           src={`https://source.unsplash.com/random/400x300/?gym,${exercise.name.replace(/\s/g, ',')}&sig=${exercise.id}`}
-           alt={exercise.name}
-           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90"
-           loading="lazy"
-         />
+         {exercise.videoUrl ? (
+           <img
+             src={exercise.videoUrl}
+             alt={exercise.name}
+             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90"
+             loading="lazy"
+           />
+         ) : (
+           <div className="w-full h-full flex items-center justify-center bg-gray-900">
+             <Dumbbell className="w-10 h-10 text-gray-600" />
+           </div>
+         )}
 
          {/* Tags */}
          <div className="absolute top-2 left-2 z-20 flex flex-wrap gap-1">
@@ -290,11 +295,17 @@ const ExerciseDetailModal: React.FC<ModalProps> = ({ exercise, onClose, onAdd, i
           {/* Header Image/Video */}
           <div className="h-64 bg-black relative shrink-0">
              <div className="absolute inset-0 bg-gradient-to-t from-background-card to-transparent z-10"></div>
-             <img 
-               src={`https://source.unsplash.com/random/800x600/?gym,${exercise.name.replace(/\s/g, ',')}`}
-               className="w-full h-full object-cover opacity-80" 
-               alt={exercise.name}
-             />
+             {exercise.videoUrl ? (
+               <img
+                 src={exercise.videoUrl}
+                 className="w-full h-full object-cover opacity-80"
+                 alt={exercise.name}
+               />
+             ) : (
+               <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                 <Dumbbell className="w-16 h-16 text-gray-600" />
+               </div>
+             )}
              <div className="absolute bottom-4 left-6 z-20">
                 <h2 className="text-3xl md:text-4xl font-black text-white mb-1 shadow-black drop-shadow-lg">{exercise.name}</h2>
                 <div className="flex gap-2">

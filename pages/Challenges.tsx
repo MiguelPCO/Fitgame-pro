@@ -29,8 +29,8 @@ const DURATION_OPTIONS = [
 ];
 
 const CreateModal: React.FC<CreateModalProps> = ({ onClose, onCreated }) => {
-  const { user } = useApp();
-  const { showToast } = useToast();
+  const { user, userId } = useApp();
+  const { toast } = useToast();
   const [type, setType] = useState<ChallengeType>('workouts');
   const [target, setTarget] = useState(5);
   const [duration, setDuration] = useState(7);
@@ -44,7 +44,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, onCreated }) => {
   };
 
   const handleCreate = async () => {
-    if (!user) return;
+    if (!user || !userId) return;
     setLoading(true);
     const result = await createChallenge({
       type,
@@ -52,11 +52,11 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, onCreated }) => {
       target,
       bonusXp: 150,
       durationDays: duration,
-      user: user as typeof user & { id: string },
+      user: { ...user, id: userId },
     });
     setLoading(false);
     if (!result) {
-      showToast('Error al crear el reto. Comprueba tu conexión.', 'error');
+      toast('Error al crear el reto. Comprueba tu conexión.', 'error');
       return;
     }
     onCreated(result, result.code);
@@ -160,24 +160,24 @@ interface JoinModalProps {
 }
 
 const JoinModal: React.FC<JoinModalProps> = ({ onClose, onJoined }) => {
-  const { user } = useApp();
-  const { showToast } = useToast();
+  const { user, userId } = useApp();
+  const { toast } = useToast();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleJoin = async () => {
-    if (code.trim().length < 6 || !user) return;
+    if (code.trim().length < 6 || !user || !userId) return;
     setLoading(true);
     const result = await joinChallenge(
       code.trim(),
-      user as typeof user & { id: string }
+      { ...user, id: userId }
     );
     setLoading(false);
     if (!result) {
-      showToast('Código no encontrado. Verifica e inténtalo de nuevo.', 'error');
+      toast('Código no encontrado. Verifica e inténtalo de nuevo.', 'error');
       return;
     }
-    showToast('¡Te has unido al reto! 🎯', 'success');
+    toast('¡Te has unido al reto! 🎯', 'success');
     onJoined();
     onClose();
   };
@@ -396,8 +396,8 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({ challenge, myUserId, onLe
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 const Challenges: React.FC = () => {
-  const { user, workoutHistory } = useApp();
-  const { showToast } = useToast();
+  const { user, workoutHistory, userId: contextUserId } = useApp();
+  const { toast } = useToast();
 
   const [challenges, setChallenges] = useState<SocialChallenge[]>([]);
   const [loading, setLoading] = useState(false);
@@ -406,7 +406,7 @@ const Challenges: React.FC = () => {
   const [sharedCode, setSharedCode] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  const userId = (user as (typeof user & { id?: string }) | null)?.id ?? '';
+  const userId = contextUserId ?? '';
 
   useEffect(() => {
     const on = () => setIsOnline(true);
@@ -450,7 +450,7 @@ const Challenges: React.FC = () => {
     if (!userId) return;
     await leaveChallenge(challengeId, userId);
     setChallenges(prev => prev.filter(c => c.id !== challengeId));
-    showToast('Has abandonado el reto.', 'success');
+    toast('Has abandonado el reto.', 'success');
   };
 
   const supabaseAvailable = isSupabaseConfigured();

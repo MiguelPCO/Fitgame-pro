@@ -126,9 +126,28 @@ describe('calculateNewUserStats', () => {
     expect(result.xp).toBe(50); // 100 + 150 - 200 = 50
   });
 
-  it('increments streak', () => {
-    const result = calculateNewUserStats(baseUser, 10);
+  it('increments streak on consecutive day (yesterday)', () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const result = calculateNewUserStats(baseUser, 10, yesterday);
     expect(result.streak).toBe(4);
+  });
+
+  it('does not increment streak when already trained today', () => {
+    const result = calculateNewUserStats(baseUser, 10, new Date());
+    expect(result.streak).toBe(3);
+  });
+
+  it('resets streak to 1 when a day was skipped', () => {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const result = calculateNewUserStats(baseUser, 10, twoDaysAgo);
+    expect(result.streak).toBe(1);
+  });
+
+  it('starts streak at 1 on first ever workout (null date)', () => {
+    const result = calculateNewUserStats(baseUser, 10, null);
+    expect(result.streak).toBe(1);
   });
 });
 

@@ -3,7 +3,7 @@ import { UserProfile, WorkoutSession, WorkoutTemplate, WorkoutSet, ActiveExercis
 import { currentUser as mockUser, mockTemplates } from '../data/mockData';
 import { STORAGE_KEYS, DEFAULT_SET_CONFIG } from '../lib/constants';
 import { playNotification } from '../services/audio';
-import { calculateNewUserStats, calculateWorkoutXP, PRRecord, XPBreakdown } from '../services/xp';
+import { calculateNewUserStats, calculateWorkoutXP, getValidatedStreak, PRRecord, XPBreakdown } from '../services/xp';
 import { loadFromStorage } from '../hooks/usePersist';
 import { getSupabase, isSupabaseConfigured } from '../lib/supabase';
 import { onAuthStateChange, signOut, getSession } from '../services/auth';
@@ -158,13 +158,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Merge with localStorage fallback so local-only changes aren't lost
       const storedUser = loadFromStorage<UserProfile | null>(STORAGE_KEYS.USER, null);
 
+      // Validate stored streak: reset to 0 if no workout in the last 2 days
+      const storedHistory = loadFromStorage<WorkoutSession[]>(STORAGE_KEYS.HISTORY, []);
+      const validatedStreak = getValidatedStreak(profile.streak, storedHistory);
+
       const userProfile: UserProfile = {
         name: profile.name,
         email: profile.email,
         level: profile.level,
         xp: profile.xp,
         xpToNextLevel: profile.xp_to_next_level,
-        streak: profile.streak,
+        streak: validatedStreak,
         avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`,
         tier: profile.tier as UserProfile['tier'],
         goal: profile.goal as UserProfile['goal'] || storedUser?.goal,
@@ -209,7 +213,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             // No Supabase session — try localStorage fallback
             const storedUser = loadFromStorage<UserProfile | null>(STORAGE_KEYS.USER, null);
             if (storedUser) {
-              setUser(storedUser);
+              const storedHistory = loadFromStorage<WorkoutSession[]>(STORAGE_KEYS.HISTORY, []);
+              const validatedStreak = getValidatedStreak(storedUser.streak, storedHistory);
+              const userToSet = validatedStreak !== storedUser.streak ? { ...storedUser, streak: validatedStreak } : storedUser;
+              if (validatedStreak !== storedUser.streak) localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userToSet));
+              setUser(userToSet);
               setIsAuthenticated(true);
             }
           }
@@ -218,7 +226,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           // Fallback to localStorage on Supabase failure
           const storedUser = loadFromStorage<UserProfile | null>(STORAGE_KEYS.USER, null);
           if (storedUser) {
-            setUser(storedUser);
+            const storedHistory = loadFromStorage<WorkoutSession[]>(STORAGE_KEYS.HISTORY, []);
+            const validatedStreak = getValidatedStreak(storedUser.streak, storedHistory);
+            const userToSet = validatedStreak !== storedUser.streak ? { ...storedUser, streak: validatedStreak } : storedUser;
+            if (validatedStreak !== storedUser.streak) localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userToSet));
+            setUser(userToSet);
             setIsAuthenticated(true);
           }
         }
@@ -228,7 +240,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const hasSession = !!localStorage.getItem(STORAGE_KEYS.SESSION);
 
         if (storedUser && hasSession) {
-          setUser(storedUser);
+          const storedHistory = loadFromStorage<WorkoutSession[]>(STORAGE_KEYS.HISTORY, []);
+          const validatedStreak = getValidatedStreak(storedUser.streak, storedHistory);
+          const userToSet = validatedStreak !== storedUser.streak ? { ...storedUser, streak: validatedStreak } : storedUser;
+          if (validatedStreak !== storedUser.streak) localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userToSet));
+          setUser(userToSet);
           setIsAuthenticated(true);
         }
       }
@@ -539,8 +555,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(newHistory));
     localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT);
 
+    // Find the last completed session before this one to compute streak correctly
+    const lastCompletedSession = workoutHistory
+      .filter(s => s.status === 'completed' && s.endTime)
+      .sort((a, b) => (b.endTime || 0) - (a.endTime || 0))[0];
+    const lastWorkoutDate = lastCompletedSession?.endTime ? new Date(lastCompletedSession.endTime) : null;
+
     // Calculate new user stats
-    const newStats = calculateNewUserStats(user, xpBreakdown.totalXP);
+    const newStats = calculateNewUserStats(user, xpBreakdown.totalXP, lastWorkoutDate);
     const updatedUser = { ...user, ...newStats };
     setUser(updatedUser);
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
