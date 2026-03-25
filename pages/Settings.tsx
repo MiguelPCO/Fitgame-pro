@@ -305,39 +305,44 @@ const Settings: React.FC = () => {
         </div>
 
         <div>
-          <div className="flex justify-between mb-2">
-            <label className="text-sm font-medium text-text-muted">Dias por semana</label>
-            <span className="text-sm font-bold text-white">{daysPerWeek}</span>
-          </div>
-          <input
-            type="range"
-            min={2}
-            max={7}
-            value={daysPerWeek}
-            onChange={e => setDaysPerWeek(Number(e.target.value))}
-            className="w-full accent-primary"
-          />
-          <div className="flex justify-between text-xs text-text-muted mt-1">
-            <span>2</span><span>7</span>
+          <label className="text-sm font-medium text-text-muted block mb-2">Días por semana</label>
+          <div className="flex gap-2">
+            {[2, 3, 4, 5, 6, 7].map(d => (
+              <button
+                key={d}
+                onClick={() => setDaysPerWeek(d)}
+                aria-pressed={daysPerWeek === d}
+                className={cn(
+                  'flex-1 py-2.5 rounded-xl border text-sm font-bold transition-all',
+                  daysPerWeek === d
+                    ? 'border-primary bg-primary/10 text-white'
+                    : 'border-gray-700 text-text-muted hover:border-gray-600'
+                )}
+              >
+                {d}
+              </button>
+            ))}
           </div>
         </div>
 
         <div>
-          <div className="flex justify-between mb-2">
-            <label className="text-sm font-medium text-text-muted">Minutos por sesion</label>
-            <span className="text-sm font-bold text-white">{minutesPerSession} min</span>
-          </div>
-          <input
-            type="range"
-            min={15}
-            max={120}
-            step={5}
-            value={minutesPerSession}
-            onChange={e => setMinutesPerSession(Number(e.target.value))}
-            className="w-full accent-primary"
-          />
-          <div className="flex justify-between text-xs text-text-muted mt-1">
-            <span>15</span><span>120</span>
+          <label className="text-sm font-medium text-text-muted block mb-2">Minutos por sesión</label>
+          <div className="grid grid-cols-3 gap-2">
+            {[30, 45, 60, 75, 90, 120].map(m => (
+              <button
+                key={m}
+                onClick={() => setMinutesPerSession(m)}
+                aria-pressed={minutesPerSession === m}
+                className={cn(
+                  'py-2.5 rounded-xl border text-sm font-bold transition-all',
+                  minutesPerSession === m
+                    ? 'border-primary bg-primary/10 text-white'
+                    : 'border-gray-700 text-text-muted hover:border-gray-600'
+                )}
+              >
+                {m} min
+              </button>
+            ))}
           </div>
         </div>
 
