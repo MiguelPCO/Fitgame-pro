@@ -180,7 +180,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onClose }) => {
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-4 gap-3 mt-5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
             {[
               { icon: Calendar, label: 'Días/sem', value: String(program.daysPerWeek) },
               { icon: Clock,    label: 'Semanas',  value: String(program.recommendedWeeks) },
@@ -189,7 +189,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onClose }) => {
             ].map(stat => (
               <div key={stat.label} className="bg-black/20 rounded-xl p-3 text-center">
                 <stat.icon className="w-4 h-4 text-white/60 mx-auto mb-1" />
-                <p className="text-white font-black text-sm leading-none">{stat.value}</p>
+                <p className="text-white font-black text-xs leading-tight">{stat.value}</p>
                 <p className="text-white/50 text-[10px] mt-1">{stat.label}</p>
               </div>
             ))}

@@ -117,10 +117,9 @@ const Templates: React.FC<TemplatesProps> = ({ onCreate, onEdit, onStart }) => {
 
               <Button
                 onClick={() => handleStart(template.id)}
-                variant="ghost"
+                variant="primary"
                 fullWidth
                 leftIcon={<Play className="w-4 h-4 fill-current" />}
-                className="bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/20 hover:border-primary"
               >
                 Start Workout
               </Button>

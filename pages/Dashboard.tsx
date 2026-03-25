@@ -356,15 +356,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
 
           {/* Right: Streak Badge + Freeze */}
           <div className="flex flex-col gap-2">
-            <div className="bg-gradient-to-br from-primary to-red-900 p-4 rounded-2xl shadow-lg shadow-red-900/20 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-primary to-red-900 p-3 sm:p-4 rounded-2xl shadow-lg shadow-red-900/20 relative overflow-hidden">
               <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-white/10 rounded-full blur-xl" />
-              <div className="relative z-10 flex items-center gap-3">
-                <div className="p-2 bg-black/20 rounded-xl backdrop-blur-sm">
-                  <Flame className="w-6 h-6 text-white" fill="currentColor" />
+              <div className="relative z-10 flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-black/20 rounded-xl backdrop-blur-sm">
+                  <Flame className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="currentColor" />
                 </div>
                 <div>
                   <p className="text-white/80 text-[10px] font-bold uppercase tracking-wider">Streak</p>
-                  <p className="text-2xl font-black text-white">{user?.streak}</p>
+                  <p className="text-xl sm:text-2xl font-black text-white">{user?.streak}</p>
                 </div>
               </div>
             </div>
@@ -434,20 +434,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
         workoutDays={workoutDays}
       />
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left: Workout Card */}
-        <div className="lg:col-span-8">
-          <WorkoutDayCard
-            workout={workout}
-            date={selectedDate}
-            variant={variant}
-            onStartWorkout={handleStartWorkout}
-          />
-        </div>
+      {/* Main Content */}
+      <div className="space-y-6">
+        {/* Workout Card — full width */}
+        <WorkoutDayCard
+          workout={workout}
+          date={selectedDate}
+          variant={variant}
+          onStartWorkout={handleStartWorkout}
+        />
 
-        {/* Right: Weekly Stats + Last Session */}
-        <div className="lg:col-span-4 space-y-6">
+        {/* Stats row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-white">Weekly Progress</h3>

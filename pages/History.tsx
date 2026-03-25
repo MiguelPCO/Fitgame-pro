@@ -132,7 +132,7 @@ const History: React.FC = () => {
       {/* Search + filters */}
       <div className="space-y-3">
         {/* Search bar */}
-        <div className="relative">
+        <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -161,7 +161,7 @@ const History: React.FC = () => {
             value={dateFrom}
             onChange={e => setDateFrom(e.target.value)}
             aria-label="Fecha desde"
-            className="flex-1 min-w-[130px] px-3 py-1.5 rounded-lg text-sm bg-background-card border border-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
+            className="w-36 px-3 py-1.5 rounded-lg text-sm bg-background-card border border-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
           />
           <span className="text-xs text-gray-500">—</span>
           <input
@@ -169,7 +169,7 @@ const History: React.FC = () => {
             value={dateTo}
             onChange={e => setDateTo(e.target.value)}
             aria-label="Fecha hasta"
-            className="flex-1 min-w-[130px] px-3 py-1.5 rounded-lg text-sm bg-background-card border border-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
+            className="w-36 px-3 py-1.5 rounded-lg text-sm bg-background-card border border-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
           />
           {(dateFrom || dateTo) && (
             <button

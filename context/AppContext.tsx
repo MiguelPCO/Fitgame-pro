@@ -292,6 +292,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.SCHEDULE, JSON.stringify(weeklySchedule)); }, [weeklySchedule]);
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.BADGES, JSON.stringify(earnedBadges)); }, [earnedBadges]);
   useEffect(() => { if (weeklyChallenge) localStorage.setItem(STORAGE_KEYS.WEEKLY_CHALLENGE, JSON.stringify(weeklyChallenge)); }, [weeklyChallenge]);
+
+  // Recalculate challenge progress whenever workoutHistory changes (e.g. on app load or Supabase sync)
+  useEffect(() => {
+    if (!weeklyChallenge) return;
+    const currentWeek = getWeekStart();
+    const activeChallenge = weeklyChallenge.weekStart === currentWeek
+      ? weeklyChallenge
+      : generateWeeklyChallenge(currentWeek);
+    const updated = evaluateChallengeProgress(activeChallenge, workoutHistory);
+    if (updated.progress !== weeklyChallenge.progress || updated.weekStart !== weeklyChallenge.weekStart) {
+      setWeeklyChallenge(updated);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workoutHistory.length]);
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.STREAK_FREEZES, JSON.stringify(streakFreezes)); }, [streakFreezes]);
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.PERIODIZATION, JSON.stringify(periodizationState)); }, [periodizationState]);
 
