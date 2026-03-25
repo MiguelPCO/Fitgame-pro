@@ -21,9 +21,9 @@ const TEMPLATE_LEGS: WorkoutTemplate = {
 };
 
 const USER: UserProfile = {
-  id: 'u1',
   name: 'Test',
   email: 'test@test.com',
+  avatarUrl: '',
   level: 1,
   xp: 0,
   xpToNextLevel: 100,
