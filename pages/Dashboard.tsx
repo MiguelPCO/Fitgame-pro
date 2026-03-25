@@ -5,6 +5,7 @@ import DateSelector from '../components/DateSelector';
 import { Card } from '../components/ui/Card';
 import { WorkoutDayCard } from '../components/home/WorkoutDayCard';
 import { WelcomeChecklist } from '../components/home/WelcomeChecklist';
+import { PeriodizationCard } from '../components/home/PeriodizationCard';
 import { LevelBadge } from '../components/progress/LevelBadge';
 import { XPBar } from '../components/progress/XPBar';
 import { WorkoutSession } from '../types';
@@ -413,6 +414,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
           </div>
         </div>
       )}
+
+      {/* Periodization cycle + progressive overload */}
+      <PeriodizationCard />
 
       {/* Welcome Checklist for new users */}
       {!checklistDismissed && (

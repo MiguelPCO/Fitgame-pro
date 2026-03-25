@@ -45,6 +45,8 @@ export const STORAGE_KEYS = {
   BADGES: 'fitgame_badges',
   WEEKLY_CHALLENGE: 'fitgame_weekly_challenge',
   STREAK_FREEZES: 'fitgame_streak_freezes',
+  PERIODIZATION: 'fitgame_periodization',
+  OVERLOAD_CACHE: 'fitgame_overload_cache',
 } as const;
 
 /**

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { UserProfile, WorkoutSession, WorkoutTemplate, WorkoutSet, ActiveExercise, WeeklySchedule, EarnedBadge, WeeklyChallenge, StreakFreezeState } from '../types';
+import { UserProfile, WorkoutSession, WorkoutTemplate, WorkoutSet, ActiveExercise, WeeklySchedule, EarnedBadge, WeeklyChallenge, StreakFreezeState, PeriodizationState } from '../types';
 import { currentUser as mockUser, mockTemplates } from '../data/mockData';
 import { STORAGE_KEYS, DEFAULT_SET_CONFIG } from '../lib/constants';
 import { playNotification } from '../services/audio';
@@ -18,6 +18,10 @@ import { checkForNewBadges } from '../lib/badges';
 import { getBadgeDefinition } from '../lib/badges';
 import { generateWeeklyChallenge, evaluateChallengeProgress, getWeekStart } from '../lib/challenges';
 import { notifyBadgeUnlocked, notifyPRAchieved, notifyChallengeCompleted } from '../lib/notifications';
+import {
+  PHASE_CONFIGS, getDefaultPeriodizationState,
+  shouldTransitionPhase, advancePhase, countTrainingWeeksInPhase,
+} from '../lib/periodization';
 import { exerciseBlueprints } from '../data/exerciseBlueprints';
 
 interface RestTimerState {
@@ -46,6 +50,7 @@ interface AppState {
   newlyEarnedBadges: EarnedBadge[]; // Cleared after Dashboard reads them
   weeklyChallenge: WeeklyChallenge | null;
   streakFreezes: StreakFreezeState;
+  periodizationState: PeriodizationState;
   useStreakFreeze: () => boolean;
   clearNewlyEarnedBadges: () => void;
 
@@ -110,6 +115,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     return stored;
   });
+
+  const [periodizationState, setPeriodizationState] = useState<PeriodizationState>(() =>
+    loadFromStorage<PeriodizationState | null>(STORAGE_KEYS.PERIODIZATION, null) ?? getDefaultPeriodizationState()
+  );
 
   // Rest Timer State
   const [restTimer, setRestTimer] = useState<RestTimerState>({ remaining: 0, duration: 0, isActive: false });
@@ -284,6 +293,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.BADGES, JSON.stringify(earnedBadges)); }, [earnedBadges]);
   useEffect(() => { if (weeklyChallenge) localStorage.setItem(STORAGE_KEYS.WEEKLY_CHALLENGE, JSON.stringify(weeklyChallenge)); }, [weeklyChallenge]);
   useEffect(() => { localStorage.setItem(STORAGE_KEYS.STREAK_FREEZES, JSON.stringify(streakFreezes)); }, [streakFreezes]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEYS.PERIODIZATION, JSON.stringify(periodizationState)); }, [periodizationState]);
 
   // Rest Timer Logic
   useEffect(() => {
@@ -501,8 +511,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       date: new Date().toISOString(),
       startTime: Date.now(),
       status: 'active' as const,
-      exercises: template.exercises.map(ex => {
-        const topWeight = getRecommendedWeight(ex.exerciseId, ex.targetReps, workoutHistory);
+      exercises: (() => {
+        const phaseConfig = PHASE_CONFIGS[periodizationState.currentPhase];
+        return template.exercises.map(ex => {
+        const topWeight = getRecommendedWeight(ex.exerciseId, phaseConfig.repRange, workoutHistory);
         const warmupWeight = getWarmupWeight(topWeight);
         return {
           exerciseId: ex.exerciseId,
@@ -516,13 +528,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               weight: recommended,
               reps: 0,
               completed: false,
-              targetReps: ex.targetReps,
-              targetRPE: ex.targetRPE,
+              targetReps: isWarmup ? ex.targetReps : phaseConfig.repRange,
+              targetRPE: isWarmup ? ex.targetRPE : phaseConfig.rpeTarget,
               recommendedWeight: recommended,
             } as WorkoutSet;
           }),
         };
-      })
+      });
+      })()
     };
     setActiveWorkout(session);
     stopRestTimer();
@@ -554,6 +567,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.LAST_SESSION, JSON.stringify(completedSession));
     localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(newHistory));
     localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT);
+
+    // ── Periodization: check phase transition ──────────────────────────────────
+    if (shouldTransitionPhase(periodizationState, newHistory)) {
+      const next = advancePhase(periodizationState);
+      setPeriodizationState(next);
+      localStorage.setItem(STORAGE_KEYS.PERIODIZATION, JSON.stringify(next));
+      toast(`¡Ciclo completado! Entrando en Fase ${next.currentPhase}: ${PHASE_CONFIGS[next.currentPhase].name}`, 'success');
+    } else {
+      const weeks = countTrainingWeeksInPhase(newHistory, periodizationState.phaseStartDate);
+      if (weeks !== periodizationState.completedTrainingWeeks) {
+        setPeriodizationState(prev => ({ ...prev, completedTrainingWeeks: weeks }));
+      }
+    }
 
     // Find the last completed session before this one to compute streak correctly
     const lastCompletedSession = workoutHistory
@@ -754,7 +780,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider value={{
       user, userId, isAuthenticated, isLoading, selectedDate, templates, activeWorkout,
       lastCompletedSession, lastXPBreakdown, workoutHistory, personalRecords, weeklySchedule,
-      earnedBadges, newlyEarnedBadges, weeklyChallenge, streakFreezes,
+      earnedBadges, newlyEarnedBadges, weeklyChallenge, streakFreezes, periodizationState,
       useStreakFreeze, clearNewlyEarnedBadges,
       restTimer, startRestTimer, stopRestTimer, addRestTime,
       login, logout, updateUser, setSelectedDate, saveTemplate, deleteTemplate,

@@ -132,3 +132,22 @@ export interface StreakFreezeState {
   count: number;
   resetMonth: string; // 'YYYY-MM' — resets on 1st of each month
 }
+
+export type PeriodizationPhase = 1 | 2 | 3;
+
+export interface PeriodizationState {
+  currentPhase: PeriodizationPhase;
+  phaseStartDate: string;         // ISO date — inicio de la fase actual
+  completedTrainingWeeks: number; // semanas con ≥1 sesión completada en esta fase
+}
+
+export interface OverloadSuggestion {
+  exerciseId: string;
+  exerciseName: string;
+  type: 'increase_weight' | 'increase_reps';
+  currentWeight: number;
+  suggestedWeight: number;
+  currentReps: number;
+  suggestedReps: number;
+  reason: string;
+}
