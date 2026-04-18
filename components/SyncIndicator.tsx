@@ -26,14 +26,12 @@ const SyncIndicator: React.FC = () => {
     }
 
     setSyncState('syncing');
-    const processed = await processQueue();
+    const { processed, dropped } = await processQueue();
     const remaining = checkQueue();
 
-    // Operations were dropped (countBefore - processed - remaining = dropped)
-    const dropped = countBefore - processed - remaining;
     if (dropped > 0) {
       toast(`${dropped} operacion(es) no se pudieron sincronizar y fueron descartadas`, 'error');
-      setSyncState(remaining > 0 ? 'sync-failed' : 'sync-failed');
+      setSyncState('sync-failed');
     } else if (remaining > 0) {
       setSyncState('offline-pending');
     } else {

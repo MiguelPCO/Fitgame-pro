@@ -96,7 +96,9 @@ describe('Offline Queue', () => {
 
   describe('processQueue', () => {
     it('returns 0 for empty queue', async () => {
-      expect(await processQueue()).toBe(0);
+      const result = await processQueue();
+      expect(result.processed).toBe(0);
+      expect(result.dropped).toBe(0);
     });
 
     it('processes successful operations and clears queue', async () => {
@@ -105,9 +107,10 @@ describe('Offline Queue', () => {
       });
 
       enqueue('profiles', 'insert', { name: 'Test' });
-      const processed = await processQueue();
+      const { processed, dropped } = await processQueue();
 
       expect(processed).toBe(1);
+      expect(dropped).toBe(0);
       expect(getQueue()).toHaveLength(0);
     });
 
