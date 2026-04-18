@@ -103,19 +103,25 @@ async function executeOperation(op: QueuedOperation): Promise<boolean> {
   }
 }
 
+export interface ProcessQueueResult {
+  processed: number;
+  dropped: number;
+}
+
 /**
  * Process all queued operations (FIFO order).
- * Returns the number of successfully processed operations.
+ * Returns counts of processed and dropped operations.
+ * Callers should notify the user when dropped > 0 (data was permanently lost).
  */
-export async function processQueue(): Promise<number> {
+export async function processQueue(): Promise<ProcessQueueResult> {
   const queue = getQueue();
-  if (queue.length === 0) return 0;
+  if (queue.length === 0) return { processed: 0, dropped: 0 };
 
   let processed = 0;
+  let dropped = 0;
   const remaining: QueuedOperation[] = [];
 
   for (const op of queue) {
-    // Exponential backoff delay
     if (op.retries > 0) {
       const delay = BASE_DELAY_MS * Math.pow(2, op.retries - 1);
       await new Promise(resolve => setTimeout(resolve, Math.min(delay, 30000)));
@@ -128,13 +134,13 @@ export async function processQueue(): Promise<number> {
     } else if (op.retries < MAX_RETRIES) {
       remaining.push({ ...op, retries: op.retries + 1 });
     } else {
-      // Drop after max retries
+      dropped++;
       logger.warn(`Offline queue: dropping operation after ${MAX_RETRIES} retries:`, op);
     }
   }
 
   saveQueue(remaining);
-  return processed;
+  return { processed, dropped };
 }
 
 /**

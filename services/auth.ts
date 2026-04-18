@@ -83,13 +83,16 @@ export async function resetPassword(email: string): Promise<{ error: string | nu
   return { error: error?.message || null };
 }
 
-// Delete user account and all data
+// Delete user account and all data via SECURITY DEFINER RPC
 export async function deleteAccount(): Promise<{ error: string | null }> {
   const sb = await getSupabase();
   if (!sb) return { error: 'Supabase not configured' };
 
-  const { error } = await sb.auth.signOut();
-  return { error: error?.message || null };
+  const { error: rpcError } = await sb.rpc('delete_user_account');
+  if (rpcError) return { error: rpcError.message };
+
+  await sb.auth.signOut();
+  return { error: null };
 }
 
 // Listen to auth state changes — returns immediately, subscribes async after Supabase loads
