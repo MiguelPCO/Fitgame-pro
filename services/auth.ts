@@ -101,15 +101,26 @@ export function onAuthStateChange(callback: (user: User | null) => void) {
     return { unsubscribe: () => {} };
   }
 
+  let isSubscribed = true;
   let unsubscribeFn = () => {};
 
-  getSupabase().then(sb => {
-    if (!sb) return;
-    const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
-      callback(session?.user || null);
-    });
-    unsubscribeFn = () => subscription.unsubscribe();
-  });
+  getSupabase()
+    .then(sb => {
+      if (!sb) return;
+      const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
+        setTimeout(() => {
+          if (isSubscribed) callback(session?.user || null);
+        }, 0);
+      });
+      unsubscribeFn = () => subscription.unsubscribe();
+      if (!isSubscribed) subscription.unsubscribe();
+    })
+    .catch(() => {});
 
-  return { unsubscribe: () => unsubscribeFn() };
+  return {
+    unsubscribe: () => {
+      isSubscribed = false;
+      unsubscribeFn();
+    }
+  };
 }
