@@ -497,6 +497,34 @@ export const exerciseBlueprints: Exercise[] = [
     instructions: ['Lie on back, hands behind head', 'Bring elbow to opposite knee', 'Alternate sides'],
     tips: ['Dont pull on neck', 'Slow controlled movement'],
   },
+
+  // === CARRERA ===
+  // Sesiones de carrera minimas para la Fase 3. La estructura completa
+  // (calentamiento / bloques / vuelta a la calma) llega en la Fase 5.
+  {
+    id: 'run01', name: 'Rodaje suave', muscleGroup: ['Cardio'], equipment: 'Running',
+    difficulty: 'Beginner', type: 'Compound',
+    instructions: ['Ritmo conversacional', 'Zancada corta y cadencia alta', 'Termina con sensacion de poder seguir'],
+    tips: ['Si no puedes hablar, vas rapido', 'Es la sesion que mas se repite: no la conviertas en serie'],
+  },
+  {
+    id: 'run02', name: 'Tirada larga', muscleGroup: ['Cardio'], equipment: 'Running',
+    difficulty: 'Beginner', type: 'Compound',
+    instructions: ['Mismo ritmo que el rodaje, mas tiempo', 'Bebe si pasa de una hora', 'Sube el tiempo un 10% por semana como mucho'],
+    tips: ['La distancia se gana en esta sesion', 'Nunca subas volumen e intensidad la misma semana'],
+  },
+  {
+    id: 'run03', name: 'Series', muscleGroup: ['Cardio'], equipment: 'Running',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Calienta 10 minutos suave', 'Alterna bloques rapidos con trote de recuperacion', 'Enfria 10 minutos suave'],
+    tips: ['El objetivo es acabar pudiendo hacer una repeticion mas', 'Una sesion de calidad por semana es suficiente al principio'],
+  },
+  {
+    id: 'run04', name: 'Rodaje a ritmo', muscleGroup: ['Cardio'], equipment: 'Running',
+    difficulty: 'Intermediate', type: 'Compound',
+    instructions: ['Ritmo comodamente duro, sostenido', 'Sin acelerones', 'Mantenlo hasta el final'],
+    tips: ['Deberias poder decir frases cortas, no charlar', 'Si acabas reventado, ibas a ritmo de serie'],
+  },
 ];
 
 /**
@@ -509,6 +537,7 @@ export const EQUIPMENT_MAP: Record<string, string[]> = {
   'Bodyweight': ['Bodyweight'],
   'Resistance Bands': ['Bodyweight'], // bands exercises use bodyweight entries
   'Home Gym': ['Dumbbells', 'Barbell', 'Bodyweight'],
+  'Running': ['Running'],
 };
 
 /**

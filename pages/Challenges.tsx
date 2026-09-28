@@ -9,9 +9,8 @@ import {
   SocialChallenge, ChallengeParticipant, ChallengeType,
   CHALLENGE_TYPE_META,
   createChallenge, joinChallenge, getMyChallenges,
-  updateMyProgress, leaveChallenge,
-  computeProgress, isActive, timeRemaining,
-  generateCode,
+  refreshChallengeProgress, leaveChallenge,
+  isActive, timeRemaining,
 } from '../services/socialChallenges';
 import { isSupabaseConfigured } from '../lib/supabase';
 
@@ -52,7 +51,6 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, onCreated }) => {
       target,
       bonusXp: 150,
       durationDays: duration,
-      user: { ...user, id: userId },
     });
     setLoading(false);
     if (!result) {
@@ -65,10 +63,10 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, onCreated }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full sm:max-w-md bg-background-card border border-gray-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
+      <div className="relative w-full sm:max-w-md bg-background-card border border-divider rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-800">
+        <div className="flex items-center justify-between p-6 border-b border-divider">
           <h2 className="text-xl font-black text-white">Crear Reto</h2>
           <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
             <X className="w-5 h-5" />
@@ -88,7 +86,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, onCreated }) => {
                     className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
                       type === key
                         ? 'border-primary/60 bg-primary/10 text-white'
-                        : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                        : 'border-divider text-gray-400 hover:border-gray-600'
                     }`}
                   >
                     <span className="text-xl">{m.icon}</span>
@@ -110,7 +108,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, onCreated }) => {
                   className={`px-4 py-2 rounded-xl font-bold text-sm border transition-all ${
                     target === opt
                       ? 'border-primary bg-primary/20 text-primary'
-                      : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                      : 'border-divider text-gray-400 hover:border-gray-600'
                   }`}
                 >
                   {opt >= 1000 ? `${(opt / 1000).toFixed(0)}k` : opt}
@@ -130,7 +128,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, onCreated }) => {
                   className={`flex-1 py-2 rounded-xl font-bold text-sm border transition-all ${
                     duration === opt.days
                       ? 'border-primary bg-primary/20 text-primary'
-                      : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                      : 'border-divider text-gray-400 hover:border-gray-600'
                   }`}
                 >
                   {opt.label}
@@ -142,7 +140,7 @@ const CreateModal: React.FC<CreateModalProps> = ({ onClose, onCreated }) => {
           <button
             onClick={handleCreate}
             disabled={loading}
-            className="w-full py-4 bg-primary hover:bg-red-700 text-white font-black rounded-2xl transition-colors disabled:opacity-50"
+            className="w-full py-4 bg-primary hover:bg-primary-hover text-primary-ink font-black rounded-2xl transition-colors disabled:opacity-50"
           >
             {loading ? 'Creando…' : 'Crear y obtener código'}
           </button>
@@ -168,10 +166,7 @@ const JoinModal: React.FC<JoinModalProps> = ({ onClose, onJoined }) => {
   const handleJoin = async () => {
     if (code.trim().length < 6 || !user || !userId) return;
     setLoading(true);
-    const result = await joinChallenge(
-      code.trim(),
-      { ...user, id: userId }
-    );
+    const result = await joinChallenge(code.trim());
     setLoading(false);
     if (!result) {
       toast('Código no encontrado. Verifica e inténtalo de nuevo.', 'error');
@@ -185,7 +180,7 @@ const JoinModal: React.FC<JoinModalProps> = ({ onClose, onJoined }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full sm:max-w-sm bg-background-card border border-gray-800 rounded-t-3xl sm:rounded-3xl shadow-2xl p-6">
+      <div className="relative w-full sm:max-w-sm bg-background-card border border-divider rounded-t-3xl sm:rounded-3xl shadow-2xl p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-black text-white">Unirse a Reto</h2>
           <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">
@@ -203,14 +198,14 @@ const JoinModal: React.FC<JoinModalProps> = ({ onClose, onJoined }) => {
           onChange={e => setCode(e.target.value.toUpperCase().slice(0, 6))}
           placeholder="Ej: ABC123"
           maxLength={6}
-          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-center text-2xl font-black tracking-widest uppercase focus:outline-none focus:border-primary transition-colors mb-4"
+          className="w-full bg-gray-800 border border-divider rounded-xl px-4 py-3 text-white text-center text-2xl font-black tracking-widest uppercase focus:outline-none focus:border-primary transition-colors mb-4"
           onKeyDown={e => e.key === 'Enter' && handleJoin()}
         />
 
         <button
           onClick={handleJoin}
           disabled={loading || code.length < 6}
-          className="w-full py-4 bg-primary hover:bg-red-700 text-white font-black rounded-2xl transition-colors disabled:opacity-50"
+          className="w-full py-4 bg-primary hover:bg-primary-hover text-primary-ink font-black rounded-2xl transition-colors disabled:opacity-50"
         >
           {loading ? 'Buscando…' : 'Unirse'}
         </button>
@@ -231,7 +226,7 @@ const CodeModal: React.FC<CodeModalProps> = ({ code, onClose }) => {
 
   const copy = async () => {
     await navigator.clipboard.writeText(
-      `¡Te reto en FitGame Pro! Únete con el código: ${code} 💪`
+      `¡Te reto en Hybrid! Únete con el código: ${code} 💪`
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -240,20 +235,20 @@ const CodeModal: React.FC<CodeModalProps> = ({ code, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-sm bg-background-card border border-gray-800 rounded-3xl shadow-2xl p-6 text-center">
+      <div className="relative w-full max-w-sm bg-background-card border border-divider rounded-3xl shadow-2xl p-6 text-center">
         <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Swords className="w-8 h-8 text-primary" />
         </div>
         <h2 className="text-xl font-black text-white mb-1">¡Reto creado!</h2>
         <p className="text-gray-400 text-sm mb-6">Comparte este código con tu amigo para que se una</p>
 
-        <div className="bg-gray-800/80 border border-gray-700 rounded-2xl p-5 mb-4">
+        <div className="bg-gray-800/80 border border-divider rounded-2xl p-5 mb-4">
           <p className="text-4xl font-black text-white tracking-widest">{code}</p>
         </div>
 
         <button
           onClick={copy}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-primary hover:bg-red-700 text-white font-bold rounded-xl transition-colors mb-3"
+          className="w-full flex items-center justify-center gap-2 py-3 bg-primary hover:bg-primary-hover text-primary-ink font-bold rounded-xl transition-colors mb-3"
         >
           {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
           {copied ? '¡Copiado!' : 'Copiar código'}
@@ -291,9 +286,9 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({ challenge, myUserId, onLe
   const myRank = participants.findIndex(p => p.user_id === myUserId) + 1;
 
   return (
-    <div className="bg-background-card border border-gray-800 rounded-2xl overflow-hidden">
+    <div className="bg-background-card border border-divider rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-800/50">
+      <div className="flex items-center justify-between p-4 border-b border-divider/50">
         <div className="flex items-center gap-3">
           <span className="text-2xl">{meta.icon}</span>
           <div>
@@ -322,7 +317,7 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({ challenge, myUserId, onLe
       </div>
 
       {/* My progress */}
-      <div className="p-4 border-b border-gray-800/50">
+      <div className="p-4 border-b border-divider/50">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Mi progreso</span>
           <span className="text-xs font-bold text-white">
@@ -334,7 +329,7 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({ challenge, myUserId, onLe
         </div>
         <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-primary to-red-400 rounded-full transition-all duration-500"
+            className="h-full bg-gradient-to-r from-primary to-primary-hover rounded-full transition-all duration-500"
             style={{ width: `${myPct}%` }}
           />
         </div>
@@ -396,7 +391,7 @@ const ChallengeCard: React.FC<ChallengeCardProps> = ({ challenge, myUserId, onLe
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
 const Challenges: React.FC = () => {
-  const { user, workoutHistory, userId: contextUserId } = useApp();
+  const { userId: contextUserId } = useApp();
   const { toast } = useToast();
 
   const [challenges, setChallenges] = useState<SocialChallenge[]>([]);
@@ -419,24 +414,13 @@ const Challenges: React.FC = () => {
   const loadAndSync = useCallback(async () => {
     if (!userId || !isOnline) return;
     setLoading(true);
+    // El progreso lo calcula el servidor a partir de workout_sessions (no se puede falsear).
+    await refreshChallengeProgress();
     const data = await getMyChallenges(userId);
-
-    // Sync progress for active challenges
-    for (const ch of data) {
-      if (isActive(ch)) {
-        const progress = computeProgress(
-          ch.type, workoutHistory, user!, ch.starts_at, ch.ends_at
-        );
-        await updateMyProgress(ch.id, userId, progress);
-        // Update local state too
-        const me = (ch.participants ?? []).find(p => p.user_id === userId);
-        if (me) me.progress = progress;
-      }
-    }
 
     setChallenges(data);
     setLoading(false);
-  }, [userId, isOnline, workoutHistory, user]);
+  }, [userId, isOnline]);
 
   useEffect(() => { loadAndSync(); }, [loadAndSync]);
 
@@ -496,7 +480,7 @@ const Challenges: React.FC = () => {
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => setShowCreate(true)}
-            className="flex flex-col items-center gap-2 p-5 bg-background-card border border-gray-800 hover:border-primary/40 rounded-2xl transition-all group"
+            className="flex flex-col items-center gap-2 p-5 bg-background-card border border-divider hover:border-primary/40 rounded-2xl transition-all group"
           >
             <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:bg-primary/20 transition-colors">
               <Plus className="w-6 h-6 text-primary" />
@@ -507,7 +491,7 @@ const Challenges: React.FC = () => {
 
           <button
             onClick={() => setShowJoin(true)}
-            className="flex flex-col items-center gap-2 p-5 bg-background-card border border-gray-800 hover:border-blue-500/40 rounded-2xl transition-all group"
+            className="flex flex-col items-center gap-2 p-5 bg-background-card border border-divider hover:border-blue-500/40 rounded-2xl transition-all group"
           >
             <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
               <Swords className="w-6 h-6 text-blue-400" />

@@ -2,76 +2,158 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme variables */
+/* Inter servida desde el propio dominio: cargarla de Google Fonts le envía la IP del usuario a Google (RGPD). */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/inter-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------------------------------------------------------------------------
+   Tokens de diseno (04-design-system.md).
+   Los valores van como canales RGB separados por espacio para que Tailwind
+   pueda aplicar modificadores de opacidad: rgb(var(--c-x) / <alpha-value>).
+   Todo contraste esta medido, no estimado: scripts/check-contrast.mjs
+   --------------------------------------------------------------------------- */
 :root, .dark {
-  --color-bg: #0f172a;
-  --color-bg-card: #1e293b;
-  --color-bg-lighter: #334155;
-  --color-text-main: #f8fafc;
-  --color-text-muted: #cbd5e1;
-  --color-border: #374151;
-  --color-surface: #1e293b;
-  --color-scrollbar-track: #0f172a;
-  --color-scrollbar-thumb: #334155;
-  --color-scrollbar-hover: #475569;
-  --color-autofill-bg: #1e293b;
+  /* Superficies */
+  --c-bg: 15 23 42;                /* #0F172A */
+  --c-surface: 30 41 59;           /* #1E293B */
+  --c-surface-raised: 51 65 85;    /* #334155 */
+
+  /* Texto */
+  --c-text-primary: 248 250 252;   /* #F8FAFC  17.06:1 sobre bg */
+  --c-text-secondary: 203 213 225; /* #CBD5E1  12.02:1 */
+  --c-text-muted: 160 173 192;     /* #A0ADC0   7.85:1 sobre bg, 4.55:1 sobre surface-raised */
+
+  /* Marca: relleno claro + tinta oscura (patron on-primary) */
+  --c-primary: 167 139 250;        /* #A78BFA   6.56:1 sobre bg */
+  --c-primary-hover: 196 181 253;  /* #C4B5FD */
+  --c-primary-ink: 15 23 42;       /* #0F172A   6.56:1 sobre el relleno */
+  --c-ink-on-dark: 248 250 252;    /* #F8FAFC  texto sobre un scrim oscuro, igual en ambos modos */
+
+  /* Bordes */
+  --c-border-input: 100 116 139;   /* #64748B   3.07:1 sobre surface */
+  --c-border-divider: 51 65 85;    /* #334155  decorativo */
+
+  /* Semanticos: texto/icono */
+  --c-success: 52 211 153;         /* #34D399 */
+  --c-warning: 251 191 36;         /* #FBBF24 */
+  --c-danger: 248 113 113;         /* #F87171 */
+  --c-info: 96 165 250;            /* #60A5FA */
+  --c-celebration: 251 191 36;     /* #FBBF24 */
+
+  /* Semanticos: relleno solido + su tinta */
+  --c-success-fill: 52 211 153;
+  --c-success-ink: 15 23 42;
+  --c-warning-fill: 251 191 36;
+  --c-warning-ink: 15 23 42;
+  --c-danger-fill: 248 113 113;
+  --c-danger-ink: 15 23 42;
+  --c-info-fill: 96 165 250;
+  --c-info-ink: 15 23 42;
+  --c-cardio-fill: 34 211 238;
+  --c-cardio-ink: 15 23 42;
+
+  /* Tipos de entrenamiento (calendario) */
+  --c-strength: 251 146 60;        /* #FB923C */
+  --c-cardio: 34 211 238;          /* #22D3EE */
+  --c-mobility: 167 139 250;       /* #A78BFA */
+  --c-rest: 148 163 184;           /* #94A3B8 */
+
+  /* Sombras y glow: el glow es exclusivo del modo oscuro */
+  --shadow-card: none;
+  --shadow-raised: 0 4px 12px rgb(0 0 0 / 0.4);
+  --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.5);
+  --glow-primary: 0 0 20px rgb(167 139 250 / 0.35);
+  --glow-celebration: 0 0 24px rgb(251 191 36 / 0.4);
+
+  --color-scrollbar-track: rgb(15 23 42);
+  --color-scrollbar-thumb: rgb(51 65 85);
+  --color-scrollbar-hover: rgb(71 85 105);
   color-scheme: dark;
 }
 
 .light {
-  --color-bg: #f1f5f9;
-  --color-bg-card: #ffffff;
-  --color-bg-lighter: #e2e8f0;
-  --color-text-main: #0f172a;
-  --color-text-muted: #64748b;
-  --color-border: #cbd5e1;
-  --color-surface: #ffffff;
-  --color-scrollbar-track: #f1f5f9;
-  --color-scrollbar-thumb: #cbd5e1;
-  --color-scrollbar-hover: #94a3b8;
-  --color-autofill-bg: #ffffff;
+  --c-bg: 248 250 252;             /* #F8FAFC */
+  --c-surface: 255 255 255;        /* #FFFFFF */
+  --c-surface-raised: 241 245 249; /* #F1F5F9 */
+
+  --c-text-primary: 15 23 42;      /* #0F172A  17.06:1 sobre bg */
+  --c-text-secondary: 71 85 105;   /* #475569   7.24:1 */
+  --c-text-muted: 91 107 130;      /* #5B6B82   5.19:1 sobre bg, 4.95:1 sobre surface-raised */
+
+  --c-primary: 109 74 255;         /* #6D4AFF   5.15:1 con tinta blanca */
+  --c-primary-hover: 91 63 224;    /* #5B3FE0 */
+  --c-primary-ink: 255 255 255;
+  --c-ink-on-dark: 248 250 252;
+
+  --c-border-input: 100 116 139;   /* #64748B   4.76:1 sobre surface */
+  --c-border-divider: 226 232 240; /* #E2E8F0  decorativo */
+
+  --c-success: 4 120 87;           /* #047857   5.48:1 */
+  --c-warning: 180 83 9;           /* #B45309   5.02:1 */
+  --c-danger: 220 38 38;           /* #DC2626   4.83:1 */
+  --c-info: 37 99 235;             /* #2563EB   5.17:1 */
+  --c-celebration: 180 83 9;       /* #B45309 */
+
+  --c-success-fill: 4 120 87;
+  --c-success-ink: 255 255 255;
+  --c-warning-fill: 180 83 9;
+  --c-warning-ink: 255 255 255;
+  --c-danger-fill: 220 38 38;
+  --c-danger-ink: 255 255 255;
+  --c-info-fill: 37 99 235;
+  --c-info-ink: 255 255 255;
+  --c-cardio-fill: 14 116 144;
+  --c-cardio-ink: 255 255 255;
+
+  --c-strength: 194 65 12;         /* #C2410C   5.18:1 */
+  --c-cardio: 14 116 144;          /* #0E7490   5.36:1 */
+  --c-mobility: 109 40 217;        /* #6D28D9   7.10:1 */
+  --c-rest: 71 85 105;             /* #475569   7.58:1 */
+
+  --shadow-card: 0 1px 3px rgb(15 23 42 / 0.08);
+  --shadow-raised: 0 4px 12px rgb(15 23 42 / 0.1);
+  --shadow-sheet: 0 -8px 32px rgb(15 23 42 / 0.12);
+  --glow-primary: none;
+  --glow-celebration: none;
+
+  --color-scrollbar-track: rgb(241 245 249);
+  --color-scrollbar-thumb: rgb(203 213 225);
+  --color-scrollbar-hover: rgb(148 163 184);
   color-scheme: light;
 }
 
 body {
-  background-color: var(--color-bg);
-  background-image: radial-gradient(circle at 50% 0%, var(--color-bg-card) 0%, var(--color-bg) 60%);
+  background-color: rgb(var(--c-bg));
+  background-image: radial-gradient(circle at 50% 0%, rgb(var(--c-surface)) 0%, rgb(var(--c-bg)) 60%);
   background-attachment: fixed;
-  color: var(--color-text-main);
+  color: rgb(var(--c-text-primary));
+  /* Cifras de ancho fijo: sin esto el cronometro da saltos al cambiar de digito. */
+  font-variant-numeric: tabular-nums;
 }
 
-/* Light mode overrides for hardcoded dark classes */
-.light .bg-background { background-color: var(--color-bg) !important; }
-.light .bg-background-card, .light .bg-background\/50 { background-color: var(--color-bg-card) !important; }
-.light .bg-gray-800 { background-color: #e2e8f0 !important; }
-.light .bg-gray-800\/50 { background-color: rgba(226, 232, 240, 0.5) !important; }
-.light .bg-gray-700 { background-color: #cbd5e1 !important; }
-.light .bg-gray-900 { background-color: #f8fafc !important; }
-.light .bg-gray-900\/50 { background-color: rgba(248, 250, 252, 0.5) !important; }
-.light .bg-black\/50 { background-color: rgba(255, 255, 255, 0.5) !important; }
-.light .bg-black\/20 { background-color: rgba(0, 0, 0, 0.05) !important; }
-
-.light .text-white { color: #0f172a !important; }
-.light .text-gray-400 { color: #64748b !important; }
-.light .text-gray-300 { color: #475569 !important; }
-.light .text-gray-500 { color: #64748b !important; }
-.light .text-text-muted { color: var(--color-text-muted) !important; }
-
-.light .border-gray-700 { border-color: #e2e8f0 !important; }
-.light .border-gray-800 { border-color: #e2e8f0 !important; }
-.light .border-gray-600 { border-color: #cbd5e1 !important; }
-.light .divide-gray-800 > :not([hidden]) ~ :not([hidden]) { border-color: #e2e8f0 !important; }
-
-.light .hover\:bg-gray-700:hover { background-color: #e2e8f0 !important; }
-.light .hover\:bg-gray-800:hover { background-color: #f1f5f9 !important; }
-.light .hover\:text-white:hover { color: #0f172a !important; }
-.light .hover\:bg-white\/5:hover { background-color: rgba(0, 0, 0, 0.03) !important; }
-
-/* Card shadows in light mode */
-.light [class*="bg-background-card"],
-.light [class*="rounded-2xl"][class*="border"] {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+/* Foco visible con teclado en cualquier elemento interactivo, no solo en los
+   componentes que lo declaran. */
+:focus-visible {
+  outline: 2px solid rgb(var(--c-primary));
+  outline-offset: 2px;
 }
+
+/* La elevacion en modo claro se transmite con sombra; en oscuro, con superficie. */
+.light .shadow-card-auto { box-shadow: var(--shadow-card); }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
@@ -105,6 +187,6 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px var(--color-autofill-bg) inset !important;
-  -webkit-text-fill-color: var(--color-text-main) !important;
+  -webkit-box-shadow: 0 0 0 30px rgb(var(--c-surface)) inset !important;
+  -webkit-text-fill-color: rgb(var(--c-text-primary)) !important;
 }

@@ -64,7 +64,7 @@ export function ExerciseSidebar({
               )}>
                 {exercise.name}
               </p>
-              <span className="text-[10px] text-gray-400 uppercase truncate block">
+              <span className="text-2xs text-gray-400 uppercase truncate block">
                 {exercise.muscleGroup.join(' · ')}
               </span>
             </div>
@@ -99,7 +99,7 @@ export function ExerciseSidebar({
           onClick={onAddExercise}
           className={cn(
             'w-full mt-2 py-2.5 rounded-xl text-sm font-bold',
-            'bg-background-lighter/50 border border-gray-700 text-text-muted',
+            'bg-background-lighter/50 border border-divider text-text-muted',
             'hover:text-white hover:border-gray-600',
             'transition-all flex items-center justify-center gap-2'
           )}

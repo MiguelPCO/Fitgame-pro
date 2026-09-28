@@ -133,7 +133,7 @@ export function SessionSummary({
 
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         {[
-          { color: 'bg-red-500', left: '12%', delay: '0s', duration: '3s', size: 'w-2 h-2' },
+          { color: 'bg-celebration', left: '12%', delay: '0s', duration: '3s', size: 'w-2 h-2' },
           { color: 'bg-amber-400', left: '28%', delay: '0.4s', duration: '3.5s', size: 'w-2.5 h-2.5' },
           { color: 'bg-blue-500', left: '45%', delay: '0.8s', duration: '2.8s', size: 'w-2 h-2' },
           { color: 'bg-green-400', left: '62%', delay: '1.2s', duration: '4s', size: 'w-1.5 h-1.5' },
@@ -182,8 +182,8 @@ export function SessionSummary({
         {/* Section 3: PRs (only if any) */}
         {prs.length > 0 && (
           <div className={sectionClass(2)}>
-            <div className="rounded-2xl border border-gray-800/50 bg-background-card/50 overflow-hidden">
-              <div className="px-4 pt-4 pb-3 border-b border-gray-800/30">
+            <div className="rounded-2xl border border-divider/50 bg-background-card/50 overflow-hidden">
+              <div className="px-4 pt-4 pb-3 border-b border-divider/30">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-lg bg-amber-500/15 flex items-center justify-center">
                     <Trophy className="w-4 h-4 text-amber-400" />
@@ -213,7 +213,7 @@ export function SessionSummary({
           <XPBreakdown breakdown={breakdownData} />
 
           {/* Level progress bar */}
-          <div className="mt-3 rounded-xl border border-gray-800/50 bg-background-card/50 p-4">
+          <div className="mt-3 rounded-xl border border-divider/50 bg-background-card/50 p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-bold text-gray-400">
                 Nivel {user.level}
@@ -238,7 +238,7 @@ export function SessionSummary({
 
         {/* Section 5: Notas + CTA */}
         <div className={sectionClass(4)}>
-          <div className="mb-4 rounded-xl border border-gray-800/50 bg-background-card/50 p-4">
+          <div className="mb-4 rounded-xl border border-divider/50 bg-background-card/50 p-4">
             <div className="flex items-center gap-2 mb-2">
               <MessageSquare className="w-4 h-4 text-gray-400" aria-hidden="true" />
               <label htmlFor="session-notes" className="text-sm font-bold text-gray-400">
@@ -251,7 +251,7 @@ export function SessionSummary({
               onChange={e => setNotes(e.target.value)}
               placeholder="¿Cómo fue el entreno? ¿Algo a mejorar?"
               rows={3}
-              className="w-full bg-gray-800/50 border border-gray-700 rounded-xl p-3 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
+              className="w-full bg-gray-800/50 border border-divider rounded-xl p-3 text-sm text-white placeholder:text-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
             />
           </div>
           <Button

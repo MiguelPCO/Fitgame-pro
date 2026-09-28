@@ -70,8 +70,8 @@ export const SetCard: React.FC<SetCardProps> = ({
         ],
         // Pending: grey, muted
         isPending && [
-          'bg-gray-800/20 border-gray-800/50',
-          'hover:bg-gray-800/40 hover:border-gray-700'
+          'bg-gray-800/20 border-divider/50',
+          'hover:bg-gray-800/40 hover:border-divider'
         ]
       )}
     >
@@ -79,14 +79,14 @@ export const SetCard: React.FC<SetCardProps> = ({
       <div className="flex items-center justify-center gap-1.5 mb-2">
         {setType && (
           <span className={cn(
-            'text-[10px] font-bold uppercase px-1.5 py-px rounded border',
+            'text-2xs font-bold uppercase px-1.5 py-px rounded border',
             getSetTypeBadge(setType)
           )}>
             {getSetTypeLabel(setType)}
           </span>
         )}
         <span className={cn(
-          'text-[11px] font-bold',
+          'text-2xs font-bold',
           isCompleted ? 'text-gray-400' : isActive ? 'text-primary' : 'text-gray-400'
         )}>
           #{setNumber}
@@ -104,7 +104,7 @@ export const SetCard: React.FC<SetCardProps> = ({
           </p>
           {data.rpe > 0 && (
             <span className={cn(
-              'text-[10px] font-bold mt-1 inline-block',
+              'text-2xs font-bold mt-1 inline-block',
               getRPEColor(data.rpe)
             )}>
               RPE {data.rpe}
@@ -118,7 +118,7 @@ export const SetCard: React.FC<SetCardProps> = ({
             <span className="text-xs font-bold">Registrar</span>
           </div>
           {target && (
-            <p className="text-[10px] text-gray-400 mt-1">
+            <p className="text-2xs text-gray-400 mt-1">
               {target.reps} @ RPE {target.rpe}
             </p>
           )}
@@ -127,7 +127,7 @@ export const SetCard: React.FC<SetCardProps> = ({
         <>
           {recommendedWeight > 0 && (
             <p className="text-xs font-bold text-gray-400 mb-0.5">
-              {recommendedWeight}<span className="text-gray-400 text-[10px] font-medium">kg</span>
+              {recommendedWeight}<span className="text-gray-400 text-2xs font-medium">kg</span>
             </p>
           )}
           {target && (
@@ -135,7 +135,7 @@ export const SetCard: React.FC<SetCardProps> = ({
               <p className="text-sm font-semibold text-gray-400">
                 {target.reps}
               </p>
-              <p className="text-[10px] text-gray-400 mt-0.5">
+              <p className="text-2xs text-gray-400 mt-0.5">
                 RPE {target.rpe}
               </p>
             </>

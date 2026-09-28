@@ -32,7 +32,7 @@ const Templates: React.FC<TemplatesProps> = ({ onCreate, onEdit, onStart }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center border-b border-gray-800 pb-6">
+      <div className="flex justify-between items-center border-b border-divider pb-6">
         <div>
           <h1 className="text-3xl font-black text-white">Workout Templates</h1>
           <p className="text-text-muted mt-1">Save your favorite routines and reuse them anytime.</p>
@@ -44,7 +44,7 @@ const Templates: React.FC<TemplatesProps> = ({ onCreate, onEdit, onStart }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {templates.length === 0 ? (
-          <div className="col-span-full py-16 text-center bg-background-card rounded-2xl border border-dashed border-gray-800">
+          <div className="col-span-full py-16 text-center bg-background-card rounded-2xl border border-dashed border-divider">
              <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
                <ClipboardIcon className="w-8 h-8" />
              </div>
@@ -103,12 +103,12 @@ const Templates: React.FC<TemplatesProps> = ({ onCreate, onEdit, onStart }) => {
                 </div>
                 <div className="flex flex-wrap gap-2 mt-2">
                    {template.muscleFocus.slice(0, 3).map(muscle => (
-                     <span key={muscle} className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">
+                     <span key={muscle} className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-divider">
                        {muscle}
                      </span>
                    ))}
                    {template.muscleFocus.length > 3 && (
-                     <span className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">
+                     <span className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-divider">
                        +{template.muscleFocus.length - 3}
                      </span>
                    )}

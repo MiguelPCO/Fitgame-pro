@@ -27,7 +27,7 @@ export function SessionHeader({
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-gray-800/50 px-4 py-3">
+      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-divider/50 px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           {/* Exercise counter */}
           <span className="text-sm font-bold text-white">

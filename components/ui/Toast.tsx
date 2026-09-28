@@ -59,16 +59,16 @@ const ToastItem: React.FC<{ toast: Toast; onDismiss: (id: number) => void }> = (
     <div
       role="alert"
       className={cn(
-        'flex items-center gap-3 px-4 py-3 rounded-xl border bg-background-card/95 backdrop-blur-md shadow-lg max-w-sm w-full transition-all duration-200',
+        'flex items-center gap-3 px-4 py-3 rounded-xl border bg-background-card/95 backdrop-blur-md shadow-raised max-w-sm w-full transition-all duration-200',
         borderColors[toast.type],
         isExiting ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'
       )}
     >
       {icons[toast.type]}
-      <p className="text-sm text-white font-medium flex-1">{toast.message}</p>
+      <p className="text-sm text-text-main font-medium flex-1">{toast.message}</p>
       <button
         onClick={handleDismiss}
-        className="p-1 text-text-muted hover:text-white transition-colors shrink-0"
+        className="min-w-11 min-h-11 flex items-center justify-center text-text-muted hover:text-text-main transition-colors duration-fast shrink-0"
         aria-label="Cerrar"
       >
         <X className="w-4 h-4" />

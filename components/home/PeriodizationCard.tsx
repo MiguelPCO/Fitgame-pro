@@ -25,9 +25,9 @@ export function PeriodizationCard() {
   );
 
   return (
-    <div className="bg-background-card border border-gray-800 rounded-2xl overflow-hidden">
+    <div className="bg-background-card border border-divider rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-800/60">
+      <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-divider/60">
         <div className="flex items-center gap-2">
           <TrendingUp className={`w-4 h-4 ${colors.accent}`} />
           <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -67,11 +67,11 @@ export function PeriodizationCard() {
         {/* Specs row */}
         <div className="flex gap-3">
           <div className={`flex-1 rounded-xl px-3 py-2 ${colors.bg} ${colors.border} border`}>
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Reps objetivo</p>
+            <p className="text-2xs text-gray-500 uppercase tracking-wider font-bold">Reps objetivo</p>
             <p className={`text-sm font-black ${colors.accent}`}>{config.repRange}</p>
           </div>
           <div className={`flex-1 rounded-xl px-3 py-2 ${colors.bg} ${colors.border} border`}>
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">RPE objetivo</p>
+            <p className="text-2xs text-gray-500 uppercase tracking-wider font-bold">RPE objetivo</p>
             <p className={`text-sm font-black ${colors.accent}`}>{config.rpeTarget} / 10</p>
           </div>
         </div>
@@ -79,7 +79,7 @@ export function PeriodizationCard() {
 
       {/* Progressive overload suggestions */}
       <div className="px-4 pb-4">
-        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+        <p className="text-2xs font-bold text-gray-500 uppercase tracking-wider mb-2">
           Progresión esta semana
         </p>
 

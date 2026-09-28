@@ -144,14 +144,14 @@ const DateSelector: React.FC<DateSelectorProps> = ({
                 'flex flex-col items-center justify-center py-2 sm:py-3 px-0.5 sm:px-1 rounded-xl sm:rounded-2xl border transition-all duration-200',
                 'min-h-[88px] relative',
                 isSelected
-                  ? 'bg-primary border-primary text-white shadow-lg shadow-primary/30 scale-[1.02]'
-                  : 'bg-background-card border-gray-800 hover:border-gray-600 hover:bg-gray-800/50',
+                  ? 'bg-primary border-primary text-primary-ink shadow-lg shadow-primary/30 scale-[1.02]'
+                  : 'bg-background-card border-divider hover:border-gray-600 hover:bg-gray-800/50',
                 isTodayVal && !isSelected && 'ring-2 ring-primary/50'
               )}
             >
               {/* Day name */}
               <span className={cn(
-                'text-[11px] font-medium uppercase tracking-wide mb-1',
+                'text-2xs font-medium uppercase tracking-wide mb-1',
                 isSelected ? 'text-white/80' : 'text-text-muted'
               )}>
                 {formatDayName(date)}
@@ -191,7 +191,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({
                   )} />
                 )}
                 {!status && isTodayVal && !isSelected && (
-                  <span className="text-[10px] font-bold text-primary uppercase">
+                  <span className="text-2xs font-bold text-primary uppercase">
                     Today
                   </span>
                 )}

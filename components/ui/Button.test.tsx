@@ -58,9 +58,9 @@ describe('Button', () => {
 
   it('applies variant classes', () => {
     const { rerender } = render(<Button variant="danger">Delete</Button>);
-    expect(screen.getByRole('button').className).toContain('bg-red-600');
+    expect(screen.getByRole('button').className).toContain('bg-danger-fill');
 
     rerender(<Button variant="success">Done</Button>);
-    expect(screen.getByRole('button').className).toContain('bg-green-600');
+    expect(screen.getByRole('button').className).toContain('bg-success-fill');
   });
 });

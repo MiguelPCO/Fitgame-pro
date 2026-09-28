@@ -12,7 +12,7 @@ import { WorkoutSession } from '../types';
 import { DEFAULT_SET_CONFIG } from '../lib/constants';
 import { isSameDay, isPastDay, getTimeAgo } from '../lib/dateUtils';
 import { getBadgeDefinition, ALL_BADGES } from '../lib/badges';
-import { challengeProgressPct, challengeProgressLabel } from '../lib/challenges';
+import { challengeProgressPct, challengeProgressLabel, getWeekStart, hasCompletedSessionInWeek, isNearWeekEnd } from '../lib/challenges';
 import { muscleFatigueScore, FatigueLevel, MuscleLoadData } from '../lib/calculations';
 import { shareBadge } from '../lib/share';
 import { getWorkoutRecommendation, MUSCLE_LABELS } from '../lib/recommendations';
@@ -269,10 +269,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
     return String(v);
   };
 
-  // Streak at risk: hasn't worked out today
-  const todayStr = formatDateString(new Date());
-  const workedOutToday = completedDateSet.has(todayStr);
-  const streakAtRisk = !workedOutToday && (user?.streak || 0) > 0;
+  // Racha en riesgo: racha semanal (Fase 6), solo cerca del cierre de semana
+  // (mismo criterio que App.tsx para el aviso push, para no dar mensajes
+  // contradictorios entre la notificacion y el boton de Freeze).
+  const streakAtRisk = useMemo(
+    () => isNearWeekEnd() && !hasCompletedSessionInWeek(workoutHistory, getWeekStart()) && (user?.streak || 0) > 0,
+    [workoutHistory, user?.streak]
+  );
 
   // Recent badges (last 3 earned)
   const recentBadges = useMemo(() =>
@@ -326,7 +329,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
       )}
 
       {/* Header: Level + XP + Streak */}
-      <div className="bg-background-card border border-gray-800 rounded-3xl p-6">
+      <div className="bg-background-card border border-divider rounded-3xl p-6">
         <div className="flex flex-col md:flex-row md:items-center gap-6">
           {/* Left: Level Badge + User Info */}
           <div className="flex items-center gap-4">
@@ -340,7 +343,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
                 {user?.name.split(' ')[0]}
               </h1>
               <p className="text-text-muted text-sm">
-                {user?.tier} · Day {user?.streak} streak
+                {user?.tier} · Racha: {user?.streak} semana{user?.streak === 1 ? '' : 's'}
               </p>
             </div>
           </div>
@@ -356,15 +359,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
 
           {/* Right: Streak Badge + Freeze */}
           <div className="flex flex-col gap-2">
-            <div className="bg-gradient-to-br from-primary to-red-900 p-3 sm:p-4 rounded-2xl shadow-lg shadow-red-900/20 relative overflow-hidden">
-              <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-white/10 rounded-full blur-xl" />
+            <div className="bg-gradient-to-br from-primary to-primary-hover p-3 sm:p-4 rounded-2xl shadow-glow-primary relative overflow-hidden">
+              <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-primary-ink/10 rounded-full blur-xl" />
               <div className="relative z-10 flex items-center gap-2 sm:gap-3">
-                <div className="p-1.5 sm:p-2 bg-black/20 rounded-xl backdrop-blur-sm">
-                  <Flame className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="currentColor" />
+                <div className="p-1.5 sm:p-2 bg-primary-ink/20 rounded-xl backdrop-blur-sm">
+                  <Flame className="w-4 h-4 sm:w-6 sm:h-6 text-primary-ink" fill="currentColor" />
                 </div>
                 <div>
-                  <p className="text-white/80 text-[10px] font-bold uppercase tracking-wider">Streak</p>
-                  <p className="text-xl sm:text-2xl font-black text-white">{user?.streak}</p>
+                  <p className="text-primary-ink/80 text-2xs font-bold uppercase tracking-wider">Racha semanal</p>
+                  <p className="text-xl sm:text-2xl font-black text-primary-ink">{user?.streak}</p>
                 </div>
               </div>
             </div>
@@ -389,7 +392,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
 
       {/* Weekly Challenge */}
       {weeklyChallenge && (
-        <div className="bg-background-card border border-gray-800 rounded-2xl p-5">
+        <div className="bg-background-card border border-divider rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Target className="w-5 h-5 text-orange-400" />
@@ -571,7 +574,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
                 {!isRest && !recommendation.suggestedTemplate && (
                   <button
                     onClick={onNavigateTemplates}
-                    className="w-full py-2 text-sm font-bold bg-gray-800/50 text-gray-300 border border-gray-700/30 rounded-xl hover:bg-gray-700/30 transition-colors"
+                    className="w-full py-2 text-sm font-bold bg-gray-800/50 text-gray-300 border border-divider/30 rounded-xl hover:bg-gray-700/30 transition-colors"
                   >
                     Crear plantilla →
                   </button>
@@ -593,7 +596,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
                 {lastSession.endTime ? getTimeAgo(lastSession.endTime) : ''}
               </p>
 
-              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-700/50">
+              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-divider/50">
                 <div className="flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5 text-primary" />
                   <span className="text-sm text-white font-bold">+{lastSession.xpReward} XP</span>
@@ -610,7 +613,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
 
       {/* Recent Badges */}
       {earnedBadges.length > 0 && (
-        <div className="bg-background-card border border-gray-800 rounded-2xl p-5">
+        <div className="bg-background-card border border-divider rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-yellow-500" />
@@ -625,7 +628,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
               return (
                 <div
                   key={eb.badgeId}
-                  className="flex flex-col items-center gap-1 bg-gray-800/50 border border-gray-700/50 rounded-xl p-3 min-w-[80px]"
+                  className="flex flex-col items-center gap-1 bg-gray-800/50 border border-divider/50 rounded-xl p-3 min-w-[80px]"
                   title={def.description}
                 >
                   <span className="text-3xl">{def.icon}</span>
@@ -641,7 +644,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
       )}
 
       {/* Fatigue Heatmap */}
-      <div className="bg-background-card border border-gray-800 rounded-2xl p-5">
+      <div className="bg-background-card border border-divider rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-bold text-white uppercase tracking-wide">Fatiga Muscular</h3>
           <span className="text-xs text-gray-500">últimos 7 días</span>
@@ -652,7 +655,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
             const level: FatigueLevel = data?.level ?? 'fresh';
             const hasData = !!data;
             const styleMap: Record<string, { bg: string; text: string; label: string }> = {
-              none:       { bg: 'bg-gray-800/40 border-gray-700/30',     text: 'text-gray-600',   label: '' },
+              none:       { bg: 'bg-gray-800/40 border-divider/30',     text: 'text-gray-600',   label: '' },
               fresh:      { bg: 'bg-green-900/40 border-green-700/30',   text: 'text-green-400',  label: 'Fresco' },
               moderate:   { bg: 'bg-yellow-900/40 border-yellow-700/30', text: 'text-yellow-400', label: 'Activo' },
               fatigued:   { bg: 'bg-orange-900/40 border-orange-700/30', text: 'text-orange-400', label: 'Cargado' },
@@ -667,14 +670,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
               >
                 <p className={`text-xs font-bold text-center ${hasData ? 'text-white' : 'text-gray-400'}`}>{muscle}</p>
                 {hasData && (
-                  <p className={`text-[10px] font-semibold ${style.text}`}>{style.label}</p>
+                  <p className={`text-2xs font-semibold ${style.text}`}>{style.label}</p>
                 )}
               </div>
             );
           })}
         </div>
         <div className="flex items-center gap-3 mt-3 flex-wrap text-xs text-gray-500">
-          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-gray-800/40 border border-gray-700/30" /><span>Sin datos</span></div>
+          <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-gray-800/40 border border-divider/30" /><span>Sin datos</span></div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-green-900/40 border border-green-700/30" /><span>Fresco</span></div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-yellow-900/40 border border-yellow-700/30" /><span>Activo</span></div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-orange-900/40 border border-orange-700/30" /><span>Cargado</span></div>

@@ -111,9 +111,9 @@ export function XPBreakdown({ breakdown }: XPBreakdownProps) {
   const activeLines = LINE_CONFIG.filter(line => breakdown[line.key] > 0);
 
   return (
-    <div className="rounded-2xl border border-gray-800/50 bg-background-card/50 overflow-hidden">
+    <div className="rounded-2xl border border-divider/50 bg-background-card/50 overflow-hidden">
       {/* Header */}
-      <div className="px-4 pt-4 pb-3 border-b border-gray-800/30">
+      <div className="px-4 pt-4 pb-3 border-b border-divider/30">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-amber-500/15 flex items-center justify-center">
             <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
@@ -150,7 +150,7 @@ export function XPBreakdown({ breakdown }: XPBreakdownProps) {
       </div>
 
       {/* Total */}
-      <div className="px-4 py-3 border-t border-gray-800/30 bg-amber-500/[0.04]">
+      <div className="px-4 py-3 border-t border-divider/30 bg-amber-500/[0.04]">
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-gray-400 uppercase tracking-wide">
             Total

@@ -9,9 +9,11 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   error?: boolean;
 }
 
+// text-base (16px) es el minimo: Safari en iOS hace zoom al enfocar un campo
+// con tipo menor y deja la pantalla desencuadrada.
 const sizeStyles: Record<NonNullable<InputProps['size']>, string> = {
-  sm: 'py-1.5 text-sm',
-  md: 'py-2 text-sm',
+  sm: 'py-2 text-base',
+  md: 'py-2.5 text-base',
 };
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -30,26 +32,26 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative">
         {leftIcon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
             {leftIcon}
           </div>
         )}
         <input
           ref={ref}
           className={cn(
-            'w-full bg-background border rounded-lg text-white font-bold transition-all',
-            'focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary',
+            'w-full min-h-11 bg-background border rounded-lg text-text-main font-bold transition-all duration-fast',
+            'focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary',
             sizeStyles[size],
             leftIcon ? 'pl-10' : 'pl-3',
             rightIcon ? 'pr-10' : 'pr-3',
             centered && 'text-center',
-            error ? 'border-red-500' : 'border-gray-700',
+            error ? 'border-danger' : 'border-border-input',
             className
           )}
           {...props}
         />
         {rightIcon && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
             {rightIcon}
           </div>
         )}

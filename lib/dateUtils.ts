@@ -34,6 +34,19 @@ export function formatDuration(startTime?: number, endTime?: number): string {
   return `${hrs}h ${mins}m`;
 }
 
+/**
+ * Ritmo min/km a partir de distancia y tiempo. Se calcula, nunca se guarda
+ * (06-modelo-datos.md SS B): un dato derivado siempre acaba desincronizado de
+ * sus fuentes si se persiste por separado.
+ */
+export function formatPace(distanceM?: number, movingTimeS?: number): string {
+  if (!distanceM || !movingTimeS || distanceM <= 0 || movingTimeS <= 0) return '--';
+  const secPerKm = movingTimeS / (distanceM / 1000);
+  const min = Math.floor(secPerKm / 60);
+  const sec = Math.round(secPerKm % 60);
+  return `${min}:${String(sec).padStart(2, '0')} /km`;
+}
+
 export function formatDateEs(dateStr?: string, startTime?: number): string {
   const ts = dateStr ? new Date(dateStr) : startTime ? new Date(startTime) : null;
   if (!ts) return '--';

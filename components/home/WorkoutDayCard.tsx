@@ -59,7 +59,7 @@ export function WorkoutDayCard({ workout, variant, onStartWorkout }: WorkoutDayC
   if (!hasWorkout) {
     return (
       <div className={cn(
-        'rounded-3xl bg-background-card border border-gray-800 p-8',
+        'rounded-3xl bg-background-card border border-divider p-8',
         'flex flex-col items-center justify-center text-center min-h-[300px]',
         variant === 'past' ? 'opacity-60' : 'border-dashed'
       )}>
@@ -70,7 +70,7 @@ export function WorkoutDayCard({ workout, variant, onStartWorkout }: WorkoutDayC
         <p className="text-text-muted max-w-sm">
           Recovery is where the growth happens. Take it easy or do some light active recovery.
         </p>
-        <div className="mt-6 px-4 py-2 bg-gray-800/50 rounded-lg border border-gray-700 text-sm font-medium text-gray-300">
+        <div className="mt-6 px-4 py-2 bg-gray-800/50 rounded-lg border border-divider text-sm font-medium text-gray-300">
           +5 XP for resting
         </div>
       </div>
@@ -80,7 +80,7 @@ export function WorkoutDayCard({ workout, variant, onStartWorkout }: WorkoutDayC
   // Workout card with variant styling
   return (
     <div className={cn(
-      'relative overflow-hidden rounded-3xl bg-background-card border border-gray-800 group',
+      'relative overflow-hidden rounded-3xl bg-background-card border border-divider group',
       variant === 'past' && 'opacity-75'
     )}>
       {/* Background Image - only for today */}

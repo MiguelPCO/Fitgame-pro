@@ -7,8 +7,14 @@ export interface AuthResult {
   error: string | null;
 }
 
-// Sign up with email and password
-export async function signUp(email: string, password: string, name?: string): Promise<AuthResult> {
+// Sign up with email and password. Solo se llama tras marcar la casilla de
+// consentimiento de datos de salud, así que se guarda su fecha en los metadatos.
+export async function signUp(
+  email: string,
+  password: string,
+  name?: string,
+  captchaToken?: string | null
+): Promise<AuthResult> {
   const sb = await getSupabase();
   if (!sb) return { user: null, session: null, error: 'Supabase not configured' };
 
@@ -16,7 +22,8 @@ export async function signUp(email: string, password: string, name?: string): Pr
     email,
     password,
     options: {
-      data: { name: name || 'Athlete' }
+      data: { name: name || 'Athlete', health_consent_at: new Date().toISOString() },
+      captchaToken: captchaToken ?? undefined,
     }
   });
 
@@ -28,13 +35,14 @@ export async function signUp(email: string, password: string, name?: string): Pr
 }
 
 // Sign in with email and password
-export async function signIn(email: string, password: string): Promise<AuthResult> {
+export async function signIn(email: string, password: string, captchaToken?: string | null): Promise<AuthResult> {
   const sb = await getSupabase();
   if (!sb) return { user: null, session: null, error: 'Supabase not configured' };
 
   const { data, error } = await sb.auth.signInWithPassword({
     email,
-    password
+    password,
+    options: { captchaToken: captchaToken ?? undefined },
   });
 
   if (error) {
@@ -72,12 +80,13 @@ export async function getCurrentUser(): Promise<{ user: User | null; error: stri
 }
 
 // Reset password via email
-export async function resetPassword(email: string): Promise<{ error: string | null }> {
+export async function resetPassword(email: string, captchaToken?: string | null): Promise<{ error: string | null }> {
   const sb = await getSupabase();
   if (!sb) return { error: 'Supabase not configured' };
 
   const { error } = await sb.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}`,
+    captchaToken: captchaToken ?? undefined,
   });
 
   return { error: error?.message || null };

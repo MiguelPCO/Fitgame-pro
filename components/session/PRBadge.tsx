@@ -43,7 +43,7 @@ export const PRBadge: React.FC<PRBadgeProps> = ({ exercise, weight, reps, improv
 
         {/* Improvement badge */}
         {improvement && (
-          <span className="text-[11px] font-bold text-amber-400 bg-amber-500/25 px-2 py-1 rounded-md shrink-0">
+          <span className="text-2xs font-bold text-amber-400 bg-amber-500/25 px-2 py-1 rounded-md shrink-0">
             {improvement}
           </span>
         )}

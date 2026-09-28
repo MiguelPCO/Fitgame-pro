@@ -15,17 +15,17 @@ describe('Badge', () => {
 
   it('applies success variant styles', () => {
     render(<Badge variant="success" data-testid="badge">OK</Badge>);
-    expect(screen.getByTestId('badge').className).toContain('text-green');
+    expect(screen.getByTestId('badge').className).toContain('text-success');
   });
 
   it('applies warning variant styles', () => {
     render(<Badge variant="warning" data-testid="badge">Warn</Badge>);
-    expect(screen.getByTestId('badge').className).toContain('yellow');
+    expect(screen.getByTestId('badge').className).toContain('text-warning');
   });
 
   it('applies size sm', () => {
     render(<Badge size="sm" data-testid="badge">Small</Badge>);
-    expect(screen.getByTestId('badge').className).toContain('text-[10px]');
+    expect(screen.getByTestId('badge').className).toContain('text-2xs');
   });
 });
 

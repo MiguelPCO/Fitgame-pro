@@ -65,7 +65,7 @@ const ExerciseLibrary: React.FC = () => {
       
       {/* Active Workout Banner (if applicable) */}
       {activeWorkout && (
-        <div className="sticky top-0 z-30 bg-primary/90 backdrop-blur-md text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between mb-4 animate-in slide-in-from-top-2">
+        <div className="sticky top-0 z-30 bg-primary/90 backdrop-blur-md text-primary-ink px-4 py-3 rounded-xl shadow-lg flex items-center justify-between mb-4 animate-in slide-in-from-top-2">
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 fill-white" />
             <span className="text-sm font-bold">Workout in Progress</span>
@@ -75,7 +75,7 @@ const ExerciseLibrary: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-gray-800 pb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-divider pb-6">
         <div>
            <h1 className="text-3xl font-black text-white">Exercise Library</h1>
            <p className="text-text-muted mt-2 max-w-2xl">
@@ -105,7 +105,7 @@ const ExerciseLibrary: React.FC = () => {
           </div>
           <button 
             onClick={() => setShowFilters(!showFilters)}
-            className={`px-4 rounded-xl border flex items-center gap-2 transition-colors ${showFilters ? 'bg-primary border-primary text-white' : 'bg-background-card border-gray-700 text-text-muted'}`}
+            className={`px-4 rounded-xl border flex items-center gap-2 transition-colors ${showFilters ? 'bg-primary border-primary text-primary-ink' : 'bg-background-card border-divider text-text-muted'}`}
           >
             <Filter className="w-5 h-5" />
           </button>
@@ -123,7 +123,7 @@ const ExerciseLibrary: React.FC = () => {
                    <button
                      key={muscle}
                      onClick={() => setSelectedMuscle(muscle)}
-                     className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${selectedMuscle === muscle ? 'bg-white text-black border-white' : 'bg-background-card border-gray-700 text-text-muted hover:border-gray-500'}`}
+                     className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${selectedMuscle === muscle ? 'bg-white text-black border-white' : 'bg-background-card border-divider text-text-muted hover:border-gray-500'}`}
                    >
                      {muscle}
                    </button>
@@ -139,7 +139,7 @@ const ExerciseLibrary: React.FC = () => {
                    <button
                      key={eq}
                      onClick={() => setSelectedEquipment(eq)}
-                     className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${selectedEquipment === eq ? 'bg-white text-black border-white' : 'bg-background-card border-gray-700 text-text-muted hover:border-gray-500'}`}
+                     className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${selectedEquipment === eq ? 'bg-white text-black border-white' : 'bg-background-card border-divider text-text-muted hover:border-gray-500'}`}
                    >
                      {eq}
                    </button>
@@ -212,7 +212,7 @@ const ExerciseCard: React.FC<CardProps> = React.memo(({ exercise, onClick, onAdd
   return (
     <div 
       onClick={onClick}
-      className="group bg-background-card rounded-2xl border border-gray-800 p-3 transition-all hover:-translate-y-1 hover:shadow-xl cursor-pointer hover:border-gray-600 relative overflow-hidden"
+      className="group bg-background-card rounded-2xl border border-divider p-3 transition-all hover:-translate-y-1 hover:shadow-xl cursor-pointer hover:border-gray-600 relative overflow-hidden"
     >
       {/* Thumbnail Area */}
       <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-900 mb-3">
@@ -250,8 +250,8 @@ const ExerciseCard: React.FC<CardProps> = React.memo(({ exercise, onClick, onAdd
              onClick={onAdd}
              className={`absolute bottom-2 right-2 z-30 p-2.5 rounded-full shadow-lg transition-all active:scale-90
                ${isAdded 
-                 ? 'bg-green-500 text-white cursor-default' 
-                 : 'bg-primary text-white hover:bg-primary-hover hover:scale-110'}
+                 ? 'bg-success-fill text-success-ink cursor-default' 
+                 : 'bg-primary text-primary-ink hover:bg-primary-hover hover:scale-110'}
              `}
            >
              {isAdded ? <CheckCircle2 className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
@@ -282,12 +282,12 @@ interface ModalProps {
 const ExerciseDetailModal: React.FC<ModalProps> = ({ exercise, onClose, onAdd, isActiveSession }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-       <div className="bg-background-card w-full max-w-2xl max-h-[90vh] rounded-3xl border border-gray-700 shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200">
+       <div className="bg-background-card w-full max-w-2xl max-h-[90vh] rounded-3xl border border-divider shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200">
           
           {/* Close Button */}
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/40 text-white hover:bg-white hover:text-black transition-colors backdrop-blur-md"
+            className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/40 text-ink-on-dark hover:bg-text-main hover:text-background transition-colors backdrop-blur-md"
           >
             <X className="w-5 h-5" />
           </button>
@@ -310,7 +310,7 @@ const ExerciseDetailModal: React.FC<ModalProps> = ({ exercise, onClose, onAdd, i
                 <h2 className="text-3xl md:text-4xl font-black text-white mb-1 shadow-black drop-shadow-lg">{exercise.name}</h2>
                 <div className="flex gap-2">
                    {exercise.muscleGroup.map(m => (
-                     <span key={m} className="px-2 py-1 bg-primary/80 text-white text-xs font-bold rounded shadow-lg">{m}</span>
+                     <span key={m} className="px-2 py-1 bg-primary/80 text-primary-ink text-xs font-bold rounded shadow-lg">{m}</span>
                    ))}
                 </div>
              </div>
@@ -321,16 +321,16 @@ const ExerciseDetailModal: React.FC<ModalProps> = ({ exercise, onClose, onAdd, i
              
              {/* Quick Stats */}
              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-background-lighter/50 p-3 rounded-xl border border-gray-700 text-center">
-                   <p className="text-[10px] uppercase font-bold text-text-muted">Type</p>
+                <div className="bg-background-lighter/50 p-3 rounded-xl border border-divider text-center">
+                   <p className="text-2xs uppercase font-bold text-text-muted">Type</p>
                    <p className="text-sm font-bold text-white">{exercise.type}</p>
                 </div>
-                <div className="bg-background-lighter/50 p-3 rounded-xl border border-gray-700 text-center">
-                   <p className="text-[10px] uppercase font-bold text-text-muted">Equipment</p>
+                <div className="bg-background-lighter/50 p-3 rounded-xl border border-divider text-center">
+                   <p className="text-2xs uppercase font-bold text-text-muted">Equipment</p>
                    <p className="text-sm font-bold text-white">{exercise.equipment}</p>
                 </div>
-                <div className="bg-background-lighter/50 p-3 rounded-xl border border-gray-700 text-center">
-                   <p className="text-[10px] uppercase font-bold text-text-muted">Level</p>
+                <div className="bg-background-lighter/50 p-3 rounded-xl border border-divider text-center">
+                   <p className="text-2xs uppercase font-bold text-text-muted">Level</p>
                    <p className={`text-sm font-bold ${exercise.difficulty === 'Advanced' ? 'text-red-400' : 'text-green-400'}`}>
                      {exercise.difficulty}
                    </p>
@@ -342,7 +342,7 @@ const ExerciseDetailModal: React.FC<ModalProps> = ({ exercise, onClose, onAdd, i
                <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
                  <Info className="w-5 h-5 text-primary" /> Instructions
                </h3>
-               <ol className="space-y-4 relative border-l border-gray-700 ml-2 pl-6">
+               <ol className="space-y-4 relative border-l border-divider ml-2 pl-6">
                   {exercise.instructions.map((step, i) => (
                     <li key={i} className="relative">
                        <span className="absolute -left-[33px] top-0 w-6 h-6 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center text-xs font-bold text-gray-400">
@@ -371,7 +371,7 @@ const ExerciseDetailModal: React.FC<ModalProps> = ({ exercise, onClose, onAdd, i
           </div>
 
           {/* Footer Actions */}
-          <div className="p-4 border-t border-gray-800 bg-background-card/95 backdrop-blur flex justify-end gap-3">
+          <div className="p-4 border-t border-divider bg-background-card/95 backdrop-blur flex justify-end gap-3">
              <Button variant="ghost" onClick={onClose}>
                Close
              </Button>

@@ -106,8 +106,8 @@ const SyncIndicator: React.FC = () => {
   const config = configs[syncState];
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-background-card rounded-full border border-gray-700/50 shadow-sm">
-      <span className={`w-2 h-2 rounded-full ${config.bg} ${syncState === 'synced' ? 'shadow-[0_0_5px_#22c55e]' : ''}`}></span>
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-background-card rounded-full border border-divider/50 shadow-sm">
+      <span className={`w-2 h-2 rounded-full ${config.bg} ${syncState === 'synced' ? 'shadow-[0_0_5px_rgb(var(--c-success))]' : ''}`}></span>
       <span className={`text-xs font-bold ${config.color} flex items-center gap-1`}>
         {config.icon}
         <span className="hidden md:inline">{config.label}</span>

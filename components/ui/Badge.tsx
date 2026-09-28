@@ -9,16 +9,16 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantStyles: Record<NonNullable<BadgeProps['variant']>, string> = {
-  primary: 'bg-primary/20 text-primary border-primary/20',
-  success: 'bg-green-500/20 text-green-500 border-green-500/20',
-  warning: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20',
-  danger: 'bg-red-500/20 text-red-500 border-red-500/20',
-  info: 'bg-blue-500/20 text-blue-500 border-blue-500/20',
-  neutral: 'bg-gray-800 text-gray-300 border-gray-700',
+  primary: 'bg-primary/10 text-primary border-primary/30',
+  success: 'bg-success/10 text-success border-success/30',
+  warning: 'bg-warning/10 text-warning border-warning/30',
+  danger: 'bg-danger/10 text-danger border-danger/30',
+  info: 'bg-info/10 text-info border-info/30',
+  neutral: 'bg-surface-raised text-text-secondary border-divider',
 };
 
 const sizeStyles: Record<NonNullable<BadgeProps['size']>, string> = {
-  sm: 'px-2 py-0.5 text-[10px]',
+  sm: 'px-2 py-0.5 text-2xs',
   md: 'px-3 py-1 text-xs',
 };
 

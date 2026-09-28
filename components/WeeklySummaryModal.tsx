@@ -46,7 +46,7 @@ function StatCard({
   accent: string;
 }) {
   return (
-    <div className={`bg-gray-800/50 border border-gray-700/50 rounded-2xl p-4 flex flex-col gap-2`}>
+    <div className={`bg-gray-800/50 border border-divider/50 rounded-2xl p-4 flex flex-col gap-2`}>
       <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${accent}`}>
         {icon}
       </div>
@@ -72,10 +72,10 @@ const WeeklySummaryModal: React.FC<Props> = ({ data, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-background-card w-full max-w-md rounded-3xl border border-gray-700 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-background-card w-full max-w-md rounded-3xl border border-divider shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
 
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-primary/30 to-purple-900/20 p-6 border-b border-gray-800">
+        <div className="relative bg-gradient-to-br from-primary/30 to-purple-900/20 p-6 border-b border-divider">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 p-1.5 rounded-full bg-black/30 text-gray-400 hover:text-white hover:bg-black/50 transition-colors"
@@ -137,7 +137,7 @@ const WeeklySummaryModal: React.FC<Props> = ({ data, onClose }) => {
             {user && (
               <button
                 onClick={() => shareWeeklySummary(data, user)}
-                className="flex items-center gap-2 px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-bold rounded-xl transition-colors"
+                className="flex items-center gap-2 px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-divider text-gray-300 font-bold rounded-xl transition-colors"
                 title="Compartir resumen"
               >
                 <Share2 className="w-4 h-4" />
@@ -145,7 +145,7 @@ const WeeklySummaryModal: React.FC<Props> = ({ data, onClose }) => {
             )}
             <button
               onClick={onClose}
-              className="flex-1 py-3 bg-primary hover:bg-red-700 text-white font-bold rounded-xl transition-colors"
+              className="flex-1 py-3 bg-primary hover:bg-primary-hover text-primary-ink font-bold rounded-xl transition-colors"
             >
               ¡A por esta semana!
             </button>

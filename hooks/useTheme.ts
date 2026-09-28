@@ -20,10 +20,12 @@ function applyTheme(mode: ThemeMode) {
     root.classList.add('light');
   }
 
-  // Update meta theme-color
+  // El color de la barra del navegador sale del token --c-bg ya aplicado,
+  // asi no hay un segundo sitio donde mantener el valor.
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    meta.setAttribute('content', resolved === 'dark' ? '#0f172a' : '#f1f5f9');
+    const bg = getComputedStyle(root).getPropertyValue('--c-bg').trim();
+    if (bg) meta.setAttribute('content', `rgb(${bg})`);
   }
 }
 

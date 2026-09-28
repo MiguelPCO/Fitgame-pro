@@ -13,3 +13,6 @@ export type { ModalProps, ModalBodyProps, ModalFooterProps } from './Modal';
 
 export { Badge, getDifficultyVariant } from './Badge';
 export type { BadgeProps } from './Badge';
+
+export { Sheet } from './Sheet';
+export type { SheetProps } from './Sheet';

@@ -84,11 +84,11 @@ export function RPESlider({ value, onChange, disabled = false }: RPESliderProps)
       {/* Slider track with points */}
       <div className="relative py-4">
         {/* Background track */}
-        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 rounded-full bg-gradient-to-r from-green-500/20 via-yellow-500/20 to-red-500/20" />
+        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 rounded-full bg-gradient-to-r from-success/20 via-warning/20 to-danger/20" />
 
         {/* Filled track */}
         <div
-          className="absolute left-0 top-1/2 -translate-y-1/2 h-2 rounded-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 transition-all duration-200"
+          className="absolute left-0 top-1/2 -translate-y-1/2 h-2 rounded-full bg-gradient-to-r from-success via-warning to-danger transition-all duration-200"
           style={{ width: getGradientPosition(value) }}
         />
 
@@ -153,7 +153,7 @@ export function RPESlider({ value, onChange, disabled = false }: RPESliderProps)
       </div>
 
       {/* Scale labels */}
-      <div className="flex justify-between px-1 text-[10px] font-medium text-gray-400">
+      <div className="flex justify-between px-1 text-2xs font-medium text-gray-400">
         <span>Easy</span>
         <span>Hard</span>
         <span>Max</span>
@@ -162,7 +162,7 @@ export function RPESlider({ value, onChange, disabled = false }: RPESliderProps)
       {/* Descriptor */}
       <div className={cn(
         'text-center py-2 px-4 rounded-xl',
-        'bg-gray-800/50 border border-gray-700/50'
+        'bg-gray-800/50 border border-divider/50'
       )}>
         <p className={cn('text-sm font-medium', colors.text)}>
           RPE {value}: <span className="text-gray-300">{descriptor}</span>

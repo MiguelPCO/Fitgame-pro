@@ -27,6 +27,8 @@ export interface PresetProgram {
   icon: string;
   accentFrom: string;
   accentTo: string;
+  /** Tinta para el texto sobre el relleno del acento. Cambia con el tema. */
+  accentInk: string;
   days: ProgramDay[];
 }
 
@@ -55,8 +57,9 @@ export const PRESET_PROGRAMS: PresetProgram[] = [
     daysPerWeek: 6,
     recommendedWeeks: 12,
     icon: '💪',
-    accentFrom: 'from-red-600',
-    accentTo: 'to-red-900',
+    accentFrom: 'from-primary',
+    accentTo: 'to-primary-hover',
+    accentInk: 'text-primary-ink',
     days: [
       {
         name: 'Push A',
@@ -141,8 +144,9 @@ export const PRESET_PROGRAMS: PresetProgram[] = [
     daysPerWeek: 4,
     recommendedWeeks: 12,
     icon: '⚡',
-    accentFrom: 'from-blue-600',
-    accentTo: 'to-blue-900',
+    accentFrom: 'from-info-fill',
+    accentTo: 'to-info',
+    accentInk: 'text-info-ink',
     days: [
       {
         name: 'Upper A — Fuerza',
@@ -202,8 +206,9 @@ export const PRESET_PROGRAMS: PresetProgram[] = [
     daysPerWeek: 3,
     recommendedWeeks: 8,
     icon: '🌟',
-    accentFrom: 'from-green-600',
-    accentTo: 'to-green-900',
+    accentFrom: 'from-success-fill',
+    accentTo: 'to-success',
+    accentInk: 'text-success-ink',
     days: [
       {
         name: 'Full Body A',
@@ -251,8 +256,9 @@ export const PRESET_PROGRAMS: PresetProgram[] = [
     daysPerWeek: 4,
     recommendedWeeks: 16,
     icon: '🏋️',
-    accentFrom: 'from-orange-600',
-    accentTo: 'to-orange-900',
+    accentFrom: 'from-warning-fill',
+    accentTo: 'to-warning',
+    accentInk: 'text-warning-ink',
     days: [
       {
         name: 'Press Hombro',
@@ -310,8 +316,9 @@ export const PRESET_PROGRAMS: PresetProgram[] = [
     daysPerWeek: 5,
     recommendedWeeks: 10,
     icon: '🔥',
-    accentFrom: 'from-purple-600',
-    accentTo: 'to-purple-900',
+    accentFrom: 'from-cardio-fill',
+    accentTo: 'to-cardio',
+    accentInk: 'text-cardio-ink',
     days: [
       {
         name: 'Pecho',

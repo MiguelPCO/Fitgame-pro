@@ -31,10 +31,10 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'bg-background-card rounded-2xl',
-          border && 'border border-gray-700',
+          'bg-background-card rounded-2xl shadow-card',
+          border && 'border border-divider',
           paddingStyles[padding],
-          hover && 'hover:border-gray-600 transition-all',
+          hover && 'hover:border-border-input transition-all duration-fast',
           className
         )}
         {...props}

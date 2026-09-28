@@ -5,7 +5,7 @@ test.describe('Auth Flow', () => {
   test('shows login page with expected elements', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.locator('h1')).toContainText('FitGame');
+    await expect(page.locator('h1')).toContainText('Hybrid');
     await expect(page.locator('#login-email')).toBeVisible();
     await expect(page.locator('#login-password')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Start Training' })).toBeVisible();
@@ -16,7 +16,7 @@ test.describe('Auth Flow', () => {
   test('login with mock credentials redirects to onboarding for new user', async ({ page }) => {
     await login(page);
     // New user (no onboardingCompleted) → goes to onboarding
-    await expect(page.getByText('Cual es tu objetivo?')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Que entrenas?')).toBeVisible({ timeout: 10000 });
   });
 
   test('navigate to signup', async ({ page }) => {

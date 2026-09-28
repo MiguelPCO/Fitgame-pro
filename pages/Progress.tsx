@@ -45,7 +45,7 @@ const MiniBarChart: React.FC<{ data: BarChartData[] }> = ({ data }) => {
               width={barWidth}
               height={h}
               rx={3}
-              fill={hoveredIdx === i ? '#EF4444' : '#DC2626'}
+              fill={hoveredIdx === i ? 'rgb(var(--c-primary-hover))' : 'rgb(var(--c-primary))'}
               opacity={hoveredIdx !== null && hoveredIdx !== i ? 0.5 : 1}
               onMouseEnter={() => setHoveredIdx(i)}
               onMouseLeave={() => setHoveredIdx(null)}
@@ -96,19 +96,19 @@ const VolumeAreaChart: React.FC<{ data: AreaChartData[] }> = ({ data }) => {
       <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid meet" className="w-full h-full">
         <defs>
           <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#DC2626" stopOpacity={0.3} />
-            <stop offset="100%" stopColor="#DC2626" stopOpacity={0} />
+            <stop offset="0%" stopColor="rgb(var(--c-primary))" stopOpacity={0.3} />
+            <stop offset="100%" stopColor="rgb(var(--c-primary))" stopOpacity={0} />
           </linearGradient>
         </defs>
 
         {/* Grid lines */}
         {gridLines.map((y, i) => (
-          <line key={i} x1={padding.left} y1={y} x2={w - padding.right} y2={y} stroke="#374151" strokeDasharray="3 3" />
+          <line key={i} x1={padding.left} y1={y} x2={w - padding.right} y2={y} stroke="rgb(var(--c-border-divider))" strokeDasharray="3 3" />
         ))}
 
         {/* Y-axis labels */}
         {yTicks.map((v, i) => (
-          <text key={i} x={padding.left - 8} y={gridLines[i] + 4} fill="#9CA3AF" fontSize={10} textAnchor="end">
+          <text key={i} x={padding.left - 8} y={gridLines[i] + 4} fill="rgb(var(--c-text-muted))" fontSize={10} textAnchor="end">
             {v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
           </text>
         ))}
@@ -119,7 +119,7 @@ const VolumeAreaChart: React.FC<{ data: AreaChartData[] }> = ({ data }) => {
             key={i}
             x={points[i].x}
             y={h - 5}
-            fill="#9CA3AF"
+            fill="rgb(var(--c-text-muted))"
             fontSize={10}
             textAnchor="middle"
           >
@@ -131,7 +131,7 @@ const VolumeAreaChart: React.FC<{ data: AreaChartData[] }> = ({ data }) => {
         <path d={areaPath} fill="url(#areaGrad)" />
 
         {/* Line */}
-        <path d={linePath} fill="none" stroke="#DC2626" strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />
+        <path d={linePath} fill="none" stroke="rgb(var(--c-primary))" strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />
 
         {/* Data points */}
         {points.map((p, i) => (
@@ -140,8 +140,8 @@ const VolumeAreaChart: React.FC<{ data: AreaChartData[] }> = ({ data }) => {
             cx={p.x}
             cy={p.y}
             r={hoveredIdx === i ? 6 : 4}
-            fill={hoveredIdx === i ? '#EF4444' : '#DC2626'}
-            stroke="#1F2937"
+            fill={hoveredIdx === i ? 'rgb(var(--c-primary-hover))' : 'rgb(var(--c-primary))'}
+            stroke="rgb(var(--c-surface))"
             strokeWidth={2}
             onMouseEnter={() => setHoveredIdx(i)}
             onMouseLeave={() => setHoveredIdx(null)}
@@ -359,7 +359,7 @@ const Progress: React.FC = () => {
   return (
     <div className="space-y-6 pb-10">
       {/* Header + date range filter */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-gray-800 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-divider pb-6">
         <div>
           <h1 className="text-3xl font-black text-white">Tu Progreso</h1>
           <p className="text-text-muted mt-1">
@@ -376,7 +376,7 @@ const Progress: React.FC = () => {
               onClick={() => setDateRange(opt.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                 dateRange === opt.value
-                  ? 'bg-primary text-white'
+                  ? 'bg-primary text-primary-ink'
                   : 'text-gray-400 hover:text-white'
               }`}
             >
@@ -390,22 +390,22 @@ const Progress: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
         {/* Streak Card */}
-        <div className="bg-gradient-to-br from-orange-600 to-red-700 p-6 rounded-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+        <div className="bg-gradient-to-br from-strength to-celebration p-6 rounded-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-warning-ink/10 rounded-full blur-2xl" />
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-black/20 rounded-xl backdrop-blur-sm">
-                <Flame className="w-6 h-6 text-white" fill="currentColor" />
+              <div className="p-2 bg-warning-ink/20 rounded-xl backdrop-blur-sm">
+                <Flame className="w-6 h-6 text-warning-ink" fill="currentColor" />
               </div>
-              <p className="text-white/80 text-xs font-bold uppercase tracking-wider">Streak</p>
+              <p className="text-warning-ink/80 text-xs font-bold uppercase tracking-wider">Streak</p>
             </div>
-            <h3 className="text-4xl font-black text-white">{user?.streak || 0}</h3>
-            <p className="text-white/70 text-sm mt-1">days in a row</p>
+            <h3 className="text-4xl font-black text-warning-ink">{user?.streak || 0}</h3>
+            <p className="text-warning-ink/80 text-sm mt-1">days in a row</p>
           </div>
         </div>
 
         {/* Card 1: Workouts Completed */}
-        <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
+        <div className="bg-background-card p-6 rounded-2xl border border-divider">
            <div className="flex justify-between items-start">
              <div>
                <p className="text-sm font-bold text-text-muted uppercase">Total Sessions</p>
@@ -415,13 +415,13 @@ const Progress: React.FC = () => {
                <Calendar className="w-5 h-5" />
              </div>
            </div>
-           <div className="mt-4 pt-4 border-t border-gray-700/50">
+           <div className="mt-4 pt-4 border-t border-divider/50">
              <p className="text-sm text-gray-400">Sigue apareciendo. La constancia es clave.</p>
            </div>
         </div>
 
         {/* Card 2: Volume Chart */}
-        <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
+        <div className="bg-background-card p-6 rounded-2xl border border-divider">
            <div className="flex justify-between items-start">
              <div>
                <p className="text-sm font-bold text-text-muted uppercase">Recent Volume (kg)</p>
@@ -446,7 +446,7 @@ const Progress: React.FC = () => {
         </div>
 
         {/* Card 3: Gamification */}
-        <div className="bg-background-card p-6 rounded-2xl border border-gray-800 relative overflow-hidden">
+        <div className="bg-background-card p-6 rounded-2xl border border-divider relative overflow-hidden">
            <div className="absolute top-0 right-0 p-8 opacity-5">
              <Trophy className="w-32 h-32" />
            </div>
@@ -462,7 +462,7 @@ const Progress: React.FC = () => {
       </div>
 
       {/* Detailed Chart */}
-      <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
+      <div className="bg-background-card p-6 rounded-2xl border border-divider">
          <h3 className="text-lg font-bold text-white mb-6">Progresion de Volumen</h3>
          <div className="h-64">
            {volumeData.length > 0 ? (
@@ -480,7 +480,7 @@ const Progress: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Volume by Muscle Group */}
-        <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
+        <div className="bg-background-card p-6 rounded-2xl border border-divider">
           <div className="flex items-center gap-3 mb-6">
             <Target className="w-5 h-5 text-blue-500" />
             <h3 className="text-lg font-bold text-white">Volumen por Grupo Muscular</h3>
@@ -515,7 +515,7 @@ const Progress: React.FC = () => {
         </div>
 
         {/* XP per Session */}
-        <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
+        <div className="bg-background-card p-6 rounded-2xl border border-divider">
           <div className="flex items-center gap-3 mb-6">
             <Zap className="w-5 h-5 text-yellow-500" />
             <h3 className="text-lg font-bold text-white">XP por Sesion</h3>
@@ -534,7 +534,7 @@ const Progress: React.FC = () => {
       </div>
 
       {/* Weekly Frequency */}
-      <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
+      <div className="bg-background-card p-6 rounded-2xl border border-divider">
         <h3 className="text-lg font-bold text-white mb-6">Frecuencia Semanal (Ultimas 8 Semanas)</h3>
         {workoutHistory.length > 0 ? (
           <div className="flex items-end gap-2 h-32">
@@ -546,11 +546,11 @@ const Progress: React.FC = () => {
                   <span className="text-xs text-white font-bold">{w.count}</span>
                   <div className="w-full bg-gray-800 rounded-t-md relative" style={{ height: '80px' }}>
                     <div
-                      className="absolute bottom-0 w-full bg-gradient-to-t from-primary to-red-400 rounded-t-md transition-all"
+                      className="absolute bottom-0 w-full bg-gradient-to-t from-primary to-primary-hover rounded-t-md transition-all"
                       style={{ height: `${h}%` }}
                     />
                   </div>
-                  <span className="text-[10px] text-gray-400 truncate w-full text-center">{w.label}</span>
+                  <span className="text-2xs text-gray-400 truncate w-full text-center">{w.label}</span>
                 </div>
               );
             })}
@@ -564,7 +564,7 @@ const Progress: React.FC = () => {
       </div>
 
       {/* Personal Records — with 1RM column */}
-      <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
+      <div className="bg-background-card p-6 rounded-2xl border border-divider">
         <div className="flex items-center gap-3 mb-6">
           <Award className="w-5 h-5 text-yellow-500" />
           <h3 className="text-lg font-bold text-white">Records Personales</h3>
@@ -575,7 +575,7 @@ const Progress: React.FC = () => {
             {prList.map(pr => (
               <div
                 key={pr.exerciseId}
-                className="bg-gray-800/50 border border-gray-700/50 rounded-xl p-4 flex flex-col gap-1"
+                className="bg-gray-800/50 border border-divider/50 rounded-xl p-4 flex flex-col gap-1"
               >
                 <p className="text-white font-bold text-sm truncate">{pr.name}</p>
                 <div className="flex items-baseline gap-2 mt-1">
@@ -608,7 +608,7 @@ const Progress: React.FC = () => {
 
       {/* PR History Chart */}
       {exercisesWithHistory.length > 0 && (
-        <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
+        <div className="bg-background-card p-6 rounded-2xl border border-divider">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
               <TrendingUp className="w-5 h-5 text-green-500" />
@@ -618,7 +618,7 @@ const Progress: React.FC = () => {
               <select
                 value={activePRExercise}
                 onChange={e => setSelectedPRExercise(e.target.value)}
-                className="appearance-none bg-gray-800 border border-gray-700 text-white text-sm rounded-xl px-4 py-2 pr-8 focus:outline-none focus:border-primary cursor-pointer"
+                className="appearance-none bg-gray-800 border border-divider text-white text-sm rounded-xl px-4 py-2 pr-8 focus:outline-none focus:border-primary cursor-pointer"
                 aria-label="Seleccionar ejercicio"
               >
                 {exercisesWithHistory.map(ex => (
@@ -650,7 +650,7 @@ const Progress: React.FC = () => {
           )}
 
           {prHistoryData.length >= 2 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700/50 text-xs text-gray-400">
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-divider/50 text-xs text-gray-400">
               <span>Inicio: <span className="text-white font-bold">{prHistoryData[0].value} kg</span></span>
               <span className="text-green-400 font-bold">
                 {prHistoryData[prHistoryData.length - 1].value > prHistoryData[0].value
@@ -665,7 +665,7 @@ const Progress: React.FC = () => {
       )}
 
       {/* Consistency Heatmap */}
-      <div className="bg-background-card p-6 rounded-2xl border border-gray-800">
+      <div className="bg-background-card p-6 rounded-2xl border border-divider">
          <h3 className="text-lg font-bold text-white mb-4">Mapa de Consistencia (Ultimos 60 Dias)</h3>
          <div role="img" aria-label="Mapa de consistencia de los ultimos 60 dias" className="grid grid-cols-10 sm:grid-cols-[repeat(20,minmax(0,1fr))] gap-1 sm:gap-2">
             {heatmapDays.map((day, i) => (
@@ -673,7 +673,7 @@ const Progress: React.FC = () => {
                 key={i}
                 className="aspect-square rounded-sm transition-all"
                 style={{
-                  backgroundColor: day.hasWorkout ? 'rgba(220, 38, 38, 0.8)' : 'rgba(55, 65, 81, 0.3)'
+                  backgroundColor: day.hasWorkout ? 'rgb(var(--c-primary) / 0.8)' : 'rgb(var(--c-surface-raised) / 0.3)'
                 }}
                 title={day.hasWorkout ? `Workout: ${day.date}` : day.date}
               ></div>

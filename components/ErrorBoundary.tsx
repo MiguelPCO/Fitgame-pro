@@ -54,7 +54,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             </div>
 
             {this.state.error && (
-              <div className="px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-left">
+              <div className="px-4 py-3 rounded-xl bg-gray-800/50 border border-divider text-left">
                 <p className="text-xs text-gray-400 font-mono break-all">
                   {this.state.error.message}
                 </p>
@@ -64,13 +64,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={this.handleReset}
-                className="px-4 py-2.5 rounded-xl text-sm font-bold bg-gray-800 border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 transition-colors"
+                className="px-4 py-2.5 rounded-xl text-sm font-bold bg-gray-800 border border-divider text-gray-300 hover:text-white hover:border-gray-600 transition-colors"
               >
                 Reintentar
               </button>
               <button
                 onClick={this.handleReload}
-                className="px-4 py-2.5 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-colors flex items-center gap-2"
+                className="px-4 py-2.5 rounded-xl text-sm font-bold bg-primary text-primary-ink hover:bg-primary/90 transition-colors flex items-center gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
                 Recargar pagina

@@ -51,18 +51,18 @@ interface ProgramCardProps {
 const ProgramCard: React.FC<ProgramCardProps> = ({ program, onSelect }) => (
   <button
     onClick={onSelect}
-    className="group relative text-left bg-background-card border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-600 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+    className="group relative text-left bg-background-card border border-divider rounded-2xl overflow-hidden hover:border-gray-600 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
   >
     {/* Gradient header */}
     <div className={`bg-gradient-to-br ${program.accentFrom} ${program.accentTo} p-6`}>
       <div className="flex items-start justify-between">
         <span className="text-4xl">{program.icon}</span>
-        <span className="text-xs font-black text-white/60 uppercase tracking-widest">
+        <span className={`text-xs font-black uppercase tracking-widest ${program.accentInk}`}>
           {program.shortName}
         </span>
       </div>
-      <h3 className="text-xl font-black text-white mt-3 leading-tight">{program.name}</h3>
-      <p className="text-white/70 text-sm mt-1">{program.tagline}</p>
+      <h3 className={`text-xl font-black mt-3 leading-tight ${program.accentInk}`}>{program.name}</h3>
+      <p className={`text-sm mt-1 ${program.accentInk}`}>{program.tagline}</p>
     </div>
 
     {/* Stats */}
@@ -159,7 +159,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onClose }) => {
       />
 
       {/* Modal */}
-      <div className="relative w-full sm:max-w-2xl bg-background-card border border-gray-800 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+      <div className="relative w-full sm:max-w-2xl bg-background-card border border-divider rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
 
         {/* Header */}
         <div className={`bg-gradient-to-br ${program.accentFrom} ${program.accentTo} p-6 shrink-0`}>
@@ -167,13 +167,14 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onClose }) => {
             <div className="flex items-center gap-3">
               <span className="text-4xl">{program.icon}</span>
               <div>
-                <h2 className="text-2xl font-black text-white leading-tight">{program.name}</h2>
-                <p className="text-white/70 text-sm mt-0.5">{program.tagline}</p>
+                <h2 className={`text-2xl font-black leading-tight ${program.accentInk}`}>{program.name}</h2>
+                <p className={`text-sm mt-0.5 ${program.accentInk}`}>{program.tagline}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-black/20 text-white/70 hover:text-white hover:bg-black/30 transition-colors"
+              aria-label="Cerrar"
+              className={`min-w-11 min-h-11 flex items-center justify-center rounded-xl border border-current/40 hover:opacity-70 transition-opacity ${program.accentInk}`}
             >
               <X className="w-5 h-5" />
             </button>
@@ -187,10 +188,10 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onClose }) => {
               { icon: BarChart3,label: 'Nivel',    value: LEVEL_LABEL[program.level] },
               { icon: Target,   label: 'Objetivo', value: GOAL_LABEL[program.goal] },
             ].map(stat => (
-              <div key={stat.label} className="bg-black/20 rounded-xl p-3 text-center">
-                <stat.icon className="w-4 h-4 text-white/60 mx-auto mb-1" />
-                <p className="text-white font-black text-xs leading-tight">{stat.value}</p>
-                <p className="text-white/50 text-[10px] mt-1">{stat.label}</p>
+              <div key={stat.label} className="rounded-xl p-3 text-center border border-current/40">
+                <stat.icon className={`w-4 h-4 mx-auto mb-1 ${program.accentInk}`} />
+                <p className={`font-black text-xs leading-tight ${program.accentInk}`}>{stat.value}</p>
+                <p className={`text-2xs mt-1 ${program.accentInk}`}>{stat.label}</p>
               </div>
             ))}
           </div>
@@ -214,10 +215,10 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onClose }) => {
               {(PROGRAM_WEEKDAY_MAP[program.daysPerWeek] ?? [1]).map((wd, i) => (
                 <div
                   key={i}
-                  className="bg-gray-800/60 border border-gray-700/50 rounded-xl px-3 py-2 text-center min-w-[56px]"
+                  className="bg-gray-800/60 border border-divider/50 rounded-xl px-3 py-2 text-center min-w-[56px]"
                 >
                   <p className="text-white text-xs font-bold">{DAY_NAMES[wd]}</p>
-                  <p className="text-gray-500 text-[10px] mt-0.5 truncate max-w-[64px]">
+                  <p className="text-gray-500 text-2xs mt-0.5 truncate max-w-[64px]">
                     {program.days[i]?.name ?? '—'}
                   </p>
                 </div>
@@ -228,23 +229,23 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onClose }) => {
           {/* Day-by-day exercise list */}
           <div className="space-y-4">
             {program.days.map((day, di) => (
-              <div key={di} className="bg-gray-900/40 border border-gray-800/50 rounded-2xl overflow-hidden">
+              <div key={di} className="bg-gray-900/40 border border-divider/50 rounded-2xl overflow-hidden">
                 <div className="flex items-center gap-3 px-4 py-3 bg-gray-800/40">
                   <Dumbbell className="w-4 h-4 text-gray-400" />
                   <h4 className="text-white font-bold text-sm">{day.name}</h4>
                   <div className="flex gap-1.5 ml-auto">
                     {day.muscleFocus.map(m => (
-                      <span key={m} className="text-[10px] text-gray-400 bg-gray-700/50 px-2 py-0.5 rounded-full">
+                      <span key={m} className="text-2xs text-gray-400 bg-gray-700/50 px-2 py-0.5 rounded-full">
                         {m}
                       </span>
                     ))}
                   </div>
                 </div>
-                <ul className="divide-y divide-gray-800/50">
+                <ul className="divide-y divide-divider/50">
                   {day.exercises.map((ex, ei) => (
                     <li key={ei} className="flex items-center justify-between px-4 py-2.5">
                       <div className="flex items-center gap-3">
-                        <span className="w-5 h-5 rounded-full bg-gray-800 text-gray-500 text-[10px] font-bold flex items-center justify-center shrink-0">
+                        <span className="w-5 h-5 rounded-full bg-gray-800 text-gray-500 text-2xs font-bold flex items-center justify-center shrink-0">
                           {ei + 1}
                         </span>
                         <span className="text-gray-200 text-sm">{getExerciseName(ex.exerciseId)}</span>
@@ -264,7 +265,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onClose }) => {
         </div>
 
         {/* Adopt button */}
-        <div className="p-5 border-t border-gray-800 shrink-0">
+        <div className="p-5 border-t border-divider shrink-0">
           {adopted ? (
             <div className="flex items-center justify-center gap-2 py-3 text-green-400 font-bold">
               <CheckCircle className="w-5 h-5" />
@@ -274,7 +275,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({ program, onClose }) => {
             <button
               onClick={handleAdopt}
               disabled={adopting}
-              className={`w-full py-4 rounded-2xl font-black text-white text-base transition-all
+              className={`w-full min-h-11 py-4 rounded-2xl font-black ${program.accentInk} text-base transition-all
                 bg-gradient-to-r ${program.accentFrom} ${program.accentTo}
                 hover:opacity-90 active:scale-[0.98] disabled:opacity-50`}
             >

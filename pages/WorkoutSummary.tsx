@@ -25,7 +25,7 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
          </div>
          <h2 className="text-xl font-bold text-white mb-2">No Workout Found</h2>
          <p className="text-text-muted mb-6">Complete a workout to see your summary here.</p>
-         <button onClick={onHome} className="px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform">Go to Dashboard</button>
+         <button onClick={onHome} className="px-8 py-3 bg-primary text-primary-ink font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform">Go to Dashboard</button>
        </div>
     );
   }
@@ -55,7 +55,7 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
     <div className="max-w-4xl mx-auto pb-10 px-4 pt-6">
       {/* Confetti / Celebration Background Effect */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-         <div className="absolute top-0 left-1/4 w-2 h-2 bg-red-500 rounded-full animate-[fall_3s_infinite]" style={{ animationDelay: '0.2s' }}></div>
+         <div className="absolute top-0 left-1/4 w-2 h-2 bg-celebration rounded-full animate-[fall_3s_infinite]" style={{ animationDelay: '0.2s' }}></div>
          <div className="absolute top-0 left-3/4 w-2 h-2 bg-blue-500 rounded-full animate-[fall_3.5s_infinite]" style={{ animationDelay: '0.5s' }}></div>
          <div className="absolute top-0 left-1/2 w-3 h-3 bg-yellow-500 rounded-full animate-[fall_2.8s_infinite]" style={{ animationDelay: '1s' }}></div>
          <div className="absolute top-0 left-1/3 w-2 h-2 bg-green-500 rounded-full animate-[fall_4s_infinite]" style={{ animationDelay: '1.5s' }}></div>
@@ -64,16 +64,16 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
       <div className={`transition-all duration-700 transform ${animateIn ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
         
         {/* Header Card */}
-        <div className="bg-background-card border border-primary/50 rounded-3xl p-8 text-center relative overflow-hidden shadow-[0_0_60px_rgba(220,38,38,0.2)] mb-8">
+        <div className="bg-background-card border border-primary/50 rounded-3xl p-8 text-center relative overflow-hidden shadow-glow-primary mb-8">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent"></div>
           
           <div className="relative z-10 flex flex-col items-center">
              <div className="mb-6 relative">
                <div className="absolute inset-0 bg-primary/40 blur-2xl rounded-full"></div>
-               <div className="w-24 h-24 bg-gradient-to-br from-primary to-red-800 rounded-2xl flex items-center justify-center relative shadow-xl rotate-3 border border-white/10">
-                 <Trophy className="w-12 h-12 text-white" />
+               <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary-hover rounded-2xl flex items-center justify-center relative shadow-xl rotate-3 border border-white/10">
+                 <Trophy className="w-12 h-12 text-primary-ink" />
                </div>
-               <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-background-card rounded-full flex items-center justify-center border border-gray-700 shadow-lg">
+               <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-background-card rounded-full flex items-center justify-center border border-divider shadow-lg">
                   <Star className="w-5 h-5 text-yellow-500 fill-current" />
                </div>
              </div>
@@ -88,7 +88,7 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
                 </div>
                 <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-background-lighter/50 backdrop-blur-md text-white rounded-full font-bold border border-white/5">
                    <Calendar className="w-4 h-4 text-primary" />
-                   <span>{user.streak} Day Streak</span>
+                   <span>{user.streak} Week Streak</span>
                 </div>
              </div>
           </div>
@@ -102,7 +102,7 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
             { label: 'Sets', val: totalSets, unit: 'Completed', icon: Dumbbell, color: 'text-orange-500', bg: 'bg-orange-500/10' },
             { label: 'Exercises', val: lastCompletedSession.exercises.length, unit: 'Total', icon: CheckCircle2, color: 'text-purple-500', bg: 'bg-purple-500/10' },
           ].map((stat, i) => (
-             <div key={i} className="bg-background-card p-5 rounded-2xl border border-gray-800 flex flex-col items-center justify-center text-center hover:border-gray-700 transition-colors">
+             <div key={i} className="bg-background-card p-5 rounded-2xl border border-divider flex flex-col items-center justify-center text-center hover:border-divider transition-colors">
                 <div className={`p-3 rounded-full ${stat.bg} ${stat.color} mb-3`}>
                    <stat.icon className="w-6 h-6" />
                 </div>
@@ -113,14 +113,14 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
         </div>
 
         {/* Exercise Breakdown */}
-        <div className="bg-background-card border border-gray-800 rounded-3xl overflow-hidden mb-8 shadow-xl">
-          <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-white/5">
+        <div className="bg-background-card border border-divider rounded-3xl overflow-hidden mb-8 shadow-xl">
+          <div className="p-6 border-b border-divider flex justify-between items-center bg-white/5">
             <h3 className="font-bold text-white text-lg flex items-center gap-2">
               <Dumbbell className="w-5 h-5 text-primary" /> Session Summary
             </h3>
             <span className="text-xs font-bold text-text-muted bg-black/20 px-3 py-1 rounded-full">{lastCompletedSession.name}</span>
           </div>
-          <div className="divide-y divide-gray-800">
+          <div className="divide-y divide-divider">
             {lastCompletedSession.exercises.map((ex, i) => {
               const info = allExercises.find(e => e.id === ex.exerciseId);
               const bestSet = ex.sets.reduce((prev, current) => (current.weight > prev.weight && current.completed) ? current : prev, { weight: 0, reps: 0 } as { weight: number; reps: number });
@@ -150,7 +150,7 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
                            {bestSet.reps}
                         </div>
                         <div className="flex justify-end mt-1">
-                          <span className="text-[10px] font-bold bg-primary/20 text-primary px-2 py-0.5 rounded border border-primary/20">
+                          <span className="text-2xs font-bold bg-primary/20 text-primary px-2 py-0.5 rounded border border-primary/20">
                             BEST SET
                           </span>
                         </div>
@@ -168,13 +168,13 @@ const WorkoutSummary: React.FC<Props> = ({ onHome }) => {
         <div className="flex flex-col sm:flex-row gap-4">
           <button 
             onClick={handleShare}
-            className="flex-1 py-4 bg-background-lighter border border-gray-700 hover:bg-gray-700 hover:border-gray-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all group"
+            className="flex-1 py-4 bg-background-lighter border border-divider hover:bg-gray-700 hover:border-gray-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all group"
           >
             <Share2 className="w-5 h-5 group-hover:scale-110 transition-transform" /> Share Results
           </button>
           <button 
             onClick={onHome} 
-            className="flex-1 py-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all group hover:scale-[1.02]"
+            className="flex-1 py-4 bg-primary hover:bg-primary-hover text-primary-ink font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all group hover:scale-[1.02]"
           >
             <Home className="w-5 h-5 group-hover:scale-110 transition-transform" /> Back to Dashboard
           </button>

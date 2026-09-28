@@ -20,12 +20,12 @@ describe('Card', () => {
 
   it('removes border when border=false', () => {
     render(<Card data-testid="card" border={false}>Content</Card>);
-    expect(screen.getByTestId('card').className).not.toContain('border-gray-700');
+    expect(screen.getByTestId('card').className).not.toContain('border-divider');
   });
 
   it('applies hover classes when hover=true', () => {
     render(<Card data-testid="card" hover>Content</Card>);
-    expect(screen.getByTestId('card').className).toContain('hover:border-gray-600');
+    expect(screen.getByTestId('card').className).toContain('hover:border-border-input');
   });
 
   it('applies padding variants', () => {

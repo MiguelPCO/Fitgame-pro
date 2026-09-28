@@ -30,29 +30,29 @@ test.describe('Dashboard', () => {
   test('navigation works from dashboard', async ({ page, isMobile }) => {
     await seedAuth(page);
 
-    // On mobile, need to open menu first
-    if (isMobile) {
-      await page.locator('[aria-label="Abrir menú"]').click();
-    }
+    // En movil se navega por la barra inferior (pestaña + sub-pestaña);
+    // en escritorio sigue mandando la sidebar.
+    const openSection = async (tab: string, screen: string) => {
+      if (isMobile) {
+        await page
+          .getByRole('navigation', { name: 'Navegación principal' })
+          .getByRole('button', { name: tab, exact: true })
+          .click();
+      }
+      // "Progreso" existe como pestaña y como sub-pestaña: hay que acotar.
+      const scope = isMobile
+        ? page.getByRole('navigation', { name: /^Secciones de / })
+        : page;
+      await scope.getByRole('button', { name: screen, exact: true }).click();
+    };
 
-    // Click Templates nav
-    await page.click('text=Templates');
-    await expect(page.getByText('Templates').first()).toBeVisible();
+    await openSection('Plan', 'Plantillas');
+    await expect(page.getByText('Workout Templates').first()).toBeVisible();
 
-    if (isMobile) {
-      await page.locator('[aria-label="Abrir menú"]').click();
-    }
+    await openSection('Progreso', 'Progreso');
+    await expect(page.getByText('Tu Progreso').first()).toBeVisible();
 
-    // Click Progress nav
-    await page.click('text=Progress');
-    await expect(page.getByText('Progress').first()).toBeVisible();
-
-    if (isMobile) {
-      await page.locator('[aria-label="Abrir menú"]').click();
-    }
-
-    // Click Historial nav
-    await page.click('text=Historial');
-    await expect(page.getByText('Historial').first()).toBeVisible();
+    await openSection('Progreso', 'Historial');
+    await expect(page.getByText('Historial de Sesiones').first()).toBeVisible();
   });
 });

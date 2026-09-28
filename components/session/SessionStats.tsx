@@ -72,7 +72,7 @@ export function SessionStats({
             className={cn(
               'rounded-xl border p-3 transition-all duration-200',
               'bg-background-card/50',
-              'border-gray-800/50'
+              'border-divider/50'
             )}
           >
             <div className="flex items-center gap-2 mb-1.5">
@@ -82,7 +82,7 @@ export function SessionStats({
               )}>
                 <Icon className="w-3.5 h-3.5" />
               </div>
-              <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wide">
+              <span className="text-2xs font-medium text-gray-400 uppercase tracking-wide">
                 {label}
               </span>
             </div>

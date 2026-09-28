@@ -40,9 +40,9 @@ export function RestTimer({
 
   // Get color based on remaining time
   const getTimerColor = useCallback(() => {
-    if (remaining <= 10) return { stroke: '#ef4444', text: 'text-red-500', bg: 'bg-red-500/10' };
-    if (remaining <= 30) return { stroke: '#f59e0b', text: 'text-amber-500', bg: 'bg-amber-500/10' };
-    return { stroke: '#22c55e', text: 'text-green-500', bg: 'bg-green-500/10' };
+    if (remaining <= 10) return { stroke: 'rgb(var(--c-danger))', text: 'text-danger', bg: 'bg-danger/10' };
+    if (remaining <= 30) return { stroke: 'rgb(var(--c-warning))', text: 'text-warning', bg: 'bg-warning/10' };
+    return { stroke: 'rgb(var(--c-success))', text: 'text-success', bg: 'bg-success/10' };
   }, [remaining]);
 
   const colors = getTimerColor();
@@ -128,7 +128,7 @@ export function RestTimer({
           disabled={remaining < 15}
           className={cn(
             'w-12 h-12 rounded-full flex items-center justify-center',
-            'bg-gray-800 border border-gray-700',
+            'bg-gray-800 border border-divider',
             'text-gray-400 hover:text-white hover:bg-gray-700',
             'transition-all duration-150 active:scale-95',
             'disabled:opacity-50 disabled:cursor-not-allowed'
@@ -146,7 +146,7 @@ export function RestTimer({
             'transition-all duration-200 active:scale-95',
             isActive
               ? 'bg-gray-700 text-white hover:bg-gray-600'
-              : 'bg-primary text-white hover:bg-primary/90'
+              : 'bg-primary text-primary-ink hover:bg-primary/90'
           )}
           aria-label={isActive ? 'Pause' : 'Start'}
         >
@@ -162,7 +162,7 @@ export function RestTimer({
           onClick={() => onAddTime(15)}
           className={cn(
             'w-12 h-12 rounded-full flex items-center justify-center',
-            'bg-gray-800 border border-gray-700',
+            'bg-gray-800 border border-divider',
             'text-gray-400 hover:text-white hover:bg-gray-700',
             'transition-all duration-150 active:scale-95'
           )}
@@ -185,7 +185,7 @@ export function RestTimer({
               'transition-all duration-150',
               duration === time
                 ? 'bg-primary/20 text-primary border border-primary/30'
-                : 'bg-gray-800 text-gray-400 border border-gray-700 hover:text-white hover:border-gray-600'
+                : 'bg-gray-800 text-gray-400 border border-divider hover:text-white hover:border-gray-600'
             )}
           >
             {time >= 60 ? `${Math.floor(time / 60)}:${(time % 60).toString().padStart(2, '0')}` : `${time}s`}
@@ -219,7 +219,7 @@ export function RestTimer({
           onClick={onSkip}
           className={cn(
             'flex items-center gap-2 px-4 py-2 rounded-lg',
-            'bg-gray-800 border border-gray-700',
+            'bg-gray-800 border border-divider',
             'text-gray-300 hover:text-white hover:bg-gray-700',
             'text-sm font-medium transition-all duration-150'
           )}
@@ -261,7 +261,7 @@ export function RestTimerCompact({
   if (!isActive && remaining === 0) return null;
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 bg-gray-800/50 rounded-xl border border-gray-700">
+    <div className="flex items-center gap-3 px-4 py-3 bg-gray-800/50 rounded-xl border border-divider">
       {/* Mini progress ring */}
       <div className="relative w-10 h-10">
         <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">

@@ -64,17 +64,17 @@ function getRPEColor(rpe: number): string {
 }
 
 const MUSCLE_COLORS: Record<string, string> = {
-  Chest: 'bg-red-500/25 text-red-400 border-red-500/20',
-  Back: 'bg-blue-500/25 text-blue-400 border-blue-500/20',
-  Quadriceps: 'bg-emerald-500/25 text-emerald-400 border-emerald-500/20',
-  Hamstrings: 'bg-teal-500/25 text-teal-400 border-teal-500/20',
-  Glutes: 'bg-pink-500/25 text-pink-400 border-pink-500/20',
-  Shoulders: 'bg-orange-500/25 text-orange-400 border-orange-500/20',
-  Biceps: 'bg-violet-500/25 text-violet-400 border-violet-500/20',
-  Triceps: 'bg-indigo-500/25 text-indigo-400 border-indigo-500/20',
+  Chest: 'bg-strength/15 text-strength border-strength/30',
+  Back: 'bg-info/15 text-info border-info/30',
+  Quadriceps: 'bg-success/15 text-success border-success/30',
+  Hamstrings: 'bg-cardio/15 text-cardio border-cardio/30',
+  Glutes: 'bg-mobility/15 text-mobility border-mobility/30',
+  Shoulders: 'bg-celebration/15 text-celebration border-celebration/30',
+  Biceps: 'bg-primary/15 text-primary border-primary/30',
+  Triceps: 'bg-rest/15 text-rest border-rest/30',
 };
 
-const DEFAULT_MUSCLE_COLOR = 'bg-gray-500/25 text-gray-400 border-gray-500/20';
+const DEFAULT_MUSCLE_COLOR = 'bg-rest/15 text-rest border-rest/30';
 
 export function ExerciseCard({
   exercise,
@@ -111,7 +111,7 @@ export function ExerciseCard({
         'rounded-2xl border transition-all duration-300 overflow-hidden',
         isActive
           ? 'bg-background-card border-primary/40 shadow-lg shadow-primary/5'
-          : 'bg-background-card border-gray-800 hover:border-gray-700'
+          : 'bg-background-card border-divider hover:border-divider'
       )}
     >
       {/* === Top section: Image + Exercise info (responsive) === */}
@@ -155,7 +155,7 @@ export function ExerciseCard({
 
           {/* Equipment badge */}
           <div className="absolute bottom-3 left-3 md:bottom-2 md:left-2">
-            <span className="text-[10px] font-bold uppercase text-gray-400 bg-black/50 backdrop-blur-md px-2 py-1 rounded-md border border-white/5">
+            <span className="text-2xs font-bold uppercase text-gray-400 bg-black/50 backdrop-blur-md px-2 py-1 rounded-md border border-white/5">
               {exercise.equipment}
             </span>
           </div>
@@ -172,7 +172,7 @@ export function ExerciseCard({
               href={youtubeSearchUrl(exercise.name)}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-red-600/15 border border-red-600/25 text-red-400 hover:bg-red-600/25 transition-colors text-[11px] font-bold"
+              className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-red-600/15 border border-red-600/25 text-red-400 hover:bg-red-600/25 transition-colors text-2xs font-bold"
               title="Ver técnica en YouTube"
               onClick={e => e.stopPropagation()}
             >
@@ -187,7 +187,7 @@ export function ExerciseCard({
               <span
                 key={idx}
                 className={cn(
-                  'text-[11px] font-semibold px-2.5 py-0.5 rounded-full border',
+                  'text-2xs font-semibold px-2.5 py-0.5 rounded-full border',
                   MUSCLE_COLORS[muscle] || DEFAULT_MUSCLE_COLOR
                 )}
               >
@@ -195,7 +195,7 @@ export function ExerciseCard({
               </span>
             ))}
             <span className={cn(
-              'text-[11px] font-semibold px-2.5 py-0.5 rounded-full border',
+              'text-2xs font-semibold px-2.5 py-0.5 rounded-full border',
               exercise.type === 'Compound'
                 ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
                 : 'bg-gray-500/10 text-gray-400 border-gray-500/20'
@@ -206,7 +206,7 @@ export function ExerciseCard({
             {/* Fatigue warning badge */}
             {fatigueBadge && (
               <span className={cn(
-                'flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border',
+                'flex items-center gap-1 text-2xs font-bold px-2.5 py-0.5 rounded-full border',
                 fatigueBadge.color
               )}>
                 <AlertTriangle className="w-3 h-3" />
@@ -261,7 +261,7 @@ export function ExerciseCard({
 
       {/* === Summary footer === */}
       {completedSets.length > 0 && (
-        <div className="mx-3 mb-3 px-4 py-2.5 rounded-xl bg-gray-800/30 border border-gray-800/50">
+        <div className="mx-3 mb-3 px-4 py-2.5 rounded-xl bg-gray-800/30 border border-divider/50">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-4">
               <div>
@@ -281,7 +281,7 @@ export function ExerciseCard({
             </div>
 
             {progress === 100 && (
-              <span className="text-[10px] font-bold text-green-400 uppercase tracking-widest">
+              <span className="text-2xs font-bold text-green-400 uppercase tracking-widest">
                 Completado
               </span>
             )}

@@ -1,5 +1,4 @@
 import { getSupabase } from '../lib/supabase';
-import { WorkoutSession, UserProfile } from '../types';
 import { logger } from '../lib/logger';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -30,57 +29,6 @@ export interface ChallengeParticipant {
   joined_at: string;
 }
 
-// ─── Code generation ──────────────────────────────────────────────────────────
-
-export function generateCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-}
-
-// ─── Progress computation (local, from workoutHistory) ────────────────────────
-
-export function computeProgress(
-  type: ChallengeType,
-  workoutHistory: WorkoutSession[],
-  user: UserProfile,
-  startsAt: string,
-  endsAt: string
-): number {
-  const start = new Date(startsAt).getTime();
-  const end = new Date(endsAt).getTime();
-
-  if (type === 'streak') {
-    return user.streak;
-  }
-
-  const sessions = workoutHistory.filter(s => {
-    if (!s.completed) return false;
-    const t = s.endTime ?? (s.date ? new Date(s.date).getTime() : 0);
-    return t >= start && t <= end;
-  });
-
-  if (type === 'workouts') {
-    return sessions.length;
-  }
-
-  if (type === 'volume') {
-    return Math.round(
-      sessions.reduce(
-        (acc, s) =>
-          acc +
-          s.exercises.reduce(
-            (eAcc, ex) =>
-              eAcc + ex.sets.reduce((sAcc, set) => (set.completed ? sAcc + set.weight * set.reps : sAcc), 0),
-            0
-          ),
-        0
-      )
-    );
-  }
-
-  return 0;
-}
-
 // ─── Supabase CRUD ────────────────────────────────────────────────────────────
 
 export interface CreateChallengeParams {
@@ -89,95 +37,54 @@ export interface CreateChallengeParams {
   target: number;
   bonusXp: number;
   durationDays: number;
-  user: UserProfile & { id: string };
 }
 
-/** Create a new challenge and add the creator as first participant */
+/**
+ * Create a new challenge. The server generates the code, takes the creator name
+ * from profiles and adds the creator as first participant.
+ */
 export async function createChallenge(
   params: CreateChallengeParams
 ): Promise<SocialChallenge | null> {
   const sb = await getSupabase();
   if (!sb) return null;
 
-  const code = generateCode();
-  const now = new Date();
-  const ends = new Date(now.getTime() + params.durationDays * 24 * 60 * 60 * 1000);
-
   try {
-    const { data: challenge, error } = await sb
-      .from('social_challenges')
-      .insert({
-        code,
-        creator_id: params.user.id,
-        creator_name: params.user.name,
-        type: params.type,
-        title: params.title,
-        target: params.target,
-        bonus_xp: params.bonusXp,
-        starts_at: now.toISOString(),
-        ends_at: ends.toISOString(),
-      })
-      .select()
-      .single();
+    const { data, error } = await sb.rpc('create_challenge', {
+      p_type: params.type,
+      p_title: params.title,
+      p_target: params.target,
+      p_duration_days: params.durationDays,
+      p_bonus_xp: params.bonusXp,
+    });
 
-    if (error || !challenge) {
+    if (error || !data) {
       logger.error('Error creating challenge:', error);
       return null;
     }
 
-    // Add creator as first participant
-    await sb.from('challenge_participants').insert({
-      challenge_id: challenge.id,
-      user_id: params.user.id,
-      user_name: params.user.name,
-      progress: 0,
-    });
-
-    return challenge as SocialChallenge;
+    return data as SocialChallenge;
   } catch (err) {
     logger.error('createChallenge error:', err);
     return null;
   }
 }
 
-/** Look up a challenge by code and join it */
-export async function joinChallenge(
-  code: string,
-  user: UserProfile & { id: string }
-): Promise<SocialChallenge | null> {
+/** Join a challenge by code (server-side: only whoever has the code can join) */
+export async function joinChallenge(code: string): Promise<SocialChallenge | null> {
   const sb = await getSupabase();
   if (!sb) return null;
 
   try {
-    const { data: challenge, error } = await sb
-      .from('social_challenges')
-      .select('*')
-      .eq('code', code.toUpperCase())
-      .single();
+    const { data, error } = await sb.rpc('join_challenge', { p_code: code }).maybeSingle();
 
-    if (error || !challenge) {
-      logger.warn('Challenge not found:', code);
+    if (error || !data) {
+      if (error) logger.error('joinChallenge error:', error);
+      else logger.warn('Challenge not found:', code);
       return null;
     }
 
-    // Check if already a participant
-    const { data: existing } = await sb
-      .from('challenge_participants')
-      .select('id')
-      .eq('challenge_id', challenge.id)
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (!existing) {
-      await sb.from('challenge_participants').insert({
-        challenge_id: challenge.id,
-        user_id: user.id,
-        user_name: user.name,
-        progress: 0,
-      });
-    }
-
-    return challenge as SocialChallenge;
+    return data as SocialChallenge;
   } catch (err) {
     logger.error('joinChallenge error:', err);
     return null;
@@ -204,36 +111,29 @@ export async function getMyChallenges(
 
     const { data: challenges, error: cErr } = await sb
       .from('social_challenges')
-      .select('*, challenge_participants(*)')
+      .select('*, participants:challenge_participants(*)')
       .in('id', ids)
       .order('created_at', { ascending: false });
 
     if (cErr || !challenges) return [];
 
-    return challenges as SocialChallenge[];
+    return challenges as unknown as SocialChallenge[];
   } catch (err) {
     logger.error('getMyChallenges error:', err);
     return [];
   }
 }
 
-/** Update own progress in a challenge */
-export async function updateMyProgress(
-  challengeId: string,
-  userId: string,
-  progress: number
-): Promise<void> {
+/** Recompute progress of every participant in my active challenges (server-side, from workout_sessions) */
+export async function refreshChallengeProgress(): Promise<void> {
   const sb = await getSupabase();
   if (!sb) return;
 
   try {
-    await sb
-      .from('challenge_participants')
-      .update({ progress })
-      .eq('challenge_id', challengeId)
-      .eq('user_id', userId);
+    const { error } = await sb.rpc('refresh_challenge_progress');
+    if (error) logger.error('refreshChallengeProgress error:', error);
   } catch (err) {
-    logger.error('updateMyProgress error:', err);
+    logger.error('refreshChallengeProgress error:', err);
   }
 }
 

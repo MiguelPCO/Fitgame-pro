@@ -110,14 +110,14 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Settings Column */}
         <div className="space-y-6">
-          <div className="bg-background-card rounded-2xl border border-gray-800 p-6 space-y-4">
+          <div className="bg-background-card rounded-2xl border border-divider p-6 space-y-4">
              <div>
                <label className="block text-xs font-bold text-text-muted uppercase mb-1">Template Name</label>
                <input 
                  type="text" 
                  value={name}
                  onChange={(e) => setName(e.target.value)}
-                 className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-primary focus:outline-none"
+                 className="w-full bg-background border border-divider rounded-lg px-3 py-2 text-white focus:border-primary focus:outline-none"
                  placeholder="e.g., Heavy Chest Day"
                />
              </div>
@@ -126,7 +126,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
                <textarea 
                  value={description}
                  onChange={(e) => setDescription(e.target.value)}
-                 className="w-full bg-background border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-primary focus:outline-none h-24 resize-none"
+                 className="w-full bg-background border border-divider rounded-lg px-3 py-2 text-white focus:border-primary focus:outline-none h-24 resize-none"
                  placeholder="Briefly describe the goal..."
                />
              </div>
@@ -136,7 +136,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
                    <select 
                       value={duration} 
                       onChange={(e) => setDuration(e.target.value)}
-                      className="w-full bg-background border border-gray-700 rounded-lg px-2 py-2 text-white text-sm"
+                      className="w-full bg-background border border-divider rounded-lg px-2 py-2 text-white text-sm"
                    >
                      <option>30 Mins</option>
                      <option>45 Mins</option>
@@ -150,7 +150,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
                    <select 
                       value={difficulty} 
                       onChange={(e) => setDifficulty(e.target.value as 'Beginner' | 'Intermediate' | 'Advanced')}
-                      className="w-full bg-background border border-gray-700 rounded-lg px-2 py-2 text-white text-sm"
+                      className="w-full bg-background border border-divider rounded-lg px-2 py-2 text-white text-sm"
                    >
                      <option>Beginner</option>
                      <option>Intermediate</option>
@@ -175,8 +175,8 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
            
            {/* Simple Exercise Picker Dropdown */}
            {showExercisePicker && (
-             <div className="bg-background-card border border-gray-700 rounded-xl p-4 animate-in fade-in slide-in-from-top-2 mb-4">
-               <input type="text" placeholder="Search exercises..." className="w-full bg-black/20 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white mb-3" />
+             <div className="bg-background-card border border-divider rounded-xl p-4 animate-in fade-in slide-in-from-top-2 mb-4">
+               <input type="text" placeholder="Search exercises..." className="w-full bg-black/20 border border-divider rounded-lg px-3 py-2 text-sm text-white mb-3" />
                <div className="max-h-48 overflow-y-auto space-y-1">
                  {allExercises.map(ex => (
                    <button 
@@ -194,7 +194,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
 
            <div className="space-y-4">
              {templateExercises.length === 0 && !showExercisePicker && (
-               <div className="text-center py-10 border-2 border-dashed border-gray-800 rounded-2xl">
+               <div className="text-center py-10 border-2 border-dashed border-divider rounded-2xl">
                  <Dumbbell className="w-10 h-10 text-gray-400 mx-auto mb-2" />
                  <p className="text-text-muted">No exercises added yet.</p>
                </div>
@@ -203,7 +203,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
              {templateExercises.map((te, idx) => {
                const exerciseInfo = allExercises.find(e => e.id === te.exerciseId);
                return (
-                 <div key={idx} className="bg-background-card border border-gray-800 rounded-xl p-4 relative group hover:border-gray-600 transition-colors">
+                 <div key={idx} className="bg-background-card border border-divider rounded-xl p-4 relative group hover:border-gray-600 transition-colors">
                     <button 
                       onClick={() => removeExercise(idx)}
                       className="absolute top-4 right-4 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
@@ -223,41 +223,41 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ editId, onClose }) => {
 
                     <div className="grid grid-cols-4 gap-4">
                        <div>
-                          <label className="text-[10px] text-text-muted uppercase font-bold">Sets</label>
+                          <label className="text-2xs text-text-muted uppercase font-bold">Sets</label>
                           <input 
                             type="number" 
                             value={te.sets}
                             onChange={(e) => updateExercise(idx, 'sets', parseInt(e.target.value))}
-                            className="w-full bg-black/20 border border-gray-700 rounded-lg px-2 py-1 text-white text-center font-bold"
+                            className="w-full bg-black/20 border border-divider rounded-lg px-2 py-1 text-white text-center font-bold"
                           />
                        </div>
                        <div>
-                          <label className="text-[10px] text-text-muted uppercase font-bold">Target Reps</label>
+                          <label className="text-2xs text-text-muted uppercase font-bold">Target Reps</label>
                           <input 
                             type="text" 
                             value={te.targetReps}
                             onChange={(e) => updateExercise(idx, 'targetReps', e.target.value)}
-                            className="w-full bg-black/20 border border-gray-700 rounded-lg px-2 py-1 text-white text-center font-bold"
+                            className="w-full bg-black/20 border border-divider rounded-lg px-2 py-1 text-white text-center font-bold"
                           />
                        </div>
                        <div>
-                          <label className="text-[10px] text-text-muted uppercase font-bold">RPE</label>
+                          <label className="text-2xs text-text-muted uppercase font-bold">RPE</label>
                           <input 
                             type="number" 
                             step="0.5"
                             value={te.targetRPE}
                             onChange={(e) => updateExercise(idx, 'targetRPE', parseFloat(e.target.value))}
-                            className="w-full bg-black/20 border border-gray-700 rounded-lg px-2 py-1 text-white text-center font-bold"
+                            className="w-full bg-black/20 border border-divider rounded-lg px-2 py-1 text-white text-center font-bold"
                           />
                        </div>
                        <div>
-                          <label className="text-[10px] text-text-muted uppercase font-bold">Rest (s)</label>
+                          <label className="text-2xs text-text-muted uppercase font-bold">Rest (s)</label>
                           <input 
                             type="number" 
                             step="30"
                             value={te.restTimer}
                             onChange={(e) => updateExercise(idx, 'restTimer', parseInt(e.target.value))}
-                            className="w-full bg-black/20 border border-gray-700 rounded-lg px-2 py-1 text-white text-center font-bold"
+                            className="w-full bg-black/20 border border-divider rounded-lg px-2 py-1 text-white text-center font-bold"
                           />
                        </div>
                     </div>

@@ -45,6 +45,7 @@ describe('auth service', () => {
       expect(mockAuth.signInWithPassword).toHaveBeenCalledWith({
         email: 'test@test.com',
         password: 'password123',
+        options: { captchaToken: undefined },
       });
     });
 
@@ -85,7 +86,10 @@ describe('auth service', () => {
       expect(mockAuth.signUp).toHaveBeenCalledWith({
         email: 'new@test.com',
         password: 'securepass',
-        options: { data: { name: 'John' } },
+        options: {
+          data: { name: 'John', health_consent_at: expect.any(String) },
+          captchaToken: undefined,
+        },
       });
     });
 
@@ -98,7 +102,9 @@ describe('auth service', () => {
       await signUp('new@test.com', 'pass');
 
       expect(mockAuth.signUp).toHaveBeenCalledWith(
-        expect.objectContaining({ options: { data: { name: 'Athlete' } } })
+        expect.objectContaining({
+          options: expect.objectContaining({ data: expect.objectContaining({ name: 'Athlete' }) }),
+        })
       );
     });
 

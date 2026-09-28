@@ -38,13 +38,13 @@ test.describe('Workout Player', () => {
       const saveButton = page.getByText('Guardar y continuar');
       if (await saveButton.isVisible({ timeout: 3000 })) {
         // Fill in weight using the increment button
-        const increaseWeight = page.locator('[aria-label="Increase Peso"]');
+        const increaseWeight = page.locator('[aria-label="Aumentar Peso"]');
         for (let i = 0; i < 10; i++) {
           await increaseWeight.click();
         }
 
         // Fill in reps
-        const increaseReps = page.locator('[aria-label="Increase Repeticiones"]');
+        const increaseReps = page.locator('[aria-label="Aumentar Repeticiones"]');
         for (let i = 0; i < 10; i++) {
           await increaseReps.click();
         }

@@ -151,34 +151,51 @@ export async function login(page: Page, email = 'test@fitgame.pro') {
 }
 
 /**
- * Complete the full 7-step onboarding wizard through the UI.
+ * Complete the full onboarding wizard through the UI.
+ * `discipline` decide cuantos pasos hay: "Carrera" salta el de equipamiento.
  */
-export async function completeOnboarding(page: Page) {
-  // Step 1: Goal — Hypertrophy is already selected by default
-  await page.waitForSelector('text=Cual es tu objetivo?', { timeout: 10000 });
+export async function completeOnboarding(
+  page: Page,
+  discipline: 'Gimnasio' | 'Carrera' | 'Las dos' = 'Gimnasio'
+) {
+  // Paso 1: Disciplina
+  await page.waitForSelector('text=Que entrenas?', { timeout: 10000 });
+  if (discipline !== 'Gimnasio') {
+    await page.getByText(discipline, { exact: true }).click();
+  }
   await page.click('button:has-text("Siguiente")');
 
-  // Step 2: Availability — defaults are fine (4 days, 60 min)
+  // Paso 2: Objetivo — ya hay uno marcado por defecto
+  await page.waitForSelector('text=Cual es tu objetivo?');
+  await page.click('button:has-text("Siguiente")');
+
+  // Paso 3: Disponibilidad — 4 dias / 60 min por defecto
   await page.waitForSelector('text=Disponibilidad');
   await page.click('button:has-text("Siguiente")');
 
-  // Step 3: Equipment — Gym Complete is already selected by default
-  await page.waitForSelector('text=Equipamiento');
-  await page.click('button:has-text("Siguiente")');
+  // Paso 4: Equipamiento — solo existe si se entrena en gimnasio
+  if (discipline !== 'Carrera') {
+    await page.waitForSelector('text=Equipamiento');
+    await page.click('button:has-text("Siguiente")');
+  }
 
-  // Step 4: Experience — Intermediate is already selected by default
+  // Nivel de experiencia — Intermedio por defecto
   await page.waitForSelector('text=Nivel de Experiencia');
   await page.click('button:has-text("Siguiente")');
 
-  // Step 5: Generated Plan Preview
+  // Lesiones — se puede pasar sin marcar nada
+  await page.waitForSelector('text=Alguna lesion?');
+  await page.click('button:has-text("Siguiente")');
+
+  // Plan generado
   await page.waitForSelector('text=Tu Plan de Entrenamiento');
   await page.click('button:has-text("Siguiente")');
 
-  // Step 6: Schedule
+  // Programa semanal
   await page.waitForSelector('text=Programa Semanal');
   await page.click('button:has-text("Siguiente")');
 
-  // Step 7: Summary — click finish
+  // Resumen
   await page.waitForSelector('text=Todo Listo!');
   await page.click('button:has-text("Comenzar!")');
 

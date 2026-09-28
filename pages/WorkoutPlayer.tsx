@@ -281,7 +281,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
           onExit={handleExit}
         />
         <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-6">
-          <div className="w-16 h-16 bg-background-card border border-gray-700 rounded-full flex items-center justify-center text-gray-400">
+          <div className="w-16 h-16 bg-background-card border border-divider rounded-full flex items-center justify-center text-gray-400">
             <Dumbbell className="w-8 h-8" />
           </div>
           <div>
@@ -333,7 +333,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
       <div aria-live="polite" aria-atomic="true" className="fixed top-16 inset-x-0 flex justify-center z-50 pointer-events-none">
         {xpPopup && (
           <div key={xpPopup.key} className="animate-xp-fly">
-            <div className="bg-amber-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center gap-1.5">
+            <div className="bg-celebration/90 backdrop-blur-sm text-warning-ink px-4 py-2 rounded-full font-bold text-sm shadow-lg shadow-amber-500/30 flex items-center gap-1.5">
               <Zap className="w-4 h-4 fill-current" />
               +{xpPopup.amount} XP
             </div>
@@ -345,9 +345,9 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
       <div className="flex-1 flex overflow-hidden">
 
         {/* --- Desktop Sidebar (lg+) --- */}
-        <aside className="hidden lg:flex flex-col w-72 border-r border-gray-800/50 bg-background-card/50 shrink-0">
+        <aside className="hidden lg:flex flex-col w-72 border-r border-divider/50 bg-background-card/50 shrink-0">
           {/* Sidebar header */}
-          <div className="p-4 border-b border-gray-800/50">
+          <div className="p-4 border-b border-divider/50">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">Ejercicios</h2>
             <p className="text-xs text-text-muted mt-0.5">{activeWorkout.name}</p>
           </div>
@@ -385,7 +385,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
             <button
               onClick={() => addSet(currentExerciseIndex)}
               className={cn(
-                'w-full py-3 border border-dashed border-gray-700 rounded-xl',
+                'w-full py-3 border border-dashed border-divider rounded-xl',
                 'text-sm font-bold text-text-muted',
                 'hover:text-white hover:border-primary/50 hover:bg-primary/5',
                 'transition-all flex items-center justify-center gap-2'
@@ -429,7 +429,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
 
               {/* Collapsible upcoming exercises */}
               {totalExercises > 1 && (
-                <div className="rounded-xl border border-gray-800 bg-background-card/50 overflow-hidden">
+                <div className="rounded-xl border border-divider bg-background-card/50 overflow-hidden">
                   <button
                     onClick={() => setShowUpcoming(!showUpcoming)}
                     className="w-full flex items-center justify-between px-4 py-3 text-sm"
@@ -450,7 +450,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
                   </button>
 
                   {showUpcoming && (
-                    <div className="px-3 pb-3 border-t border-gray-800/50 pt-2">
+                    <div className="px-3 pb-3 border-t border-divider/50 pt-2">
                       <ExerciseSidebar
                         exercises={sidebarExercises}
                         currentIndex={currentExerciseIndex}
@@ -470,7 +470,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
                   onClick={() => setShowAddModal(true)}
                   className={cn(
                     'w-full py-3 rounded-xl text-sm font-bold',
-                    'bg-gray-800/50 border border-gray-700 text-text-muted',
+                    'bg-gray-800/50 border border-divider text-text-muted',
                     'hover:text-white hover:border-gray-600',
                     'transition-all flex items-center justify-center gap-2'
                   )}
@@ -484,7 +484,7 @@ const WorkoutPlayer: React.FC<WorkoutPlayerProps> = ({ onFinish, onBack }) => {
       </div>
 
       {/* Fixed bottom navigation */}
-      <nav aria-label="Navegación de ejercicios" className="fixed bottom-0 inset-x-0 z-20 bg-background/95 backdrop-blur-xl border-t border-gray-800/50 px-3 sm:px-4 py-2 sm:py-3 safe-area-bottom">
+      <nav aria-label="Navegación de ejercicios" className="fixed bottom-0 inset-x-0 z-20 bg-background/95 backdrop-blur-xl border-t border-divider/50 px-3 sm:px-4 py-2 sm:py-3 safe-area-bottom">
         <div className="flex items-center gap-2 sm:gap-3 max-w-2xl mx-auto">
           {allExercisesComplete ? (
             <Button

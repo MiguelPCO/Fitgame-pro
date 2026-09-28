@@ -13,14 +13,14 @@ export const AddExerciseModal: React.FC<AddExerciseModalProps> = ({ onClose, onS
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-background-card border border-gray-700 rounded-2xl w-full max-w-lg flex flex-col max-h-[80vh] shadow-2xl">
-        <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+      <div className="bg-background-card border border-divider rounded-2xl w-full max-w-lg flex flex-col max-h-[80vh] shadow-2xl">
+        <div className="p-4 border-b border-divider flex justify-between items-center">
           <h3 className="font-bold text-white">Add Exercise</h3>
           <button onClick={onClose} className="p-2 hover:bg-gray-700 rounded-lg text-text-muted hover:text-white transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-4 border-b border-gray-700 bg-background-lighter/30">
+        <div className="p-4 border-b border-divider bg-background-lighter/30">
            <div className="relative">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
              <input

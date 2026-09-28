@@ -61,7 +61,7 @@ function NumberInput({ value, onChange, step, min, max, label, unit, size = 'lg'
           onClick={handleDecrement}
           className={cn(
             'flex items-center justify-center rounded-xl',
-            'bg-gray-800 border border-gray-700',
+            'bg-gray-800 border border-divider',
             'text-white hover:bg-gray-700 active:scale-95',
             'transition-all duration-150',
             size === 'lg' ? 'w-14 h-14' : 'w-11 h-11'
@@ -84,7 +84,7 @@ function NumberInput({ value, onChange, step, min, max, label, unit, size = 'lg'
             max={max}
             className={cn(
               'w-full text-center font-black text-white',
-              'bg-gray-800/50 border border-gray-700 rounded-xl',
+              'bg-gray-800/50 border border-divider rounded-xl',
               'focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
               'transition-all duration-150',
               size === 'lg' ? 'h-14 text-3xl' : 'h-11 text-2xl'
@@ -105,7 +105,7 @@ function NumberInput({ value, onChange, step, min, max, label, unit, size = 'lg'
           onClick={handleIncrement}
           className={cn(
             'flex items-center justify-center rounded-xl',
-            'bg-gray-800 border border-gray-700',
+            'bg-gray-800 border border-divider',
             'text-white hover:bg-gray-700 active:scale-95',
             'transition-all duration-150',
             size === 'lg' ? 'w-14 h-14' : 'w-11 h-11'
@@ -127,7 +127,7 @@ function NumberInput({ value, onChange, step, min, max, label, unit, size = 'lg'
               aria-label={`${delta > 0 ? 'Sumar' : 'Restar'} ${Math.abs(delta)} kg`}
               className={cn(
                 'px-3 py-2 min-h-[36px] rounded-lg text-xs font-bold',
-                'bg-gray-800/50 border border-gray-700',
+                'bg-gray-800/50 border border-divider',
                 'text-gray-400 hover:text-white hover:border-gray-600',
                 'transition-colors duration-150'
               )}
@@ -189,7 +189,7 @@ export function SetInputModal({
       showCloseButton={true}
     >
       {/* Custom Header */}
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-4 border-b border-divider">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-xl bg-primary/10 text-primary">
             <Dumbbell className="w-5 h-5" aria-hidden="true" />
@@ -220,7 +220,7 @@ export function SetInputModal({
 
         {/* Previous set info */}
         {previousSet && previousSet.weight > 0 && (
-          <div className="mt-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-gray-700/50">
+          <div className="mt-2 px-3 py-2 rounded-lg bg-gray-800/50 border border-divider/50">
             <p className="text-xs text-gray-400">
               Último set: <span className="text-gray-300 font-semibold">{previousSet.weight}kg × {previousSet.reps} reps</span>
             </p>

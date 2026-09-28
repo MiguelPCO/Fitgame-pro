@@ -23,7 +23,7 @@ export const WelcomeChecklist: React.FC<WelcomeChecklistProps> = ({ items, onDis
   if (completedCount === items.length) return null;
 
   return (
-    <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-gray-700 rounded-2xl overflow-hidden">
+    <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 border border-divider rounded-2xl overflow-hidden">
       {/* Header */}
       <div
         className="flex items-center justify-between p-5 cursor-pointer"
@@ -54,7 +54,7 @@ export const WelcomeChecklist: React.FC<WelcomeChecklistProps> = ({ items, onDis
       <div className="px-5 pb-3">
         <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-primary to-red-400 rounded-full transition-all duration-500"
+            className="h-full bg-gradient-to-r from-primary to-primary-hover rounded-full transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -84,7 +84,7 @@ export const WelcomeChecklist: React.FC<WelcomeChecklistProps> = ({ items, onDis
               {!item.completed && item.action && onAction && (
                 <button
                   onClick={() => onAction(item.id)}
-                  className="text-xs text-primary font-bold hover:text-red-400 transition-colors shrink-0"
+                  className="text-xs text-primary font-bold hover:text-primary-hover transition-colors shrink-0"
                 >
                   {item.action}
                 </button>

@@ -32,17 +32,17 @@ function calculateSessionVolume(session: WorkoutSession): number {
 }
 
 const MUSCLE_COLORS: Record<string, string> = {
-  Chest: 'bg-red-500/25 text-red-400 border-red-500/20',
-  Back: 'bg-blue-500/25 text-blue-400 border-blue-500/20',
-  Quadriceps: 'bg-emerald-500/25 text-emerald-400 border-emerald-500/20',
-  Hamstrings: 'bg-teal-500/25 text-teal-400 border-teal-500/20',
-  Glutes: 'bg-pink-500/25 text-pink-400 border-pink-500/20',
-  Shoulders: 'bg-orange-500/25 text-orange-400 border-orange-500/20',
-  Biceps: 'bg-violet-500/25 text-violet-400 border-violet-500/20',
-  Triceps: 'bg-indigo-500/25 text-indigo-400 border-indigo-500/20',
-  Legs: 'bg-emerald-500/25 text-emerald-400 border-emerald-500/20',
+  Chest: 'bg-strength/15 text-strength border-strength/30',
+  Back: 'bg-info/15 text-info border-info/30',
+  Quadriceps: 'bg-success/15 text-success border-success/30',
+  Hamstrings: 'bg-cardio/15 text-cardio border-cardio/30',
+  Glutes: 'bg-mobility/15 text-mobility border-mobility/30',
+  Shoulders: 'bg-celebration/15 text-celebration border-celebration/30',
+  Biceps: 'bg-primary/15 text-primary border-primary/30',
+  Triceps: 'bg-rest/15 text-rest border-rest/30',
+  Legs: 'bg-success/15 text-success border-success/30',
 };
-const DEFAULT_MUSCLE_COLOR = 'bg-gray-500/25 text-gray-400 border-gray-500/20';
+const DEFAULT_MUSCLE_COLOR = 'bg-rest/15 text-rest border-rest/30';
 
 const History: React.FC = () => {
   const { workoutHistory } = useApp();
@@ -142,7 +142,7 @@ const History: React.FC = () => {
             placeholder="Buscar por nombre..."
             className={cn(
               'w-full pl-10 pr-4 py-2.5 rounded-xl text-sm',
-              'bg-background-card border border-gray-800 text-white',
+              'bg-background-card border border-divider text-white',
               'placeholder:text-gray-500',
               'focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40',
               'transition-all'
@@ -161,7 +161,7 @@ const History: React.FC = () => {
             value={dateFrom}
             onChange={e => setDateFrom(e.target.value)}
             aria-label="Fecha desde"
-            className="w-36 px-3 py-1.5 rounded-lg text-sm bg-background-card border border-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
+            className="w-36 px-3 py-1.5 rounded-lg text-sm bg-background-card border border-divider text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
           />
           <span className="text-xs text-gray-500">—</span>
           <input
@@ -169,7 +169,7 @@ const History: React.FC = () => {
             value={dateTo}
             onChange={e => setDateTo(e.target.value)}
             aria-label="Fecha hasta"
-            className="w-36 px-3 py-1.5 rounded-lg text-sm bg-background-card border border-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
+            className="w-36 px-3 py-1.5 rounded-lg text-sm bg-background-card border border-divider text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 transition-all"
           />
           {(dateFrom || dateTo) && (
             <button
@@ -187,10 +187,10 @@ const History: React.FC = () => {
             <button
               onClick={() => setMuscleFilter(null)}
               className={cn(
-                'shrink-0 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold border transition-all',
+                'shrink-0 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-2xs sm:text-xs font-bold border transition-all',
                 !muscleFilter
                   ? 'bg-primary/15 text-primary border-primary/30'
-                  : 'bg-gray-800/50 text-gray-400 border-gray-700 hover:text-white'
+                  : 'bg-gray-800/50 text-gray-400 border-divider hover:text-white'
               )}
             >
               Todos
@@ -200,10 +200,10 @@ const History: React.FC = () => {
                 key={muscle}
                 onClick={() => setMuscleFilter(muscleFilter === muscle ? null : muscle)}
                 className={cn(
-                  'shrink-0 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-bold border transition-all',
+                  'shrink-0 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-2xs sm:text-xs font-bold border transition-all',
                   muscleFilter === muscle
                     ? 'bg-primary/15 text-primary border-primary/30'
-                    : 'bg-gray-800/50 text-gray-400 border-gray-700 hover:text-white'
+                    : 'bg-gray-800/50 text-gray-400 border-divider hover:text-white'
                 )}
               >
                 {muscle}
@@ -246,7 +246,7 @@ const History: React.FC = () => {
                   'rounded-xl border overflow-hidden transition-all duration-200',
                   isExpanded
                     ? 'bg-background-card border-primary/30'
-                    : 'bg-background-card border-gray-800 hover:border-gray-700'
+                    : 'bg-background-card border-divider hover:border-divider'
                 )}
               >
                 {/* Session summary row */}
@@ -270,7 +270,7 @@ const History: React.FC = () => {
                             <span
                               key={m}
                               className={cn(
-                                'text-[10px] font-semibold px-2 py-0.5 rounded-full border',
+                                'text-2xs font-semibold px-2 py-0.5 rounded-full border',
                                 MUSCLE_COLORS[m] || DEFAULT_MUSCLE_COLOR
                               )}
                             >
@@ -311,9 +311,9 @@ const History: React.FC = () => {
 
                 {/* Expanded detail */}
                 {isExpanded && (
-                  <div id={`session-detail-${session.id}`} className="border-t border-gray-800/50 px-4 py-3 space-y-3">
+                  <div id={`session-detail-${session.id}`} className="border-t border-divider/50 px-4 py-3 space-y-3">
                     {session.notes && (
-                      <div className="flex gap-2 px-3 py-2 rounded-lg bg-gray-800/40 border border-gray-700/40">
+                      <div className="flex gap-2 px-3 py-2 rounded-lg bg-gray-800/40 border border-divider/40">
                         <MessageSquare className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" aria-hidden="true" />
                         <p className="text-xs text-gray-300 leading-relaxed">{session.notes}</p>
                       </div>
@@ -336,7 +336,7 @@ const History: React.FC = () => {
                                   className="flex items-center gap-3 text-sm"
                                 >
                                   <span className={cn(
-                                    'text-[10px] font-bold uppercase px-1.5 py-px rounded border',
+                                    'text-2xs font-bold uppercase px-1.5 py-px rounded border',
                                     set.type === 'warmup'
                                       ? 'text-blue-400 bg-blue-500/25 border-blue-500/20'
                                       : 'text-primary bg-primary/15 border-primary/20'
