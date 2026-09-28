@@ -122,7 +122,7 @@ const Legal: React.FC<{ page: 'privacidad' | 'aviso-legal' }> = ({ page }) => (
       className="w-full max-w-2xl space-y-4 text-sm text-text-muted [&_h2]:pt-2 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-white [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5"
     >
       <a href="/" className="text-xl font-black text-white tracking-tight">
-        Hybrid<span className="text-primary">Pro</span>
+        Hy<span className="text-primary">brid</span>
       </a>
       <h1 className="text-3xl font-black text-white">
         {page === 'privacidad' ? 'Política de privacidad' : 'Aviso legal'}

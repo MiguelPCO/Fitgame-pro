@@ -83,7 +83,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
           <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/20">
             <Dumbbell className="text-primary-ink w-8 h-8" />
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tight">Hybrid<span className="text-primary">Pro</span></h1>
+          <h1 className="text-4xl font-black text-white tracking-tight">Hy<span className="text-primary">brid</span></h1>
           <p className="text-text-muted">Enter the arena. Level up your life.</p>
         </div>
 
