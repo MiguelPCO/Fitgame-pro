@@ -63,13 +63,27 @@
 - E2E (Playwright, modo offline sin Supabase): 30 pasan, 2 skip, 6 fallan **igual que antes** de los cambios (dashboard, navigation, workout; nada de auth).
 
 ### Miguel tiene que hacer (en este orden)
-1. Rellenar apellidos, NIF y domicilio en `lib/legal.ts`, y la región de Supabase en `/privacidad` (buscar `[RELLENAR]`).
-2. Cloudflare → Turnstile → crear widget con el dominio de producción y `localhost`.
-3. Vercel → `VITE_TURNSTILE_SITE_KEY` = site key → redeploy (va horneada en el build).
-4. Supabase → Authentication → Attack Protection → activar CAPTCHA con Turnstile y la secret key.
+1. ~~Rellenar apellidos, NIF y domicilio en `lib/legal.ts`, y la región de Supabase en `/privacidad`.~~ Hecho 28/09.
+2. ~~Cloudflare → Turnstile → crear widget con el dominio de producción y `localhost`.~~ Hecho.
+3. ~~Vercel → `VITE_TURNSTILE_SITE_KEY` = site key → redeploy.~~ Hecho.
+4. ~~Supabase → Authentication → Attack Protection → activar CAPTCHA con Turnstile y la secret key.~~ Hecho.
 
 ### Falta
 - El consentimiento de salud solo se valida en el cliente: el registro va directo a Supabase, sin servidor propio. Si se quiere blindar, un trigger en `auth.users` que rechace altas sin `health_consent_at`.
 - `health_consent_at` vive en `user_metadata`, que el propio usuario puede editar con `updateUser`. Para un registro fiable de cuándo se consintió, copiarlo a una columna de `profiles` en el trigger de alta.
-- Google Fonts se carga desde los servidores de Google (envía la IP del usuario). Servir Inter desde el propio dominio lo evita y permite quitarlo de la política.
-- Los avatares se piden a `api.dicebear.com` con el id del usuario como semilla. Generarlos en local o con iniciales lo evita.
+- ~~Google Fonts se carga desde los servidores de Google.~~ Resuelto (Inter self-hosted, `index.css` `@font-face`).
+- ~~Los avatares se piden a `api.dicebear.com` con el id del usuario como semilla.~~ Resuelto 28/09 (`lib/avatar.ts`, SVG de iniciales en local).
+
+## Bloque 🟢 — 28/09/2026
+
+### Hecho
+- CSP pasada de Report-Only a enforced (`vercel.json`): 10 días sin avisos `[Report Only]` en consola, hash del script de tema verificado. Quitado `api.dicebear.com` de `img-src` (ya no se usa).
+- `personal_records` era un upsert directo del cliente (RLS solo por `user_id`, sin más control): se podía escribir cualquier weight/reps sin haber completado una sesión y recobrar el bonus de PR (+25 XP) tras borrarlo. Ahora `complete_workout` calcula y escribe el PR él mismo (mismo "mejor set por ejercicio" que ya usaba para contar el bonus); cliente pierde INSERT/UPDATE/DELETE en esa tabla. Migración: `supabase/migrations/20260928000002_lock_personal_records.sql` (aplicar en Supabase, no está en git).
+- Avatares generados en local (iniciales, SVG data URI) en vez de pedir a `api.dicebear.com` con el id de usuario como seed.
+- `lib/legal.ts` relleno: titular, NIF, domicilio, región de Supabase (eu-west-1).
+- Turnstile: widget creado en Cloudflare (dominio prod + localhost), `VITE_TURNSTILE_SITE_KEY` en Vercel, CAPTCHA activado en Supabase Attack Protection con la secret key.
+
+### Checks
+- `tsc --noEmit`: limpio.
+- Tests unitarios: 237/237.
+- `vite build`: OK.
