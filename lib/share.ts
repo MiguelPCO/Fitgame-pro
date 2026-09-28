@@ -3,7 +3,7 @@ import { EarnedBadge } from '../types';
 import { getBadgeDefinition } from './badges';
 import { WeeklySummaryData } from './weeklySummary';
 
-const APP_URL = 'https://hybrid.vercel.app';
+const APP_URL = 'https://trainhybrid-app.vercel.app';
 const APP_NAME = 'Hybrid';
 
 async function nativeShare(title: string, text: string): Promise<void> {
