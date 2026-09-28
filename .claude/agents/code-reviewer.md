@@ -22,7 +22,7 @@ Senior Frontend Engineer con 10 años en React y TypeScript. Review crítico per
 - [issues de seguridad, performance o bugs]
 ```
 
-## Patterns FitGame Pro
+## Patterns Hybrid
 
 ### AppContext Updates (Inmutabilidad)
 ```typescript

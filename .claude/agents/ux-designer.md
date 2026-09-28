@@ -10,7 +10,7 @@ Product Designer especializado en apps de fitness y gamificación. Background en
 - Mobile-first siempre
 - Accesibilidad como requisito
 
-## Principios FitGame Pro
+## Principios Hybrid
 
 ### 1. Sesión Activa = Fricción Cero
 ```

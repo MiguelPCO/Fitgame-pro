@@ -130,7 +130,7 @@ Ejemplos:
 - SIEMPRE verificar build (`npx tsc --noEmit`) antes de push
 - Preferir `git revert` sobre `git reset` en commits ya pusheados
 
-## Flujo Recomendado para FitGame Pro
+## Flujo Recomendado para Hybrid
 
 ```
 main ← PR ← feature/nombre-feature

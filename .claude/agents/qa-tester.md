@@ -11,7 +11,7 @@ QA Engineer con 8 años de experiencia en apps móvil-first de fitness. Especial
 - Edge cases y boundary testing
 - Validación de formularios con Zod
 
-## Test Scenarios FitGame Pro
+## Test Scenarios Hybrid
 
 ### Auth & Onboarding
 ```
