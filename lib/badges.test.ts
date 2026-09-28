@@ -90,21 +90,29 @@ describe('badges — milestone', () => {
   });
 });
 
-describe('badges — streak', () => {
-  it('streak_7: false at streak 6', () => {
-    expect(badge('streak_7').check({ ...baseUser, streak: 6 }, [], noPRs)).toBe(false);
+describe('badges — streak (semanal, Fase 6)', () => {
+  it('streak_7: false at streak 3', () => {
+    expect(badge('streak_7').check({ ...baseUser, streak: 3 }, [], noPRs)).toBe(false);
   });
 
-  it('streak_7: true at streak 7', () => {
-    expect(badge('streak_7').check({ ...baseUser, streak: 7 }, [], noPRs)).toBe(true);
+  it('streak_7: true at streak 4', () => {
+    expect(badge('streak_7').check({ ...baseUser, streak: 4 }, [], noPRs)).toBe(true);
   });
 
-  it('streak_30: false at streak 29', () => {
-    expect(badge('streak_30').check({ ...baseUser, streak: 29 }, [], noPRs)).toBe(false);
+  it('streak_30: false at streak 11', () => {
+    expect(badge('streak_30').check({ ...baseUser, streak: 11 }, [], noPRs)).toBe(false);
   });
 
-  it('streak_30: true at streak 30', () => {
-    expect(badge('streak_30').check({ ...baseUser, streak: 30 }, [], noPRs)).toBe(true);
+  it('streak_30: true at streak 12', () => {
+    expect(badge('streak_30').check({ ...baseUser, streak: 12 }, [], noPRs)).toBe(true);
+  });
+
+  it('streak_100: false at streak 51', () => {
+    expect(badge('streak_100').check({ ...baseUser, streak: 51 }, [], noPRs)).toBe(false);
+  });
+
+  it('streak_100: true at streak 52', () => {
+    expect(badge('streak_100').check({ ...baseUser, streak: 52 }, [], noPRs)).toBe(true);
   });
 });
 

@@ -137,6 +137,32 @@ export function evaluateChallengeProgress(
   };
 }
 
+/**
+ * True si el usuario ya completo alguna sesion dentro de la semana (lunes a
+ * lunes) que empieza en `weekStart`. Reutilizado por la racha semanal (Fase 6):
+ * "en riesgo" y "al dia" comparten esta misma definicion de semana.
+ */
+export function hasCompletedSessionInWeek(history: WorkoutSession[], weekStart: string): boolean {
+  const start = new Date(weekStart);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 7);
+  return history.some(s => {
+    if (!s.completed) return false;
+    const d = new Date(s.endTime || s.date || 0);
+    return d >= start && d < end;
+  });
+}
+
+/**
+ * True en sabado o domingo (hora local). El aviso de "racha en riesgo" solo
+ * dispara cerca del cierre de semana: con racha semanal, avisar a diario desde
+ * el lunes seria spam (07-plan-implementacion.md Fase 6, riesgo de notifyStreakAtRisk).
+ */
+export function isNearWeekEnd(date: Date = new Date()): boolean {
+  const day = date.getDay();
+  return day === 6 || day === 0;
+}
+
 /** Format progress as a percentage string (capped at 100%) */
 export function challengeProgressPct(challenge: WeeklyChallenge): number {
   return Math.min(100, Math.round((challenge.progress / challenge.target) * 100));

@@ -82,30 +82,31 @@ export const ALL_BADGES: BadgeDefinition[] = [
     check: (user) => (user.level || 0) >= 30,
   },
 
-  // ── Streak badges ─────────────────────────────────────────────────
+  // ── Streak badges (racha SEMANAL desde la Fase 6; los id se conservan
+  //    para no dejar huerfanas las insignias ya ganadas por usuarios existentes) ──
   {
     id: 'streak_7',
-    name: 'Semana de Fuego',
-    description: 'Mantén una racha de 7 días',
+    name: 'Mes de Fuego',
+    description: 'Mantén una racha de 4 semanas',
     icon: '🗓️',
     category: 'streak',
-    check: (user) => (user.streak || 0) >= 7,
+    check: (user) => (user.streak || 0) >= 4,
   },
   {
     id: 'streak_30',
-    name: 'Mes Imparable',
-    description: 'Mantén una racha de 30 días',
+    name: 'Trimestre Imparable',
+    description: 'Mantén una racha de 12 semanas',
     icon: '📅',
     category: 'streak',
-    check: (user) => (user.streak || 0) >= 30,
+    check: (user) => (user.streak || 0) >= 12,
   },
   {
     id: 'streak_100',
     name: 'Leyenda',
-    description: 'Mantén una racha de 100 días',
+    description: 'Mantén una racha de 52 semanas',
     icon: '🏆',
     category: 'streak',
-    check: (user) => (user.streak || 0) >= 100,
+    check: (user) => (user.streak || 0) >= 52,
   },
 
   // ── Strength / PR badges ──────────────────────────────────────────

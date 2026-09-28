@@ -70,7 +70,7 @@ export function checkAndSendReminder(hasWorkedOutToday: boolean): void {
 
   const payload = {
     type: 'SHOW_REMINDER',
-    title: 'FitGame Pro \ud83d\udcaa',
+    title: 'Hybrid \ud83d\udcaa',
     body: '\u00a1Es hora de entrenar! Tu sesi\u00f3n de hoy te espera.',
   };
 
@@ -116,8 +116,9 @@ export function notifyChallengeCompleted(challengeTitle: string, bonusXP: number
   sendGameNotification('🎯 ¡Reto semanal completado!', `${challengeTitle} · +${bonusXP} XP`, 'challenge-complete');
 }
 
+/** La racha es semanal (Fase 6): solo se llama cerca del cierre de semana, no a diario. */
 export function notifyStreakAtRisk(): void {
-  sendGameNotification('🔥 ¡Tu racha está en riesgo!', '¡Entrena hoy o usa un Freeze para protegerla!', 'streak-risk');
+  sendGameNotification('🔥 ¡Tu racha está en riesgo!', 'La semana se acaba. ¡Entrena o usa un Freeze para protegerla!', 'streak-risk');
 }
 
 export function notifyWeeklySummary(workouts: number, volumeKg: number): void {

@@ -1,39 +1,38 @@
 import { UserProfile, WorkoutSession } from '../types';
+import { getWeekStart } from '../lib/challenges';
 
 /**
- * Compute the new streak value based on the last workout date.
- * - Same day → no change (already counted)
- * - Yesterday → consecutive day, increment
- * - 2+ days ago or no history → reset to 1
+ * Compute the new streak value based on the last workout date. La racha cuenta
+ * SEMANAS consecutivas con >=1 sesion (Fase 6), no dias: entrenar dos veces la
+ * misma semana no la sube, y una semana entera sin entrenar la rompe.
+ * - Misma semana que hoy → no cambia (ya cuenta esta semana)
+ * - Semana pasada → semana consecutiva, incrementa
+ * - 2+ semanas atras o sin historial → reinicia a 1
  */
 function computeNewStreak(currentStreak: number, lastWorkoutDate: Date | null): number {
   if (!lastWorkoutDate) return 1; // first workout ever
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  const thisWeek = new Date(getWeekStart());
+  const lastWeek = new Date(thisWeek);
+  lastWeek.setDate(lastWeek.getDate() - 7);
+  const workoutWeek = new Date(getWeekStart(lastWorkoutDate));
 
-  const last = new Date(lastWorkoutDate);
-  last.setHours(0, 0, 0, 0);
-
-  if (last.getTime() === today.getTime()) return currentStreak; // already trained today
-  if (last.getTime() === yesterday.getTime()) return currentStreak + 1; // consecutive
-  return 1; // missed one or more days
+  if (workoutWeek.getTime() === thisWeek.getTime()) return currentStreak; // ya hay sesion esta semana
+  if (workoutWeek.getTime() === lastWeek.getTime()) return currentStreak + 1; // semana consecutiva
+  return 1; // se salto una semana o mas
 }
 
 /**
  * Validate a persisted streak against the workout history.
- * Resets to 0 if the last completed session was 2+ days ago.
+ * Resets to 0 if the last completed session fue hace 2+ semanas.
  * Call this on app load to correct stale streaks.
  */
 export function getValidatedStreak(currentStreak: number, sessions: WorkoutSession[]): number {
   if (currentStreak === 0) return 0;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  const thisWeek = new Date(getWeekStart());
+  const lastWeek = new Date(thisWeek);
+  lastWeek.setDate(lastWeek.getDate() - 7);
 
   const lastSession = sessions
     .filter(s => s.endTime && s.status === 'completed')
@@ -41,10 +40,9 @@ export function getValidatedStreak(currentStreak: number, sessions: WorkoutSessi
 
   if (!lastSession) return 0;
 
-  const lastDate = new Date(lastSession.endTime!);
-  lastDate.setHours(0, 0, 0, 0);
+  const workoutWeek = new Date(getWeekStart(new Date(lastSession.endTime!)));
 
-  return lastDate.getTime() >= yesterday.getTime() ? currentStreak : 0;
+  return workoutWeek.getTime() >= lastWeek.getTime() ? currentStreak : 0;
 }
 import { XP } from '../lib/constants';
 

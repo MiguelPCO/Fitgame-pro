@@ -13,7 +13,7 @@ const sizeConfig: Record<BadgeSize, { container: string; level: string; name: st
   sm: {
     container: 'w-12 h-12',
     level: 'text-lg',
-    name: 'text-[10px]',
+    name: 'text-2xs',
     ring: 'ring-2',
   },
   md: {
@@ -87,7 +87,7 @@ export function LevelBadge({ level, levelName, size = 'md' }: LevelBadgeProps) {
         <div className="absolute inset-1 rounded-full bg-black/20 backdrop-blur-sm" />
 
         {/* Level number */}
-        <span className={cn('relative z-10 font-black text-white drop-shadow-md', sizes.level)}>
+        <span className={cn('relative z-10 font-black text-ink-on-dark drop-shadow-md', sizes.level)}>
           {level}
         </span>
       </div>

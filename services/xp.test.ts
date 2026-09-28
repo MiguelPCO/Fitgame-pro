@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { calculateWorkoutXP, calculateNewUserStats, calculateTier, isPR } from './xp';
+import { calculateWorkoutXP, calculateNewUserStats, calculateTier, isPR, getValidatedStreak } from './xp';
+import { getWeekStart } from '../lib/challenges';
 import { WorkoutSession, UserProfile } from '../types';
 
 const makeCompletedSession = (
@@ -126,28 +127,59 @@ describe('calculateNewUserStats', () => {
     expect(result.xp).toBe(50); // 100 + 150 - 200 = 50
   });
 
-  it('increments streak on consecutive day (yesterday)', () => {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const result = calculateNewUserStats(baseUser, 10, yesterday);
+  it('increments streak when the last session was last week', () => {
+    const lastWeek = new Date(getWeekStart());
+    lastWeek.setDate(lastWeek.getDate() - 1); // domingo de la semana anterior
+    const result = calculateNewUserStats(baseUser, 10, lastWeek);
     expect(result.streak).toBe(4);
   });
 
-  it('does not increment streak when already trained today', () => {
+  it('does not increment streak when there is already a session this week', () => {
     const result = calculateNewUserStats(baseUser, 10, new Date());
     expect(result.streak).toBe(3);
   });
 
-  it('resets streak to 1 when a day was skipped', () => {
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-    const result = calculateNewUserStats(baseUser, 10, twoDaysAgo);
+  it('resets streak to 1 when a full week was skipped', () => {
+    const twoWeeksAgo = new Date(getWeekStart());
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 8);
+    const result = calculateNewUserStats(baseUser, 10, twoWeeksAgo);
     expect(result.streak).toBe(1);
   });
 
   it('starts streak at 1 on first ever workout (null date)', () => {
     const result = calculateNewUserStats(baseUser, 10, null);
     expect(result.streak).toBe(1);
+  });
+});
+
+describe('getValidatedStreak', () => {
+  const makeSession = (endTime: number): WorkoutSession => ({
+    id: 's', name: 'Test', duration: '30 min', muscleFocus: [], exercises: [],
+    completed: true, xpReward: 10, status: 'completed', endTime,
+  });
+
+  it('devuelve 0 si la racha ya era 0', () => {
+    expect(getValidatedStreak(0, [])).toBe(0);
+  });
+
+  it('devuelve 0 sin historial', () => {
+    expect(getValidatedStreak(5, [])).toBe(0);
+  });
+
+  it('mantiene la racha si la ultima sesion fue esta semana', () => {
+    expect(getValidatedStreak(5, [makeSession(Date.now())])).toBe(5);
+  });
+
+  it('mantiene la racha si la ultima sesion fue la semana pasada', () => {
+    const lastWeek = new Date(getWeekStart());
+    lastWeek.setDate(lastWeek.getDate() - 1);
+    expect(getValidatedStreak(5, [makeSession(lastWeek.getTime())])).toBe(5);
+  });
+
+  it('rompe la racha si la ultima sesion fue hace 2+ semanas', () => {
+    const twoWeeksAgo = new Date(getWeekStart());
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 8);
+    expect(getValidatedStreak(5, [makeSession(twoWeeksAgo.getTime())])).toBe(0);
   });
 });
 

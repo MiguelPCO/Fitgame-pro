@@ -15,6 +15,7 @@ export const ROUTES = {
   SETTINGS: 'settings',
   PROGRAMS: 'programs',
   CHALLENGES: 'challenges',
+  RUN_LOGGER: 'run-logger',
 } as const;
 
 export type Route = (typeof ROUTES)[keyof typeof ROUTES];
@@ -41,6 +42,7 @@ export const STORAGE_KEYS = {
   LAST_SESSION: 'fitgame_lastSession',
   SESSION: 'fitgame_session',
   SCHEDULE: 'fitgame_schedule',
+  SCHEDULED: 'fitgame_scheduled',
   OFFLINE_QUEUE: 'fitgame_offlineQueue',
   BADGES: 'fitgame_badges',
   WEEKLY_CHALLENGE: 'fitgame_weekly_challenge',
