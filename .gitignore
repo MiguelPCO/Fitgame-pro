@@ -47,3 +47,13 @@ blob-report/
 
 # Git worktrees
 .worktrees/
+
+# Fotogramas extraidos de los videos de referencia (9,1 MB, regenerables con ffmpeg)
+docs/redesign/frames/
+
+# Videos de referencia (fuente original, no versionar)
+referencias/
+
+# Migraciones y Edge Functions de Supabase: no versionar en GitHub (decision del usuario, 2026-09-28)
+supabase/migrations/
+supabase/functions/
