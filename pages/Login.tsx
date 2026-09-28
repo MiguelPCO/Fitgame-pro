@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Dumbbell, ArrowRight, AlertCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { signIn, resetPassword } from '../services/auth';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { captchaEnabled, isSupabaseConfigured } from '../lib/supabase';
+import { Turnstile } from '../components/Turnstile';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
@@ -19,6 +20,13 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
   const [error, setError] = useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // El token de Turnstile es de un solo uso: cambiar la key remonta el widget.
+  const [captchaKey, setCaptchaKey] = useState(0);
+  const resetCaptcha = () => {
+    setCaptchaToken(null);
+    setCaptchaKey((key) => key + 1);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +35,8 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
 
     if (isSupabaseConfigured()) {
       // Use Supabase Auth
-      const result = await signIn(email, password);
+      const result = await signIn(email, password, captchaToken);
+      resetCaptcha();
 
       if (result.error) {
         setError(result.error);
@@ -54,7 +63,8 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
     }
     setIsLoading(true);
     setError(null);
-    const result = await resetPassword(email);
+    const result = await resetPassword(email, captchaToken);
+    resetCaptcha();
     setIsLoading(false);
     if (result.error) {
       setError(result.error);
@@ -71,9 +81,9 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
       <div className="w-full max-w-md z-10 space-y-8">
         <div className="text-center space-y-2">
           <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/20">
-            <Dumbbell className="text-white w-8 h-8" />
+            <Dumbbell className="text-primary-ink w-8 h-8" />
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tight">FitGame<span className="text-primary">Pro</span></h1>
+          <h1 className="text-4xl font-black text-white tracking-tight">Hybrid<span className="text-primary">Pro</span></h1>
           <p className="text-text-muted">Enter the arena. Level up your life.</p>
         </div>
 
@@ -112,6 +122,8 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
               </div>
             )}
 
+            {!resetSent && <Turnstile key={captchaKey} onToken={setCaptchaToken} />}
+
             {showForgotPassword ? (
               resetSent ? (
                 <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm text-center">
@@ -132,6 +144,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
                     fullWidth
                     size="lg"
                     isLoading={isLoading}
+                    disabled={captchaEnabled && !captchaToken}
                     onClick={handleForgotPassword}
                   >
                     {isLoading ? 'Enviando...' : 'Enviar enlace'}
@@ -161,6 +174,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
                   fullWidth
                   size="lg"
                   isLoading={isLoading}
+                  disabled={captchaEnabled && !captchaToken}
                   rightIcon={!isLoading ? <ArrowRight className="w-5 h-5" /> : undefined}
                 >
                   {isLoading ? 'Authenticating...' : 'Start Training'}
@@ -180,6 +194,12 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
               </button>
             </p>
           </div>
+
+          <p className="mt-4 text-center text-xs text-text-muted">
+            <a href="/privacidad" className="hover:text-primary">Privacidad</a>
+            {' · '}
+            <a href="/aviso-legal" className="hover:text-primary">Aviso legal</a>
+          </p>
 
           {!isSupabaseConfigured() && (
             <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-400 text-xs text-center">

@@ -6,6 +6,9 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undef
 
 export const isSupabaseConfigured = () => !!(supabaseUrl && supabaseAnonKey);
 
+// Con site key de Turnstile, los formularios de auth esperan al token del CAPTCHA.
+export const captchaEnabled = Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
+
 let _client: SupabaseClient<Database> | null = null;
 let _initPromise: Promise<SupabaseClient<Database> | null> | null = null;
 

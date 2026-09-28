@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Dumbbell, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { signUp } from '../services/auth';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { captchaEnabled, isSupabaseConfigured } from '../lib/supabase';
+import { Turnstile } from '../components/Turnstile';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
@@ -18,6 +19,10 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [healthConsent, setHealthConsent] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // El token de Turnstile es de un solo uso: cambiar la key remonta el widget.
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +34,14 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+
+    // Art. 9 RGPD: sin consentimiento explícito no se tratan datos de salud.
+    if (!healthConsent) {
+      setError('Necesitamos tu consentimiento para tratar tus datos de actividad física');
       return;
     }
 
@@ -41,7 +52,9 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
 
     setIsLoading(true);
 
-    const result = await signUp(email, password, name);
+    const result = await signUp(email, password, name, captchaToken);
+    setCaptchaToken(null);
+    setCaptchaKey((key) => key + 1);
 
     if (result.error) {
       setError(result.error);
@@ -61,7 +74,7 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
         <div className="w-full max-w-md z-10 space-y-8">
           <Card padding="lg" className="text-center">
             <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="text-white w-8 h-8" />
+              <CheckCircle2 className="text-primary-ink w-8 h-8" />
             </div>
             <h2 className="text-2xl font-black text-white mb-2">Check your email!</h2>
             <p className="text-text-muted mb-6">
@@ -84,9 +97,9 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
       <div className="w-full max-w-md z-10 space-y-8">
         <div className="text-center space-y-2">
           <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/20">
-            <Dumbbell className="text-white w-8 h-8" />
+            <Dumbbell className="text-primary-ink w-8 h-8" />
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tight">Join <span className="text-primary">FitGame</span></h1>
+          <h1 className="text-4xl font-black text-white tracking-tight">Join <span className="text-primary">Hybrid</span></h1>
           <p className="text-text-muted">Create your account and start training</p>
         </div>
 
@@ -129,7 +142,7 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
                 id="signup-password"
                 type="password"
                 required
-                placeholder="Min 6 characters"
+                placeholder="Min 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -147,15 +160,40 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
               />
             </div>
 
+            <label className="flex items-start gap-3 text-sm text-text-muted cursor-pointer">
+              <input
+                type="checkbox"
+                required
+                checked={healthConsent}
+                onChange={(e) => setHealthConsent(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
+              />
+              <span>
+                Doy mi consentimiento explícito para que se traten mis datos de salud (mi actividad física:
+                entrenamientos, pesos y repeticiones, récords y objetivo físico) para planificar y registrar mis
+                entrenamientos. Puedo retirarlo cuando quiera.{' '}
+                <a href="/privacidad" className="text-primary hover:underline">Más información</a>
+              </span>
+            </label>
+
+            <Turnstile key={captchaKey} onToken={setCaptchaToken} />
+
             <Button
               type="submit"
               fullWidth
               size="lg"
               isLoading={isLoading}
+              disabled={captchaEnabled && !captchaToken}
               rightIcon={!isLoading ? <ArrowRight className="w-5 h-5" /> : undefined}
             >
               {isLoading ? 'Creating account...' : 'Create Account'}
             </Button>
+
+            <p className="text-xs text-center text-text-muted">
+              Al crear una cuenta aceptas la{' '}
+              <a href="/privacidad" className="text-primary hover:underline">política de privacidad</a> y el{' '}
+              <a href="/aviso-legal" className="text-primary hover:underline">aviso legal</a>.
+            </p>
           </form>
 
           <div className="mt-6 text-center">
