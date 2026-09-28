@@ -1,6 +1,17 @@
 import { getSupabase } from '../lib/supabase';
-import { WorkoutSession, ActiveExercise } from '../types';
+import { WorkoutSession, ActiveExercise, UserProfile, RunType } from '../types';
 import { logger } from '../lib/logger';
+
+/** 42703 = undefined_column. La migracion de cardio (Fase 5) puede no estar aplicada. */
+const UNDEFINED_COLUMN = '42703';
+
+/**
+ * Se apaga sola la primera vez que falta una columna de cardio, en lugar de
+ * reintentar en cada guardado. Sin la migracion aplicada, una carrera se guarda
+ * igual (como sesion generica) pero sin distance_m/run_type: se queda en 0 XP
+ * hasta que la migracion se aplique — nunca se inventa XP en el cliente.
+ */
+let cardioColumnsMissing = false;
 
 /**
  * Database workout session row type
@@ -18,6 +29,12 @@ interface DBWorkoutSession {
   end_time: string | null;
   created_at: string;
   notes?: string | null;
+  activity_type?: 'strength' | 'run';
+  distance_m?: number | null;
+  moving_time_s?: number | null;
+  elapsed_time_s?: number | null;
+  perceived_effort?: number | null;
+  run_type?: RunType | null;
 }
 
 /**
@@ -37,6 +54,12 @@ function toWorkoutSession(dbSession: DBWorkoutSession): WorkoutSession {
     completed: dbSession.status === 'completed',
     date: dbSession.created_at,
     notes: dbSession.notes || undefined,
+    activityType: dbSession.activity_type,
+    distanceM: dbSession.distance_m ?? undefined,
+    movingTimeS: dbSession.moving_time_s ?? undefined,
+    elapsedTimeS: dbSession.elapsed_time_s ?? undefined,
+    perceivedEffort: dbSession.perceived_effort ?? undefined,
+    runType: dbSession.run_type ?? undefined,
   };
 }
 
@@ -44,7 +67,7 @@ function toWorkoutSession(dbSession: DBWorkoutSession): WorkoutSession {
  * Convert app WorkoutSession to Supabase insert
  */
 function toSessionInsert(session: WorkoutSession, userId: string) {
-  return {
+  const base = {
     id: session.id,
     user_id: userId,
     name: session.name,
@@ -52,10 +75,22 @@ function toSessionInsert(session: WorkoutSession, userId: string) {
     muscle_focus: session.muscleFocus,
     exercises: JSON.parse(JSON.stringify(session.exercises)),
     status: session.status || 'pending',
-    xp_reward: session.xpReward,
+    // xp_reward no se envía: lo fija complete_workout en el servidor.
     start_time: session.startTime ? new Date(session.startTime).toISOString() : null,
     end_time: session.endTime ? new Date(session.endTime).toISOString() : null,
     notes: session.notes || null,
+  };
+
+  if (cardioColumnsMissing || session.activityType !== 'run') return base;
+
+  return {
+    ...base,
+    activity_type: session.activityType,
+    distance_m: session.distanceM ?? null,
+    moving_time_s: session.movingTimeS ?? null,
+    elapsed_time_s: session.elapsedTimeS ?? null,
+    perceived_effort: session.perceivedEffort ?? null,
+    run_type: session.runType ?? null,
   };
 }
 
@@ -137,6 +172,12 @@ export async function saveCompletedSession(
       .select()
       .single();
 
+    if (error?.code === UNDEFINED_COLUMN && !cardioColumnsMissing) {
+      cardioColumnsMissing = true;
+      logger.warn('Columnas de cardio no existen todavia; la carrera se guarda sin ellas.');
+      return saveCompletedSession(session, userId);
+    }
+
     if (error) {
       logger.error('Error saving session:', error);
       return null;
@@ -164,15 +205,7 @@ export async function updateSession(
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.duration !== undefined) dbUpdates.duration = updates.duration;
     if (updates.muscleFocus !== undefined) dbUpdates.muscle_focus = updates.muscleFocus;
-    if (updates.exercises !== undefined) dbUpdates.exercises = JSON.parse(JSON.stringify(updates.exercises));
-    if (updates.status !== undefined) dbUpdates.status = updates.status;
-    if (updates.xpReward !== undefined) dbUpdates.xp_reward = updates.xpReward;
-    if (updates.startTime !== undefined) {
-      dbUpdates.start_time = updates.startTime ? new Date(updates.startTime).toISOString() : null;
-    }
-    if (updates.endTime !== undefined) {
-      dbUpdates.end_time = updates.endTime ? new Date(updates.endTime).toISOString() : null;
-    }
+    // exercises, status, tiempos y xp_reward no son editables tras guardar (GRANT UPDATE por columnas).
     if (updates.notes !== undefined) dbUpdates.notes = updates.notes || null;
 
     const { error } = await sb
@@ -189,6 +222,47 @@ export async function updateSession(
   } catch (err) {
     logger.error('Network error updating session:', err);
     return false;
+  }
+}
+
+export type ServerUserStats = Pick<UserProfile, 'xp' | 'level' | 'xpToNextLevel' | 'streak' | 'tier'> & {
+  xpAwarded: number;
+};
+
+/**
+ * Award XP for a saved completed session. XP, level, streak and tier are computed
+ * server-side (RPC complete_workout, with per-session and per-day caps).
+ * Returns the authoritative stats, or null on error.
+ */
+export async function awardWorkoutXP(sessionId: string): Promise<ServerUserStats | null> {
+  const sb = await getSupabase();
+  if (!sb) return null;
+
+  try {
+    const { data, error } = await sb.rpc('complete_workout', {
+      p_session_id: sessionId,
+      p_tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+
+    if (error || !data) {
+      logger.error('Error awarding workout XP:', error);
+      return null;
+    }
+
+    const r = data as {
+      xp_awarded: number; xp: number; level: number; xp_to_next_level: number; streak: number; tier: UserProfile['tier'];
+    };
+    return {
+      xpAwarded: r.xp_awarded,
+      xp: r.xp,
+      level: r.level,
+      xpToNextLevel: r.xp_to_next_level,
+      streak: r.streak,
+      tier: r.tier,
+    };
+  } catch (err) {
+    logger.error('Network error awarding workout XP:', err);
+    return null;
   }
 }
 
