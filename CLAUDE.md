@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Vision
 
-**FitGame Pro** es una Web App móvil-first de entrenamiento con gamificación y seguimiento en tiempo real. Combina principios científicos de hipertrofia (basados en programas de Jeff Nippard) con UX de fricción mínima.
+**Hybrid** es una Web App móvil-first de entrenamiento con gamificación y seguimiento en tiempo real. Combina principios científicos de hipertrofia (basados en programas de Jeff Nippard) con UX de fricción mínima.
 
 **Flujo principal**: Onboarding → Plan personalizado → Ejecutar sesiones → Ganar XP → Ver progreso
 
@@ -630,3 +630,13 @@ Review UI code for Web Interface Guidelines compliance. Use when asked to "revie
 - `.claude/skills/web-design-guidelines/SKILL.md`
 
 <!-- autoskills:end -->
+
+## Agent skills
+
+### Issue tracker
+
+Issues live as GitHub issues in `MiguelPCO/Fitgame-pro`, managed via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.

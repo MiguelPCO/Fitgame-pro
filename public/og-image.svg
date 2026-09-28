@@ -13,7 +13,7 @@
   <rect x="440" y="160" width="72" height="72" rx="16" fill="none" stroke="#DC2626" stroke-width="2"/>
   <text x="476" y="210" font-family="Arial, sans-serif" font-size="40" font-weight="900" fill="#DC2626" text-anchor="middle">F</text>
   <!-- Title -->
-  <text x="528" y="195" font-family="Arial, sans-serif" font-size="48" font-weight="800" fill="#f8fafc">FitGame</text>
+  <text x="528" y="195" font-family="Arial, sans-serif" font-size="48" font-weight="800" fill="#f8fafc">Hybrid</text>
   <text x="802" y="195" font-family="Arial, sans-serif" font-size="48" font-weight="800" fill="#DC2626">Pro</text>
   <!-- Subtitle -->
   <text x="600" y="280" font-family="Arial, sans-serif" font-size="28" font-weight="500" fill="#94a3b8" text-anchor="middle">Gamified Fitness Tracker</text>

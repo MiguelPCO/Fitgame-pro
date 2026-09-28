@@ -1,6 +1,6 @@
 <div align="center">
 
-# FitGame Pro
+# Hybrid
 
 **Gamified Workout Tracker** — Turn every rep into XP, every PR into an achievement.
 
@@ -18,7 +18,7 @@
 
 ## Overview
 
-FitGame Pro is a full-stack workout tracking application with RPG-inspired gamification. It generates personalized training programs, tracks your progress with XP and levels, detects personal records in real-time, and works fully offline with automatic sync when back online.
+Hybrid is a full-stack workout tracking application with RPG-inspired gamification. It generates personalized training programs, tracks your progress with XP and levels, detects personal records in real-time, and works fully offline with automatic sync when back online.
 
 Built as a progressive web app (PWA) with a dark-themed UI optimized for in-gym use.
 

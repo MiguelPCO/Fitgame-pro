@@ -4,7 +4,7 @@ import { getBadgeDefinition } from './badges';
 import { WeeklySummaryData } from './weeklySummary';
 
 const APP_URL = 'https://fitgame-pro.vercel.app';
-const APP_NAME = 'FitGame Pro';
+const APP_NAME = 'Hybrid';
 
 async function nativeShare(title: string, text: string): Promise<void> {
   if (navigator.share) {
@@ -82,6 +82,6 @@ export async function shareWeeklySummary(
     `📈 ${volumeStr} kg de volumen total\n` +
     `⚡ ${lastWeek.xpEarned.toLocaleString('es-ES')} XP ganados\n\n` +
     `Nivel ${user.level} ${user.tier} • Racha 🔥 ${user.streak} días\n` +
-    `¡Únete a FitGame Pro!`;
+    `¡Únete a Hybrid!`;
   await nativeShare(`Mi semana fitness — ${APP_NAME}`, text);
 }

@@ -13,12 +13,12 @@ export const InstallBanner: React.FC = () => {
         <Download className="w-5 h-5 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-text-main">Instalar FitGame Pro</p>
+        <p className="text-sm font-semibold text-text-main">Instalar Hybrid</p>
         <p className="text-xs text-text-muted">Accede mas rapido desde tu pantalla de inicio</p>
       </div>
       <button
         onClick={install}
-        className="px-3 py-1.5 bg-primary hover:bg-primary-hover text-white text-sm font-medium rounded-lg transition-colors flex-shrink-0"
+        className="px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-ink text-sm font-medium rounded-lg transition-colors flex-shrink-0"
       >
         Instalar
       </button>

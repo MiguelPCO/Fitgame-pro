@@ -135,7 +135,7 @@ export function getWorkoutRecommendation(params: {
   if (workoutHistory.length === 0 && templates.length === 0) {
     return {
       type: 'new_user',
-      headline: '¡Bienvenido a FitGame Pro!',
+      headline: '¡Bienvenido a Hybrid!',
       reason: 'Crea tu primera plantilla o adopta un programa para comenzar.',
       targetMuscles: [],
       suggestedTemplate: null,

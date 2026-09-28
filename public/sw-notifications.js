@@ -1,4 +1,4 @@
-// FitGame Pro — Custom SW notification handlers
+// Hybrid — Custom SW notification handlers
 // Loaded via importScripts() by the workbox-generated service worker.
 
 // Focus the app window (or open a new one) when user taps a notification
@@ -23,7 +23,7 @@ self.addEventListener('notificationclick', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data?.type !== 'SHOW_REMINDER') return;
 
-  const title = event.data.title ?? 'FitGame Pro';
+  const title = event.data.title ?? 'Hybrid';
   const body  = event.data.body  ?? '¡Es hora de entrenar!';
   const tag   = event.data.tag   ?? 'workout-reminder';
 
