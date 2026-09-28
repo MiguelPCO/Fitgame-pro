@@ -6,9 +6,10 @@ import { playNotification } from '../services/audio';
 import { calculateNewUserStats, calculateWorkoutXP, getValidatedStreak, PRRecord, XPBreakdown } from '../services/xp';
 import { loadFromStorage } from '../hooks/usePersist';
 import { getSupabase, isSupabaseConfigured } from '../lib/supabase';
+import { generateAvatarDataUri } from '../lib/avatar';
 import { onAuthStateChange, signOut, getSession } from '../services/auth';
 import { fetchTemplates, upsertTemplate, deleteTemplateFromDB } from '../services/templates';
-import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, upsertPersonalRecords, updateSession, awardWorkoutXP } from '../services/workoutSessions';
+import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, updateSession, awardWorkoutXP } from '../services/workoutSessions';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { processQueue, getQueue } from '../services/offlineQueue';
 import { getRecommendedWeight, getWarmupWeight } from '../lib/weightRecommendation';
@@ -232,7 +233,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         xp: profile.xp,
         xpToNextLevel: profile.xp_to_next_level,
         streak: validatedStreak,
-        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`,
+        avatarUrl: generateAvatarDataUri(profile.name, profile.id),
         tier: profile.tier as UserProfile['tier'],
         goal: profile.goal as UserProfile['goal'] || storedUser?.goal,
         daysPerWeek: profile.days_per_week || storedUser?.daysPerWeek,
@@ -899,18 +900,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toast('Error al sincronizar XP', 'error');
       }
 
-      // Persist new PRs after awarding XP: the server compares against the previous PRs
-      if (xpBreakdown.prsAchieved.length > 0) {
-        const prRecords = xpBreakdown.prsAchieved.map(exerciseId => {
-          const exercise = completedSession.exercises.find(e => e.exerciseId === exerciseId);
-          const bestSet = exercise?.sets
-            .filter(s => s.completed && s.weight > 0)
-            .reduce((max, set) => set.weight > max.weight ? set : max, { weight: 0, reps: 0 });
-          return { exerciseId, weight: bestSet?.weight || 0, reps: bestSet?.reps || 0 };
-        }).filter(r => r.weight > 0);
-
-        await upsertPersonalRecords(userId, prRecords);
-      }
+      // El propio complete_workout ya escribe personal_records en el servidor
+      // (mismo calculo: mejor set completado por ejercicio en la sesion). El
+      // cliente ya no tiene permiso de escritura en esa tabla (ver migracion
+      // 20260928000002_lock_personal_records.sql) ni falta que lo intente.
 
       // El servidor revalida cada badge contra sus propios datos (ya tiene esta
       // sesion, recien guardada arriba) antes de registrarlo: el cliente solo

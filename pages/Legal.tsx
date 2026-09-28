@@ -46,7 +46,6 @@ const PrivacyContent: React.FC = () => (
       <li>Supabase — base de datos, cuentas y emails de acceso — región del proyecto: [RELLENAR].</li>
       <li>Vercel — alojamiento — Estados Unidos.</li>
       <li>Cloudflare Turnstile — protección anti-bots en registro y acceso — Estados Unidos.</li>
-      <li>DiceBear — imagen de avatar; solo recibe tu identificador interno (un código aleatorio).</li>
     </ul>
 
     <h2>5. Transferencias internacionales</h2>

@@ -343,37 +343,6 @@ export async function getPersonalRecords(
   }
 }
 
-/**
- * Upsert personal records after a session (only for PRs that were achieved)
- */
-export async function upsertPersonalRecords(
-  userId: string,
-  records: { exerciseId: string; weight: number; reps: number }[]
-): Promise<boolean> {
-  const sb = await getSupabase();
-  if (!sb || records.length === 0) return false;
-
-  try {
-    const rows = records.map(r => ({
-      user_id: userId,
-      exercise_id: r.exerciseId,
-      weight: r.weight,
-      reps: r.reps,
-      achieved_at: new Date().toISOString(),
-    }));
-
-    const { error } = await sb
-      .from('personal_records')
-      .upsert(rows, { onConflict: 'user_id,exercise_id' });
-
-    if (error) {
-      logger.error('Error upserting personal records:', error);
-      return false;
-    }
-
-    return true;
-  } catch (err) {
-    logger.error('Network error upserting personal records:', err);
-    return false;
-  }
-}
+// El upsert de PRs ya no lo hace el cliente: lo escribe complete_workout en el
+// servidor (misma sesion, mismo calculo). Ver migracion
+// 20260928000002_lock_personal_records.sql.

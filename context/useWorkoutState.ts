@@ -4,7 +4,7 @@ import { STORAGE_KEYS, DEFAULT_SET_CONFIG } from '../lib/constants';
 import { loadFromStorage } from '../hooks/usePersist';
 import { mockTemplates } from '../data/mockData';
 import { fetchTemplates, upsertTemplate, deleteTemplateFromDB } from '../services/templates';
-import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, upsertPersonalRecords, updateSession } from '../services/workoutSessions';
+import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, updateSession } from '../services/workoutSessions';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { PRRecord } from '../services/xp';
 import { logger } from '../lib/logger';
@@ -38,7 +38,6 @@ export interface WorkoutStateResult {
   updateSessionNotes: (sessionId: string, notes: string) => void;
 
   saveSession: (session: WorkoutSession, userId: string) => ReturnType<typeof saveCompletedSession>;
-  upsertPRs: typeof upsertPersonalRecords;
 }
 
 export function useWorkoutState(): WorkoutStateResult {
@@ -195,6 +194,5 @@ export function useWorkoutState(): WorkoutStateResult {
     getScheduledTemplate, updateSet, addSet, deleteSet,
     addExerciseToSession, removeExerciseFromSession, updateSessionNotes,
     saveSession: saveCompletedSession,
-    upsertPRs: upsertPersonalRecords,
   };
 }
