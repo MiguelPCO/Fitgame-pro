@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { UserProfile, WorkoutSession, WorkoutTemplate, WorkoutSet, ActiveExercise, WeeklySchedule, EarnedBadge, WeeklyChallenge, StreakFreezeState, PeriodizationState } from '../types';
+import { UserProfile, WorkoutSession, WorkoutTemplate, WorkoutSet, ActiveExercise, WeeklySchedule, EarnedBadge, WeeklyChallenge, StreakFreezeState, PeriodizationState, ScheduledSession, ActivityType } from '../types';
 import { currentUser as mockUser, mockTemplates } from '../data/mockData';
 import { STORAGE_KEYS, DEFAULT_SET_CONFIG } from '../lib/constants';
 import { playNotification } from '../services/audio';
@@ -8,7 +8,7 @@ import { loadFromStorage } from '../hooks/usePersist';
 import { getSupabase, isSupabaseConfigured } from '../lib/supabase';
 import { onAuthStateChange, signOut, getSession } from '../services/auth';
 import { fetchTemplates, upsertTemplate, deleteTemplateFromDB } from '../services/templates';
-import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, upsertPersonalRecords, updateSession } from '../services/workoutSessions';
+import { fetchWorkoutHistory, saveCompletedSession, getPersonalRecords, upsertPersonalRecords, updateSession, awardWorkoutXP } from '../services/workoutSessions';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { processQueue, getQueue } from '../services/offlineQueue';
 import { getRecommendedWeight, getWarmupWeight } from '../lib/weightRecommendation';
@@ -23,6 +23,12 @@ import {
   shouldTransitionPhase, advancePhase, countTrainingWeeksInPhase,
 } from '../lib/periodization';
 import { exerciseBlueprints } from '../data/exerciseBlueprints';
+import {
+  activityTypeOf, canMove, MOVE_REJECTION_TEXT, projectWeeklySchedule, reconcileWithHistory,
+} from '../lib/schedule';
+import { fetchScheduledSessions, upsertScheduledSessions } from '../services/scheduledSessions';
+import { awardBadge, claimWeeklyChallengeBonus, fetchEarnedBadges } from '../services/gamification';
+import type { RacePlanSession } from '../lib/templateGenerator';
 
 interface RestTimerState {
   remaining: number;
@@ -44,6 +50,8 @@ interface AppState {
   workoutHistory: WorkoutSession[];
   personalRecords: Map<string, PRRecord>;
   weeklySchedule: WeeklySchedule;
+  /** Calendario con fechas reales. Semana y mes leen de aqui (Fase 4). */
+  scheduledSessions: ScheduledSession[];
 
   // Gamification
   earnedBadges: EarnedBadge[];
@@ -68,9 +76,20 @@ interface AppState {
   deleteTemplate: (id: string) => void;
   setWeeklySchedule: (schedule: WeeklySchedule) => void;
   getScheduledTemplate: (dayOfWeek: number) => WorkoutTemplate | null;
+  /** Reprograma una sesion. Devuelve el motivo si alguna de las 3 reglas lo impide. */
+  moveScheduledSession: (sessionId: string, targetISODate: string) => { ok: boolean; reason?: string };
+  addScheduledSession: (isoDate: string, templateId: string | null) => void;
+  skipScheduledSession: (sessionId: string) => void;
+  /** Anade al calendario las sesiones de un plan de carrera generado (Fase 5). */
+  applyRacePlan: (sessions: RacePlanSession[]) => void;
   startSession: (session: WorkoutSession) => void;
   startSessionFromTemplate: (template: WorkoutTemplate) => void;
-  completeSession: () => void;
+  /**
+   * Completa `activeWorkout`, o `session` si se pasa (registro manual de carrera,
+   * que no pasa por el reproductor de fuerza). No usa el mismo estado global de
+   * workout activo: dejar un entreno de fuerza a medias no se pierde.
+   */
+  completeSession: (session?: WorkoutSession) => void;
   updateSessionNotes: (sessionId: string, notes: string) => void;
   updateSet: (exerciseIndex: number, setIndex: number, field: keyof WorkoutSet, value: WorkoutSet[keyof WorkoutSet]) => void;
   addSet: (exerciseIndex: number) => void;
@@ -92,6 +111,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [workoutHistory, setWorkoutHistory] = useState<WorkoutSession[]>(() => loadFromStorage(STORAGE_KEYS.HISTORY, []));
   const [personalRecords, setPersonalRecords] = useState<Map<string, PRRecord>>(new Map());
   const [weeklySchedule, setWeeklyScheduleState] = useState<WeeklySchedule>(() => loadFromStorage(STORAGE_KEYS.SCHEDULE, {}));
+  const [scheduledSessions, setScheduledSessions] = useState<ScheduledSession[]>(() => loadFromStorage(STORAGE_KEYS.SCHEDULED, []));
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -219,6 +239,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         minutesPerSession: profile.minutes_per_session || storedUser?.minutesPerSession,
         equipment: profile.equipment || storedUser?.equipment,
         experienceLevel: profile.experience_level as UserProfile['experienceLevel'] || storedUser?.experienceLevel,
+        discipline: profile.discipline as UserProfile['discipline'] || storedUser?.discipline,
+        injuries: profile.injuries ?? storedUser?.injuries,
+        limitations: profile.limitations ?? storedUser?.limitations,
         onboardingCompleted: profile.onboarding_completed || storedUser?.onboardingCompleted || false,
       };
 
@@ -484,6 +507,151 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // ============================================
+  // CALENDARIO (Fase 4)
+  // ============================================
+
+  /**
+   * Fuente de verdad local. Se guarda antes de sincronizar para que el calendario
+   * siga funcionando sin conexion, que es un criterio de la fase.
+   */
+  const persistScheduled = useCallback((next: ScheduledSession[]) => {
+    setScheduledSessions(next);
+    localStorage.setItem(STORAGE_KEYS.SCHEDULED, JSON.stringify(next));
+  }, []);
+
+  /**
+   * Proyecta la plantilla semanal a fechas y reconcilia con el historial.
+   * Es idempotente (ids derivados de la fecha), asi que correr en cada cambio de
+   * plantilla o de historial no duplica nada; lo que el usuario ya movio, salto o
+   * completo se respeta.
+   */
+  useEffect(() => {
+    setScheduledSessions(prev => {
+      const projected = projectWeeklySchedule(prev, weeklySchedule, templates, { from: new Date() });
+      const next = reconcileWithHistory(projected, workoutHistory);
+      if (JSON.stringify(next) === JSON.stringify(prev)) return prev;
+      localStorage.setItem(STORAGE_KEYS.SCHEDULED, JSON.stringify(next));
+      return next;
+    });
+  }, [weeklySchedule, templates, workoutHistory]);
+
+  // Trae el calendario del servidor si la tabla existe; si no, se queda en local.
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      const remote = await fetchScheduledSessions(userId);
+      if (cancelled || !remote || remote.length === 0) return;
+      // El servidor manda para las filas que ya conoce; las locales nuevas se conservan.
+      setScheduledSessions(prev => {
+        const byId = new Map(prev.map(x => [x.id, x]));
+        for (const row of remote) byId.set(row.id, row);
+        const merged = [...byId.values()];
+        localStorage.setItem(STORAGE_KEYS.SCHEDULED, JSON.stringify(merged));
+        return merged;
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  /**
+   * Reconcilia badges locales con el servidor (Fase 6). Un badge del servidor
+   * que el cliente no tenia se adopta tal cual (nunca se pierde al cambiar de
+   * dispositivo). Un badge local que el servidor no conoce se sube via
+   * award_badge(), que revalida la condicion antes de registrarlo — asi un
+   * usuario existente con badges solo en local no los pierde al aplicarse la
+   * migracion, sin tener que confiar en lo que el cliente dice haber ganado.
+   */
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      const serverBadges = await fetchEarnedBadges(userId);
+      if (cancelled || serverBadges === null) return;
+
+      const serverSet = new Set(serverBadges.map(b => b.badgeId));
+      setEarnedBadges(prev => {
+        const missingFromServer = prev.filter(b => !serverSet.has(b.badgeId));
+        for (const b of missingFromServer) awardBadge(b.badgeId);
+
+        const localSet = new Set(prev.map(b => b.badgeId));
+        const adopted = serverBadges.filter(b => !localSet.has(b.badgeId));
+        if (adopted.length === 0) return prev;
+
+        const merged = [...prev, ...adopted];
+        localStorage.setItem(STORAGE_KEYS.BADGES, JSON.stringify(merged));
+        return merged;
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const syncScheduled = useCallback((changed: ScheduledSession[]) => {
+    if (userId) void upsertScheduledSessions(changed, userId);
+  }, [userId]);
+
+  const moveScheduledSession = useCallback((sessionId: string, targetISODate: string) => {
+    const session = scheduledSessions.find(s => s.id === sessionId);
+    if (!session) return { ok: false, reason: 'La sesion ya no existe.' };
+
+    const check = canMove(session, targetISODate, scheduledSessions);
+    if (!check.ok) return { ok: false, reason: check.reason ? MOVE_REJECTION_TEXT[check.reason] : undefined };
+
+    const moved: ScheduledSession = { ...session, scheduledFor: targetISODate, status: 'moved' };
+    persistScheduled(scheduledSessions.map(s => (s.id === sessionId ? moved : s)));
+    syncScheduled([moved]);
+    return { ok: true };
+  }, [scheduledSessions, persistScheduled, syncScheduled]);
+
+  const addScheduledSession = useCallback((isoDate: string, templateId: string | null) => {
+    const template = templateId ? templates.find(t => t.id === templateId) : undefined;
+    const sameDay = scheduledSessions.filter(s => s.scheduledFor === isoDate);
+    const created: ScheduledSession = {
+      id: `man-${isoDate}-${Date.now()}`,
+      scheduledFor: isoDate,
+      activityType: (template ? activityTypeOf(template) : 'rest') as ActivityType,
+      templateId: template?.id,
+      title: template?.name ?? 'Descanso',
+      status: 'planned',
+      sortOrder: sameDay.length,
+    };
+    persistScheduled([...scheduledSessions, created]);
+    syncScheduled([created]);
+  }, [scheduledSessions, templates, persistScheduled, syncScheduled]);
+
+  /**
+   * Un plan de carrera no se repite semana a semana como `weeklySchedule` (cada
+   * semana tiene una distancia distinta), asi que cada sesion se anade con su
+   * propia fecha en vez de generar una plantilla recurrente. El id deriva solo de
+   * la fecha (`plan-<iso>`): generar el mismo plan dos veces no duplica filas.
+   */
+  const applyRacePlan = useCallback((planSessions: RacePlanSession[]) => {
+    const created: ScheduledSession[] = planSessions.map(p => ({
+      id: `plan-${p.isoDate}`,
+      scheduledFor: p.isoDate,
+      activityType: 'run',
+      title: p.title,
+      status: 'planned',
+      sortOrder: 0,
+    }));
+    const createdIds = new Set(created.map(c => c.id));
+    persistScheduled([...scheduledSessions.filter(s => !createdIds.has(s.id)), ...created]);
+    syncScheduled(created);
+  }, [scheduledSessions, persistScheduled, syncScheduled]);
+
+  /**
+   * Saltar, no borrar: la regla 3 de 05-arquitectura-ux.md SS 4.2. La progresion del
+   * plan depende de saber que una sesion estaba prevista y no se hizo.
+   */
+  const skipScheduledSession = useCallback((sessionId: string) => {
+    const session = scheduledSessions.find(s => s.id === sessionId);
+    if (!session) return;
+    const skipped: ScheduledSession = { ...session, status: 'skipped' };
+    persistScheduled(scheduledSessions.map(s => (s.id === sessionId ? skipped : s)));
+    syncScheduled([skipped]);
+  }, [scheduledSessions, persistScheduled, syncScheduled]);
+
   const getScheduledTemplate = useCallback((dayOfWeek: number): WorkoutTemplate | null => {
     const templateId = weeklySchedule[dayOfWeek as keyof WeeklySchedule];
     if (!templateId) return null;
@@ -507,6 +675,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (data.minutesPerSession !== undefined) updatePayload.minutes_per_session = data.minutesPerSession;
       if (data.equipment !== undefined) updatePayload.equipment = data.equipment;
       if (data.experienceLevel !== undefined) updatePayload.experience_level = data.experienceLevel;
+      if (data.discipline !== undefined) updatePayload.discipline = data.discipline;
+      if (data.injuries !== undefined) updatePayload.injuries = data.injuries;
+      if (data.limitations !== undefined) updatePayload.limitations = data.limitations.slice(0, 500);
       if (data.onboardingCompleted !== undefined) updatePayload.onboarding_completed = data.onboardingCompleted;
 
       if (Object.keys(updatePayload).length > 0) {
@@ -595,14 +766,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     stopRestTimer();
   };
 
-  const completeSession = async () => {
-    if (!activeWorkout || !user) return;
+  const completeSession = async (overrideSession?: WorkoutSession) => {
+    const session = overrideSession ?? activeWorkout;
+    if (!session || !user) return;
 
-    // Calculate XP with full bonus system
-    const xpBreakdown = calculateWorkoutXP(activeWorkout, user.streak, personalRecords);
+    // Calculate XP with full bonus system. Para una carrera esto da siempre 0
+    // (exercises: []): el XP real lo fija complete_workout en el servidor, nunca
+    // el cliente (criterio de aceptacion de la Fase 5).
+    const xpBreakdown = calculateWorkoutXP(session, user.streak, personalRecords);
 
     const completedSession: WorkoutSession = {
-      ...activeWorkout,
+      ...session,
       endTime: Date.now(),
       completed: true,
       status: 'completed',
@@ -614,13 +788,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setWorkoutHistory(newHistory);
     setLastCompletedSession(completedSession);
     setLastXPBreakdown(xpBreakdown);
-    setActiveWorkout(null);
     stopRestTimer();
+    // Un registro manual (overrideSession) no toca el entreno de fuerza activo:
+    // si habia uno a medias, sigue ahi.
+    if (!overrideSession) {
+      setActiveWorkout(null);
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT);
+    }
 
     // Update localStorage
     localStorage.setItem(STORAGE_KEYS.LAST_SESSION, JSON.stringify(completedSession));
     localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(newHistory));
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT);
 
     // ── Periodization: check phase transition ──────────────────────────────────
     if (shouldTransitionPhase(periodizationState, newHistory)) {
@@ -680,6 +858,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // ── Gamification: weekly challenge ─────────────────────────────
+    // El progreso se sigue mostrando calculado en cliente (como hasta ahora):
+    // no es sensible, es solo una barra. Lo sensible es el bonus_xp, que se
+    // reclama al servidor mas abajo, una vez la sesion ya esta sincronizada.
+    let justCompletedChallenge: WeeklyChallenge | null = null;
     if (weeklyChallenge) {
       const currentWeek = getWeekStart();
       const activeChallenge = weeklyChallenge.weekStart === currentWeek
@@ -692,6 +874,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (updatedChallenge.completed && !activeChallenge.completed) {
         notifyChallengeCompleted(updatedChallenge.title, updatedChallenge.bonusXP);
         toast(`🎯 Reto completado: ${updatedChallenge.title} · +${updatedChallenge.bonusXP} XP`, 'success');
+        justCompletedChallenge = updatedChallenge;
       }
       setWeeklyChallenge(updatedChallenge);
       localStorage.setItem(STORAGE_KEYS.WEEKLY_CHALLENGE, JSON.stringify(updatedChallenge));
@@ -699,10 +882,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // ── Sync to Supabase ───────────────────────────────────────────
     if (isSupabaseConfigured() && userId) {
-      // Save completed session
-      await saveCompletedSession(completedSession, userId);
+      // Save completed session, then let the server award XP (level, streak and tier are
+      // not client-writable). The local values above are optimistic; the server's win.
+      const saved = await saveCompletedSession(completedSession, userId);
+      const serverStats = saved ? await awardWorkoutXP(completedSession.id) : null;
 
-      // Persist new PRs to personal_records table
+      if (serverStats) {
+        const { xpAwarded, ...stats } = serverStats;
+        setUser(prev => (prev ? { ...prev, ...stats } : prev));
+        if (xpAwarded !== completedSession.xpReward) {
+          const withServerXP = (s: WorkoutSession) => (s.id === completedSession.id ? { ...s, xpReward: xpAwarded } : s);
+          setWorkoutHistory(prev => prev.map(withServerXP));
+          setLastCompletedSession(prev => (prev ? withServerXP(prev) : prev));
+        }
+      } else {
+        toast('Error al sincronizar XP', 'error');
+      }
+
+      // Persist new PRs after awarding XP: the server compares against the previous PRs
       if (xpBreakdown.prsAchieved.length > 0) {
         const prRecords = xpBreakdown.prsAchieved.map(exerciseId => {
           const exercise = completedSession.exercises.find(e => e.exerciseId === exerciseId);
@@ -715,24 +912,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         await upsertPersonalRecords(userId, prRecords);
       }
 
-      // Update user profile with new XP
-      const sb = await getSupabase();
-      if (sb) {
-        const { error } = await sb
-          .from('profiles')
-          .update({
-            xp: newStats.xp,
-            level: newStats.level,
-            xp_to_next_level: newStats.xpToNextLevel,
-            streak: newStats.streak,
-            tier: newStats.tier,
-          })
-          .eq('id', userId);
+      // El servidor revalida cada badge contra sus propios datos (ya tiene esta
+      // sesion, recien guardada arriba) antes de registrarlo: el cliente solo
+      // adelanta cuales cree que se han desbloqueado, no los da por buenos.
+      for (const b of newBadges) {
+        awardBadge(b.badgeId);
+      }
 
-        if (error) {
-          logger.error('Error syncing XP to Supabase:', error);
-          toast('Error al sincronizar XP', 'error');
-        }
+      // Igual para el bonus del reto: se reclama solo tras confirmar la sesion,
+      // para que el servidor la vea al recalcular el progreso.
+      if (justCompletedChallenge) {
+        const claimed = justCompletedChallenge;
+        claimWeeklyChallengeBonus(claimed.type, claimed.target, claimed.bonusXP).then(result => {
+          if (result?.completed) {
+            setUser(prev => (prev ? { ...prev, xp: result.xp, level: result.level, xpToNextLevel: result.xpToNextLevel, tier: result.tier } : prev));
+          }
+        });
       }
     }
   };
@@ -834,6 +1029,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider value={{
       user, userId, isAuthenticated, isLoading, selectedDate, templates, activeWorkout,
       lastCompletedSession, lastXPBreakdown, workoutHistory, personalRecords, weeklySchedule,
+      scheduledSessions, moveScheduledSession, addScheduledSession, skipScheduledSession, applyRacePlan,
       earnedBadges, newlyEarnedBadges, weeklyChallenge, streakFreezes, periodizationState,
       useStreakFreeze, clearNewlyEarnedBadges,
       restTimer, startRestTimer, stopRestTimer, addRestTime,
