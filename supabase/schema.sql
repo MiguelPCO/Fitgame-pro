@@ -1,4 +1,4 @@
--- FitGame Pro Database Schema (Full)
+-- Hybrid Database Schema (Full)
 -- This is the complete schema for reference. For incremental changes,
 -- see supabase/migrations/ for timestamped migration files.
 -- Run this in Supabase SQL Editor (supabase.com > SQL Editor > New Query)
@@ -23,6 +23,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   minutes_per_session INTEGER CHECK (minutes_per_session BETWEEN 15 AND 180),
   equipment TEXT[] DEFAULT '{}',
   experience_level TEXT CHECK (experience_level IN ('Beginner', 'Intermediate', 'Advanced')),
+  discipline TEXT CHECK (discipline IN ('gym', 'running', 'both')),
+  -- Datos de salud (art. 9 RGPD): solo los lee el dueno via RLS.
+  injuries TEXT[] DEFAULT '{}' CHECK (injuries IS NULL OR cardinality(injuries) <= 20),
+  limitations TEXT CHECK (limitations IS NULL OR char_length(limitations) <= 500),
   weekly_schedule JSONB DEFAULT NULL,
   onboarding_completed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW(),

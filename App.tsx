@@ -12,6 +12,8 @@ import { DashboardSkeleton, ProgressSkeleton, HistorySkeleton } from './componen
 import WeeklySummaryModal from './components/WeeklySummaryModal';
 import { getWeeklySummaryData, shouldShowWeeklySummary, markWeeklySummaryShown } from './lib/weeklySummary';
 import type { WeeklySummaryData } from './lib/weeklySummary';
+import { getWeekStart, hasCompletedSessionInWeek, isNearWeekEnd } from './lib/challenges';
+import { useToast } from './components/ui/Toast';
 
 // Lazy-loaded page components
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
@@ -27,6 +29,8 @@ const History = React.lazy(() => import('./pages/History'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const Programs = React.lazy(() => import('./pages/Programs'));
 const Challenges = React.lazy(() => import('./pages/Challenges'));
+const Legal = React.lazy(() => import('./pages/Legal'));
+const RunLogger = React.lazy(() => import('./pages/RunLogger'));
 
 const PageLoader: React.FC = () => (
   <div className="flex items-center justify-center h-64">
@@ -36,6 +40,24 @@ const PageLoader: React.FC = () => (
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, isLoading, user, workoutHistory } = useApp();
+  const { toast } = useToast();
+
+  // Vuelta del callback de Strava (Fase 7): la Edge Function redirige aqui con
+  // ?strava=connected|error (no hay ruta propia, la app sigue enrutando por
+  // estado — ver supabase/functions/strava-oauth). Se lee una vez al arrancar
+  // y se limpia la URL para que recargar no repita el aviso.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const strava = params.get('strava');
+    if (!strava) return;
+
+    if (strava === 'connected') toast('Conectado con Strava', 'success');
+    else if (strava === 'error') toast('No se pudo conectar con Strava', 'error');
+
+    params.delete('strava');
+    const rest = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (rest ? `?${rest}` : ''));
+  }, [toast]);
 
   const hasWorkedOutToday = useMemo(() => {
     const today = new Date().toDateString();
@@ -44,7 +66,12 @@ const AppContent: React.FC = () => {
     );
   }, [workoutHistory]);
 
-  const streakAtRisk = !hasWorkedOutToday && (user?.streak || 0) > 0;
+  // Racha semanal (Fase 6): en riesgo solo cerca del cierre de semana, no a
+  // diario, o el aviso se convierte en spam (07-plan-implementacion.md Fase 6).
+  const streakAtRisk = useMemo(
+    () => isNearWeekEnd() && !hasCompletedSessionInWeek(workoutHistory, getWeekStart()) && (user?.streak || 0) > 0,
+    [workoutHistory, user?.streak]
+  );
 
   // Weekly summary modal
   const [weeklySummary, setWeeklySummary] = useState<WeeklySummaryData | null>(null);
@@ -115,25 +142,15 @@ const AppContent: React.FC = () => {
     navigate(ROUTES.DASHBOARD);
   };
 
-  // Auto-redirect to onboarding if not completed
-  if (user && user.onboardingCompleted !== true && currentView !== ROUTES.ONBOARDING) {
+  // El onboarding es una puerta: sin navegacion, no se puede saltar.
+  const needsOnboarding = !!user && user.onboardingCompleted !== true;
+  if (needsOnboarding || currentView === ROUTES.ONBOARDING) {
     return (
-      <Layout currentPage={ROUTES.ONBOARDING} onNavigate={navigate}>
+      <div className="bg-background min-h-screen animate-fade-in">
         <Suspense fallback={<PageLoader />}>
           <Onboarding onComplete={handleOnboardingComplete} />
         </Suspense>
-      </Layout>
-    );
-  }
-
-  // If user is authenticated but needs to set up plan, showing onboarding
-  if (currentView === ROUTES.ONBOARDING) {
-    return (
-      <Layout currentPage={ROUTES.ONBOARDING} onNavigate={navigate}>
-        <Suspense fallback={<PageLoader />}>
-          <Onboarding onComplete={handleOnboardingComplete} />
-        </Suspense>
-      </Layout>
+      </div>
     );
   }
 
@@ -183,6 +200,8 @@ const AppContent: React.FC = () => {
         return <Programs />;
       case ROUTES.CHALLENGES:
         return <Challenges />;
+      case ROUTES.RUN_LOGGER:
+        return <RunLogger onDone={() => navigate(ROUTES.DASHBOARD)} />;
       case ROUTES.ONBOARDING:
         return <Onboarding onComplete={handleOnboardingComplete} />;
       default:
@@ -229,6 +248,17 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  // Sin router: las páginas legales van por URL y son públicas (vercel.json
+  // reescribe cualquier ruta a index.html).
+  const path = window.location.pathname.replace(/\/$/, '');
+  if (path === '/privacidad' || path === '/aviso-legal') {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <Legal page={path.slice(1) as 'privacidad' | 'aviso-legal'} />
+      </Suspense>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <ToastProvider>

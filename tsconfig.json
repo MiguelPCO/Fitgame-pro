@@ -26,5 +26,9 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  // Las Edge Functions (Fase 7) son Deno, no Vite/Node: globals distintos
+  // (Deno.*, EdgeRuntime), especificadores npm:/https: que este tsconfig no
+  // resuelve. Se comprueban con `deno check`, no con tsc.
+  "exclude": ["supabase/functions"]
 }

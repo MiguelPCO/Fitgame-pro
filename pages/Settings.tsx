@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Save, User, Target, Clock, Dumbbell, Shield, ChevronRight, Download, FileText, Bell, Sun, Moon, Monitor } from 'lucide-react';
+import { Save, User, Target, Clock, Dumbbell, Shield, ChevronRight, Download, FileText, Bell, Sun, Moon, Monitor, Link2, Unlink } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { exerciseBlueprints } from '../data/exerciseBlueprints';
 import { useToast } from '../components/ui/Toast';
 import { resetPassword, deleteAccount } from '../services/auth';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { captchaEnabled, isSupabaseConfigured } from '../lib/supabase';
+import {
+  disconnectStrava, fetchStravaStatus, getStravaAuthorizeUrl, isStravaConfigured, StravaStatus,
+} from '../services/strava';
+import { getTimeAgo } from '../lib/dateUtils';
+import { Turnstile } from '../components/Turnstile';
 import { STORAGE_KEYS } from '../lib/constants';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -37,8 +42,30 @@ const EQUIPMENT_OPTIONS = [
 ];
 
 const Settings: React.FC = () => {
-  const { user, updateUser, workoutHistory } = useApp();
+  const { user, userId, updateUser, workoutHistory } = useApp();
   const { toast } = useToast();
+
+  // Integracion con Strava (Fase 7)
+  const [stravaStatus, setStravaStatus] = useState<StravaStatus | null>(null);
+  const [stravaLoading, setStravaLoading] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchStravaStatus(userId).then(setStravaStatus);
+  }, [userId]);
+
+  const handleDisconnectStrava = async () => {
+    if (!userId) return;
+    setStravaLoading(true);
+    const ok = await disconnectStrava(userId);
+    setStravaLoading(false);
+    if (ok) {
+      setStravaStatus(null);
+      toast('Strava desconectado', 'success');
+    } else {
+      toast('No se pudo desconectar Strava', 'error');
+    }
+  };
 
   const [name, setName] = useState(user?.name || '');
   const [goal, setGoal] = useState<Goal>(user?.goal || 'Hypertrophy');
@@ -62,6 +89,9 @@ const Settings: React.FC = () => {
 
   const { mode: themeMode, setMode: setThemeMode } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // resetPasswordForEmail pide CAPTCHA; el token es de un solo uso.
+  const [captchaKey, setCaptchaKey] = useState(0);
 
   // Notification / reminder state
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(getNotificationPermission);
@@ -184,7 +214,9 @@ const Settings: React.FC = () => {
       toast('No hay email configurado', 'warning');
       return;
     }
-    const result = await resetPassword(user.email);
+    const result = await resetPassword(user.email, captchaToken);
+    setCaptchaToken(null);
+    setCaptchaKey((key) => key + 1);
     if (result.error) {
       toast(result.error, 'error');
     } else {
@@ -217,7 +249,7 @@ const Settings: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center border-b border-gray-800 pb-6">
+      <div className="flex justify-between items-center border-b border-divider pb-6">
         <div>
           <h1 className="text-3xl font-black text-white">Configuracion</h1>
           <p className="text-text-muted mt-1">Edita tu perfil y preferencias de entrenamiento.</p>
@@ -246,27 +278,27 @@ const Settings: React.FC = () => {
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            className="w-full px-4 py-3 bg-background border border-gray-700 rounded-xl text-white focus:border-primary focus:outline-none transition-colors"
+            className="w-full px-4 py-3 bg-background border border-divider rounded-xl text-white focus:border-primary focus:outline-none transition-colors"
             placeholder="Tu nombre"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4 pt-2">
-          <div className="bg-background rounded-xl p-4 border border-gray-800">
+          <div className="bg-background rounded-xl p-4 border border-divider">
             <p className="text-xs text-text-muted">Nivel</p>
             <p className="text-xl font-bold text-white mt-1">{user.level}</p>
           </div>
-          <div className="bg-background rounded-xl p-4 border border-gray-800">
+          <div className="bg-background rounded-xl p-4 border border-divider">
             <p className="text-xs text-text-muted">Tier</p>
             <p className="text-xl font-bold text-primary mt-1">{user.tier}</p>
           </div>
-          <div className="bg-background rounded-xl p-4 border border-gray-800">
+          <div className="bg-background rounded-xl p-4 border border-divider">
             <p className="text-xs text-text-muted">XP Total</p>
             <p className="text-xl font-bold text-white mt-1">{user.xp}</p>
           </div>
-          <div className="bg-background rounded-xl p-4 border border-gray-800">
+          <div className="bg-background rounded-xl p-4 border border-divider">
             <p className="text-xs text-text-muted">Racha</p>
-            <p className="text-xl font-bold text-amber-400 mt-1">{user.streak} dias</p>
+            <p className="text-xl font-bold text-amber-400 mt-1">{user.streak} semana{user.streak === 1 ? '' : 's'}</p>
           </div>
         </div>
       </Card>
@@ -287,7 +319,7 @@ const Settings: React.FC = () => {
                 'p-4 rounded-xl border text-left transition-all',
                 goal === g.value
                   ? 'border-primary bg-primary/10 text-white'
-                  : 'border-gray-700 text-text-muted hover:border-gray-600'
+                  : 'border-divider text-text-muted hover:border-gray-600'
               )}
             >
               <span className="text-xl" aria-hidden="true">{g.icon}</span>
@@ -316,7 +348,7 @@ const Settings: React.FC = () => {
                   'flex-1 py-2.5 rounded-xl border text-sm font-bold transition-all',
                   daysPerWeek === d
                     ? 'border-primary bg-primary/10 text-white'
-                    : 'border-gray-700 text-text-muted hover:border-gray-600'
+                    : 'border-divider text-text-muted hover:border-gray-600'
                 )}
               >
                 {d}
@@ -337,7 +369,7 @@ const Settings: React.FC = () => {
                   'py-2.5 rounded-xl border text-sm font-bold transition-all',
                   minutesPerSession === m
                     ? 'border-primary bg-primary/10 text-white'
-                    : 'border-gray-700 text-text-muted hover:border-gray-600'
+                    : 'border-divider text-text-muted hover:border-gray-600'
                 )}
               >
                 {m} min
@@ -358,7 +390,7 @@ const Settings: React.FC = () => {
                   'flex-1 py-3 rounded-xl border text-sm font-medium transition-all',
                   experienceLevel === l.value
                     ? 'border-primary bg-primary/10 text-white'
-                    : 'border-gray-700 text-text-muted hover:border-gray-600'
+                    : 'border-divider text-text-muted hover:border-gray-600'
                 )}
               >
                 {l.label}
@@ -383,7 +415,7 @@ const Settings: React.FC = () => {
                 'px-4 py-3 rounded-xl border text-sm font-medium transition-all',
                 equipment.includes(item)
                   ? 'border-primary bg-primary/10 text-white'
-                  : 'border-gray-700 text-text-muted hover:border-gray-600'
+                  : 'border-divider text-text-muted hover:border-gray-600'
               )}
             >
               {item}
@@ -411,7 +443,7 @@ const Settings: React.FC = () => {
                 'flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-medium transition-all',
                 themeMode === t.value
                   ? 'border-primary bg-primary/10 text-white'
-                  : 'border-gray-700 text-text-muted hover:border-gray-600'
+                  : 'border-divider text-text-muted hover:border-gray-600'
               )}
             >
               {t.icon}
@@ -484,13 +516,62 @@ const Settings: React.FC = () => {
                   type="time"
                   value={`${String(reminderHour).padStart(2, '0')}:${String(reminderMinute).padStart(2, '0')}`}
                   onChange={handleTimeChange}
-                  className="px-4 py-3 bg-background border border-gray-700 rounded-xl text-white focus:border-primary focus:outline-none transition-colors"
+                  className="px-4 py-3 bg-background border border-divider rounded-xl text-white focus:border-primary focus:outline-none transition-colors"
                 />
               </div>
             )}
           </>
         )}
       </Card>
+
+      {/* Integrations Section (Strava, Fase 7) */}
+      {isSupabaseConfigured() && userId && (
+        <Card className="p-6 space-y-4">
+          <div className="flex items-center gap-3 mb-2">
+            <Link2 className="w-5 h-5 text-primary" aria-hidden="true" />
+            <h2 className="text-lg font-bold text-white">Integraciones</h2>
+          </div>
+
+          <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-divider">
+            <div className="min-w-0">
+              <p className="font-bold text-text-main">Strava</p>
+              {stravaStatus ? (
+                <p className="text-sm text-text-muted">
+                  Conectado
+                  {stravaStatus.lastSyncedAt && ` · última sincronización ${getTimeAgo(new Date(stravaStatus.lastSyncedAt).getTime())}`}
+                </p>
+              ) : (
+                <p className="text-sm text-text-muted">Importa tus carreras automáticamente</p>
+              )}
+            </div>
+
+            {stravaStatus ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Unlink className="w-4 h-4" />}
+                onClick={handleDisconnectStrava}
+                isLoading={stravaLoading}
+                className="shrink-0"
+              >
+                Desconectar
+              </Button>
+            ) : isStravaConfigured() ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Link2 className="w-4 h-4" />}
+                onClick={() => { window.location.href = getStravaAuthorizeUrl(userId); }}
+                className="shrink-0"
+              >
+                Conectar
+              </Button>
+            ) : (
+              <span className="text-2xs text-text-muted shrink-0">No configurado</span>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Data Section */}
       <Card className="p-6 space-y-3">
@@ -501,14 +582,14 @@ const Settings: React.FC = () => {
         <p className="text-sm text-text-muted">Exporta tu perfil, templates, historial y records.</p>
         <button
           onClick={handleExportData}
-          className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-gray-700 text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm"
+          className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-divider text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm"
         >
           <span>Exportar backup completo (JSON)</span>
           <Download className="w-4 h-4" />
         </button>
         <button
           onClick={handleExportCSV}
-          className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-gray-700 text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm"
+          className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-divider text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm"
         >
           <span>Exportar historial de entrenos (CSV)</span>
           <FileText className="w-4 h-4" />
@@ -523,10 +604,11 @@ const Settings: React.FC = () => {
         </div>
         <p className="text-sm text-text-muted">{user.email || 'Sin email configurado'}</p>
         <div className="flex flex-col gap-2 pt-2">
+          <Turnstile key={captchaKey} onToken={setCaptchaToken} />
           <button
             onClick={handleResetPassword}
-            disabled={!isSupabaseConfigured()}
-            className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-gray-700 text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm disabled:opacity-50"
+            disabled={!isSupabaseConfigured() || (captchaEnabled && !captchaToken)}
+            className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-divider text-text-muted hover:text-white hover:border-gray-600 transition-all text-sm disabled:opacity-50"
           >
             <span>Cambiar contrasena</span>
             <ChevronRight className="w-4 h-4" />
@@ -540,6 +622,11 @@ const Settings: React.FC = () => {
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+        <p className="pt-2 text-xs text-text-muted">
+          <a href="/privacidad" className="hover:text-primary">Privacidad</a>
+          {' · '}
+          <a href="/aviso-legal" className="hover:text-primary">Aviso legal</a>
+        </p>
       </Card>
     </div>
   );
