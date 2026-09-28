@@ -43,7 +43,7 @@ const PrivacyContent: React.FC = () => (
     <h2>4. Con quién se comparten</h2>
     <p>No vendemos tus datos. Los tratan, por cuenta nuestra, estos proveedores:</p>
     <ul>
-      <li>Supabase — base de datos, cuentas y emails de acceso — región del proyecto: [RELLENAR].</li>
+      <li>Supabase — base de datos, cuentas y emails de acceso — región del proyecto: UE (Irlanda, eu-west-1).</li>
       <li>Vercel — alojamiento — Estados Unidos.</li>
       <li>Cloudflare Turnstile — protección anti-bots en registro y acceso — Estados Unidos.</li>
     </ul>
