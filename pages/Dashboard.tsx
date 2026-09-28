@@ -307,7 +307,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
   const challengeLabel = weeklyChallenge ? challengeProgressLabel(weeklyChallenge) : '';
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-6 lg:items-start animate-in fade-in duration-500">
+      <div className="lg:col-span-8 space-y-6">
 
       {/* Newly earned badge flash */}
       {flashBadge && newlyEarnedBadges[0] && (
@@ -437,18 +438,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
         workoutDays={workoutDays}
       />
 
-      {/* Main Content */}
-      <div className="space-y-6">
-        {/* Workout Card — full width */}
-        <WorkoutDayCard
-          workout={workout}
-          date={selectedDate}
-          variant={variant}
-          onStartWorkout={handleStartWorkout}
-        />
+      {/* Workout Card — full width */}
+      <WorkoutDayCard
+        workout={workout}
+        date={selectedDate}
+        variant={variant}
+        onStartWorkout={handleStartWorkout}
+      />
+      </div>
 
+      <div className="lg:col-span-4 space-y-6">
         {/* Stats row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
           <Card>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-white">Weekly Progress</h3>
@@ -609,7 +610,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
             </Card>
           )}
         </div>
-      </div>
 
       {/* Recent Badges */}
       {earnedBadges.length > 0 && (
@@ -683,6 +683,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStartWorkout, onNavigateProgres
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-orange-900/40 border border-orange-700/30" /><span>Cargado</span></div>
           <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded bg-red-900/40 border border-red-700/30" /><span>Agotado</span></div>
         </div>
+      </div>
       </div>
     </div>
   );

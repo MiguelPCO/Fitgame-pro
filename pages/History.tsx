@@ -129,8 +129,9 @@ const History: React.FC = () => {
         </div>
       </div>
 
+      <div className="lg:grid lg:grid-cols-[280px_1fr] lg:gap-6 lg:items-start">
       {/* Search + filters */}
-      <div className="space-y-3">
+      <div className="space-y-3 lg:sticky lg:top-20">
         {/* Search bar */}
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -213,6 +214,7 @@ const History: React.FC = () => {
         )}
       </div>
 
+      <div>
       {/* Session list */}
       {filteredSessions.length === 0 ? (
         <div className="text-center py-16 space-y-3">
@@ -231,7 +233,7 @@ const History: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div role="list" aria-label="Sesiones de entrenamiento" className="space-y-3">
+        <div role="list" aria-label="Sesiones de entrenamiento" className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-3 lg:items-start">
           {filteredSessions.map(session => {
             const isExpanded = expandedId === session.id;
             const volume = calculateSessionVolume(session);
@@ -245,7 +247,7 @@ const History: React.FC = () => {
                 className={cn(
                   'rounded-xl border overflow-hidden transition-all duration-200',
                   isExpanded
-                    ? 'bg-background-card border-primary/30'
+                    ? 'bg-background-card border-primary/30 lg:col-span-2'
                     : 'bg-background-card border-divider hover:border-divider'
                 )}
               >
@@ -370,6 +372,8 @@ const History: React.FC = () => {
           })}
         </div>
       )}
+      </div>
+      </div>
     </div>
   );
 };
