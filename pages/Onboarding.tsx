@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { CheckCircle2, ChevronRight, ChevronLeft, Dumbbell, Activity, Calendar, Target, Sparkles, CalendarDays, Rocket, Coffee, X } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ChevronLeft, Dumbbell, Activity, Calendar, Target, Sparkles, CalendarDays, Rocket, Coffee, X, Footprints, HeartPulse, ShieldAlert } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { UserProfile, WorkoutTemplate, WeeklySchedule } from '../types';
+import { UserProfile, WorkoutTemplate, WeeklySchedule, Discipline, Goal, ExperienceLevel } from '../types';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { generateTemplates, suggestSchedule } from '../lib/templateGenerator';
+import { generateTemplates, generateRunTemplates, splitDaysByDiscipline, suggestSchedule } from '../lib/templateGenerator';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -12,61 +12,134 @@ interface OnboardingProps {
 
 const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'] as const;
 
+/** Zonas que el usuario puede marcar. Se guardan, no filtran el plan. */
+const INJURY_AREAS = ['Hombro', 'Codo', 'Muneca', 'Espalda', 'Cadera', 'Rodilla', 'Tobillo'] as const;
+
+type StepId =
+  | 'discipline'
+  | 'goal'
+  | 'availability'
+  | 'equipment'
+  | 'experience'
+  | 'injuries'
+  | 'plan'
+  | 'schedule'
+  | 'summary';
+
+/** El paso de equipamiento no tiene sentido si solo se corre. */
+const stepsFor = (discipline: Discipline): StepId[] =>
+  discipline === 'running'
+    ? ['discipline', 'goal', 'availability', 'experience', 'injuries', 'plan', 'schedule', 'summary']
+    : ['discipline', 'goal', 'availability', 'equipment', 'experience', 'injuries', 'plan', 'schedule', 'summary'];
+
+const DISCIPLINES: { value: Discipline; label: string; desc: string; icon: typeof Dumbbell }[] = [
+  { value: 'gym', label: 'Gimnasio', desc: 'Fuerza e hipertrofia', icon: Dumbbell },
+  { value: 'running', label: 'Carrera', desc: 'Salir a correr', icon: Footprints },
+  { value: 'both', label: 'Las dos', desc: 'Fuerza y carrera en la misma semana', icon: HeartPulse },
+];
+
+/** Micro-reacciones: una linea que responde a lo que acabas de elegir. */
+const DISCIPLINE_REACTION: Record<Discipline, string> = {
+  gym: 'Perfecto. Tu plan girara en torno a la progresion de cargas.',
+  running: 'Hecho. Nada de pesas: rodajes, una tirada larga y progresion del 10% semanal.',
+  both: 'Buena combinacion. Repartiremos los dias entre pesas y asfalto.',
+};
+
+const GOAL_REACTION: Record<Goal, string> = {
+  Hypertrophy: 'Volumen alto y rangos medios de repeticiones.',
+  Strength: 'Pocas repeticiones, cargas altas y descansos largos.',
+  'Fat Loss': 'Descansos cortos para mantener el pulso arriba.',
+  Endurance: 'Series largas y poco descanso.',
+};
+
+const LEVEL_REACTION: Record<ExperienceLevel, string> = {
+  Beginner: 'Empezaremos conservador. La tecnica primero, la carga despues.',
+  Intermediate: 'Volumen medio con progresion estructurada.',
+  Advanced: 'Volumen e intensidad altos. Vigila la recuperacion.',
+};
+
+const daysReaction = (days: number): string => {
+  if (days <= 2) return 'Con 2 dias se mantiene, no se progresa rapido. Es un punto de partida honesto.';
+  if (days <= 4) return 'Es el punto dulce: suficiente estimulo y tiempo de sobra para recuperar.';
+  return 'Mucho volumen. Funciona si duermes y comes bien; si no, acabaras lesionado.';
+};
+
 const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   const { updateUser, saveTemplate, setWeeklySchedule } = useApp();
-  const [step, setStep] = useState(1);
-  const totalSteps = 7;
+  const [stepIndex, setStepIndex] = useState(0);
 
   const [formData, setFormData] = useState<Partial<UserProfile>>({
+    discipline: 'gym',
     goal: 'Hypertrophy',
     daysPerWeek: 4,
     minutesPerSession: 60,
     equipment: ['Gym Complete'],
     experienceLevel: 'Intermediate',
+    injuries: [],
+    limitations: '',
   });
 
   const [generatedTemplates, setGeneratedTemplates] = useState<WorkoutTemplate[]>([]);
   const [schedule, setSchedule] = useState<WeeklySchedule>({});
   const [isFinishing, setIsFinishing] = useState(false);
 
-  const handleNext = () => {
-    if (step === 4) {
-      // Generate templates on transition from step 4 to 5
-      const templates = generateTemplates({
-        goal: formData.goal || 'Hypertrophy',
-        daysPerWeek: formData.daysPerWeek || 4,
-        equipment: formData.equipment || ['Gym Complete'],
-        experienceLevel: formData.experienceLevel || 'Intermediate',
-      });
-      setGeneratedTemplates(templates);
-      const suggested = suggestSchedule(templates, formData.daysPerWeek || 4);
-      setSchedule(suggested);
+  const discipline = formData.discipline || 'gym';
+  const steps = stepsFor(discipline);
+  const totalSteps = steps.length;
+  const step = steps[Math.min(stepIndex, totalSteps - 1)];
+  const stepNumber = stepIndex + 1;
+  const isLastStep = stepIndex === totalSteps - 1;
+
+  const buildPlan = () => {
+    const daysPerWeek = formData.daysPerWeek || 4;
+    const experienceLevel = formData.experienceLevel || 'Intermediate';
+    const { gymDays, runDays } = splitDaysByDiscipline(discipline, daysPerWeek);
+
+    const templates: WorkoutTemplate[] = [];
+
+    if (gymDays > 0) {
+      templates.push(
+        ...generateTemplates({
+          goal: formData.goal || 'Hypertrophy',
+          daysPerWeek: gymDays,
+          equipment: formData.equipment || ['Gym Complete'],
+          experienceLevel,
+        })
+      );
     }
 
-    if (step < totalSteps) {
-      setStep(prev => prev + 1);
+    if (runDays > 0) {
+      templates.push(...generateRunTemplates({ daysPerWeek: runDays, experienceLevel }));
+    }
+
+    setGeneratedTemplates(templates);
+    setSchedule(suggestSchedule(templates, daysPerWeek));
+  };
+
+  const handleNext = () => {
+    // El plan se genera justo antes de enseñarlo.
+    if (steps[stepIndex + 1] === 'plan') buildPlan();
+
+    if (!isLastStep) {
+      setStepIndex((prev) => prev + 1);
     } else {
-      // Final step: save everything
       finishOnboarding();
     }
   };
 
   const handleBack = () => {
-    if (step > 1) setStep(prev => prev - 1);
+    if (stepIndex > 0) setStepIndex((prev) => prev - 1);
   };
 
   const finishOnboarding = async () => {
     setIsFinishing(true);
     try {
-      // Save all generated templates
       for (const template of generatedTemplates) {
         await saveTemplate(template);
       }
 
-      // Save schedule
       await setWeeklySchedule(schedule);
 
-      // Save user preferences + mark onboarding complete
       await updateUser({
         ...formData,
         onboardingCompleted: true,
@@ -90,6 +163,14 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     updateData('equipment', updated);
   };
 
+  const toggleInjury = (area: string) => {
+    const current = formData.injuries || [];
+    const updated = current.includes(area)
+      ? current.filter(i => i !== area)
+      : [...current, area];
+    updateData('injuries', updated);
+  };
+
   const toggleScheduleDay = (day: number, templateId: string | null) => {
     setSchedule(prev => {
       const next = { ...prev };
@@ -103,28 +184,83 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
   };
 
   const assignedDays = Object.keys(schedule).filter(k => schedule[Number(k) as keyof WeeklySchedule]).length;
+  const injuries = formData.injuries || [];
+
+  // Correr no se entrena para "ganar masa": solo se ofrece lo que aplica.
+  const goalOptions: Goal[] =
+    discipline === 'running'
+      ? ['Endurance', 'Fat Loss']
+      : ['Hypertrophy', 'Strength', 'Fat Loss', 'Endurance'];
+
+  const Reaction: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <p className="mt-4 text-sm text-primary flex items-start gap-2" role="status">
+      <Sparkles className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
+      <span>{children}</span>
+    </p>
+  );
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
       {/* Progress Bar */}
       <div className="mb-10">
         <div className="flex justify-between text-xs font-bold text-text-muted mb-2 uppercase tracking-wider">
-          <span>Paso {step} de {totalSteps}</span>
-          <span>{Math.round((step / totalSteps) * 100)}%</span>
+          <span>Paso {stepNumber} de {totalSteps}</span>
+          <span>{Math.round((stepNumber / totalSteps) * 100)}%</span>
         </div>
-        <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+        <div
+          className="w-full h-2 bg-gray-800 rounded-full overflow-hidden"
+          role="progressbar"
+          aria-valuenow={stepNumber}
+          aria-valuemin={1}
+          aria-valuemax={totalSteps}
+          aria-label="Progreso del onboarding"
+        >
           <div
             className="h-full bg-primary transition-all duration-500 ease-out"
-            style={{ width: `${(step / totalSteps) * 100}%` }}
+            style={{ width: `${(stepNumber / totalSteps) * 100}%` }}
           ></div>
         </div>
       </div>
 
       <Card padding="lg" className="rounded-3xl min-h-[500px] flex flex-col">
 
-        {/* STEP 1: GOAL */}
-        {step === 1 && (
-          <div className="animate-in fade-in slide-in-from-right-8 duration-300 flex-1">
+        {/* STEP: DISCIPLINE */}
+        {step === 'discipline' && (
+          <div className="animate-fade-in-up flex-1">
+            <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6">
+              <Footprints className="w-6 h-6" />
+            </div>
+            <h2 className="text-3xl font-black text-white mb-2">Que entrenas?</h2>
+            <p className="text-text-muted mb-8">Esto decide todo lo demas, asi que va primero.</p>
+
+            <div className="grid grid-cols-1 gap-4">
+              {DISCIPLINES.map((item) => (
+                <label key={item.value} className="cursor-pointer group block">
+                  <input
+                    type="radio"
+                    name="discipline"
+                    className="peer sr-only"
+                    checked={discipline === item.value}
+                    onChange={() => updateData('discipline', item.value)}
+                  />
+                  <div className="min-h-11 p-5 rounded-2xl border border-divider bg-background/50 hover:bg-background hover:border-gray-500 peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:ring-1 peer-checked:ring-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary transition-all flex items-center gap-4">
+                    <item.icon className="w-6 h-6 text-primary shrink-0" aria-hidden="true" />
+                    <span>
+                      <span className="block font-bold text-lg text-white">{item.label}</span>
+                      <span className="block text-sm text-text-muted">{item.desc}</span>
+                    </span>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            <Reaction>{DISCIPLINE_REACTION[discipline]}</Reaction>
+          </div>
+        )}
+
+        {/* STEP: GOAL */}
+        {step === 'goal' && (
+          <div className="animate-fade-in-up flex-1">
             <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-6">
               <Target className="w-6 h-6" />
             </div>
@@ -132,7 +268,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <p className="text-text-muted mb-8">Adaptaremos volumen e intensidad en base a esto.</p>
 
             <div className="grid grid-cols-1 gap-4">
-              {(['Hypertrophy', 'Strength', 'Fat Loss', 'Endurance'] as const).map((goal) => (
+              {goalOptions.map((goal) => (
                 <label key={goal} className="cursor-pointer group">
                   <input
                     type="radio"
@@ -141,20 +277,22 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                     checked={formData.goal === goal}
                     onChange={() => updateData('goal', goal)}
                   />
-                  <div className="p-5 rounded-2xl border border-gray-700 bg-background/50 hover:bg-background hover:border-gray-500 peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:ring-1 peer-checked:ring-primary transition-all flex items-center justify-between">
+                  <div className="min-h-11 p-5 rounded-2xl border border-divider bg-background/50 hover:bg-background hover:border-gray-500 peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:ring-1 peer-checked:ring-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary transition-all flex items-center justify-between">
                     <span className="font-bold text-lg text-white group-hover:text-primary transition-colors">{goal}</span>
                     <div className="w-5 h-5 rounded-full border border-gray-600 peer-checked:border-primary peer-checked:bg-primary"></div>
                   </div>
                 </label>
               ))}
             </div>
+
+            {formData.goal && <Reaction>{GOAL_REACTION[formData.goal]}</Reaction>}
           </div>
         )}
 
-        {/* STEP 2: AVAILABILITY */}
-        {step === 2 && (
-          <div className="animate-in fade-in slide-in-from-right-8 duration-300 flex-1">
-            <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-6">
+        {/* STEP: AVAILABILITY */}
+        {step === 'availability' && (
+          <div className="animate-fade-in-up flex-1">
+            <div className="w-12 h-12 bg-info/10 rounded-xl flex items-center justify-center text-info mb-6">
               <Calendar className="w-6 h-6" />
             </div>
             <h2 className="text-3xl font-black text-white mb-2">Disponibilidad</h2>
@@ -163,10 +301,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <div className="space-y-10">
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <span className="text-white font-bold text-lg">Dias por semana</span>
+                  <label htmlFor="days-per-week" className="text-white font-bold text-lg">Dias por semana</label>
                   <span className="text-4xl font-black text-primary">{formData.daysPerWeek}</span>
                 </div>
                 <input
+                  id="days-per-week"
                   type="range"
                   min="2"
                   max="6"
@@ -182,17 +321,18 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
 
               <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                  <span className="text-white font-bold text-lg">Minutos por sesion</span>
-                  <span className="text-4xl font-black text-blue-500">{formData.minutesPerSession}</span>
+                  <label htmlFor="minutes-per-session" className="text-white font-bold text-lg">Minutos por sesion</label>
+                  <span className="text-4xl font-black text-info">{formData.minutesPerSession}</span>
                 </div>
                 <input
+                  id="minutes-per-session"
                   type="range"
                   min="30"
                   max="120"
                   step="15"
                   value={formData.minutesPerSession}
                   onChange={(e) => updateData('minutesPerSession', parseInt(e.target.value))}
-                  className="w-full accent-blue-500 h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer"
+                  className="w-full accent-info h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer"
                 />
                 <div className="flex justify-between text-xs text-text-muted font-bold">
                   <span>30 Min</span>
@@ -200,13 +340,15 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 </div>
               </div>
             </div>
+
+            <Reaction>{daysReaction(formData.daysPerWeek || 4)}</Reaction>
           </div>
         )}
 
-        {/* STEP 3: EQUIPMENT */}
-        {step === 3 && (
-          <div className="animate-in fade-in slide-in-from-right-8 duration-300 flex-1">
-            <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center text-green-500 mb-6">
+        {/* STEP: EQUIPMENT */}
+        {step === 'equipment' && (
+          <div className="animate-fade-in-up flex-1">
+            <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center text-success mb-6">
               <Dumbbell className="w-6 h-6" />
             </div>
             <h2 className="text-3xl font-black text-white mb-2">Equipamiento</h2>
@@ -221,19 +363,25 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                     checked={formData.equipment?.includes(item)}
                     onChange={() => toggleEquipment(item)}
                   />
-                  <div className="p-4 rounded-xl border border-gray-700 bg-background/50 hover:bg-background hover:border-green-500 peer-checked:border-green-500 peer-checked:bg-green-500/10 peer-checked:ring-1 peer-checked:ring-green-500 transition-all">
-                    <span className="font-bold text-white group-hover:text-green-500 transition-colors">{item}</span>
+                  <div className="min-h-11 flex items-center p-4 rounded-xl border border-divider bg-background/50 hover:bg-background hover:border-success peer-checked:border-success peer-checked:bg-success/10 peer-checked:ring-1 peer-checked:ring-success peer-focus-visible:ring-2 peer-focus-visible:ring-primary transition-all">
+                    <span className="font-bold text-white group-hover:text-success transition-colors">{item}</span>
                   </div>
                 </label>
               ))}
             </div>
+
+            <Reaction>
+              {(formData.equipment?.length || 0) > 1
+                ? 'Con varias fuentes de carga podemos variar los estimulos cada semana.'
+                : 'Suficiente para empezar. Se puede cambiar despues en Ajustes.'}
+            </Reaction>
           </div>
         )}
 
-        {/* STEP 4: EXPERIENCE */}
-        {step === 4 && (
-          <div className="animate-in fade-in slide-in-from-right-8 duration-300 flex-1">
-            <div className="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center text-yellow-500 mb-6">
+        {/* STEP: EXPERIENCE */}
+        {step === 'experience' && (
+          <div className="animate-fade-in-up flex-1">
+            <div className="w-12 h-12 bg-warning/10 rounded-xl flex items-center justify-center text-warning mb-6">
               <Activity className="w-6 h-6" />
             </div>
             <h2 className="text-3xl font-black text-white mb-2">Nivel de Experiencia</h2>
@@ -253,22 +401,82 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                     checked={formData.experienceLevel === item.level}
                     onChange={() => updateData('experienceLevel', item.level)}
                   />
-                  <div className="p-5 rounded-2xl border border-gray-700 bg-background/50 hover:bg-background hover:border-yellow-500 peer-checked:border-yellow-500 peer-checked:bg-yellow-500/5 peer-checked:ring-1 peer-checked:ring-yellow-500 transition-all">
+                  <div className="min-h-11 p-5 rounded-2xl border border-divider bg-background/50 hover:bg-background hover:border-warning peer-checked:border-warning peer-checked:bg-warning/5 peer-checked:ring-1 peer-checked:ring-warning peer-focus-visible:ring-2 peer-focus-visible:ring-primary transition-all">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="font-bold text-lg text-white group-hover:text-yellow-500 transition-colors">{item.label}</span>
+                      <span className="font-bold text-lg text-white group-hover:text-warning transition-colors">{item.label}</span>
                     </div>
                     <p className="text-sm text-text-muted">{item.desc}</p>
                   </div>
                 </label>
               ))}
             </div>
+
+            {formData.experienceLevel && <Reaction>{LEVEL_REACTION[formData.experienceLevel]}</Reaction>}
           </div>
         )}
 
-        {/* STEP 5: GENERATED PLAN PREVIEW */}
-        {step === 5 && (
-          <div className="animate-in fade-in slide-in-from-right-8 duration-300 flex-1">
-            <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-500 mb-6">
+        {/* STEP: INJURIES */}
+        {step === 'injuries' && (
+          <div className="animate-fade-in-up flex-1">
+            <div className="w-12 h-12 bg-danger/10 rounded-xl flex items-center justify-center text-danger mb-6">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <h2 className="text-3xl font-black text-white mb-2">Alguna lesion?</h2>
+            <p className="text-text-muted mb-8">
+              Marca las zonas con molestias. Si no tienes ninguna, sigue sin marcar nada.
+            </p>
+
+            <fieldset>
+              <legend className="sr-only">Zonas con molestias o lesion</legend>
+              <div className="flex flex-wrap gap-3">
+                {INJURY_AREAS.map((area) => {
+                  const selected = injuries.includes(area);
+                  return (
+                    <button
+                      key={area}
+                      type="button"
+                      onClick={() => toggleInjury(area)}
+                      aria-pressed={selected}
+                      className={`min-h-11 px-5 rounded-full border font-bold transition-colors duration-fast ${
+                        selected
+                          ? 'border-danger bg-danger/10 text-danger'
+                          : 'border-divider bg-background/50 text-text-secondary hover:border-border-input'
+                      }`}
+                    >
+                      {area}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <div className="mt-8">
+              <label htmlFor="limitations" className="block text-sm font-bold text-white mb-2">
+                Algo mas que debamos saber? (opcional)
+              </label>
+              <textarea
+                id="limitations"
+                rows={3}
+                maxLength={500}
+                value={formData.limitations || ''}
+                onChange={(e) => updateData('limitations', e.target.value)}
+                placeholder="Ej: operado de menisco en 2024, evito sentadilla profunda"
+                className="w-full min-h-11 p-3 text-base rounded-xl bg-background border border-border-input text-text-main placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary outline-none transition-colors duration-fast"
+              />
+            </div>
+
+            <Reaction>
+              {injuries.length > 0
+                ? `Lo anotamos. Veras el aviso de ${injuries.join(', ').toLowerCase()} junto a tu plan.`
+                : 'Perfecto. Puedes anadirlo mas adelante desde Ajustes si aparece algo.'}
+            </Reaction>
+          </div>
+        )}
+
+        {/* STEP: GENERATED PLAN PREVIEW */}
+        {step === 'plan' && (
+          <div className="animate-fade-in-up flex-1">
+            <div className="w-12 h-12 bg-mobility/10 rounded-xl flex items-center justify-center text-mobility mb-6">
               <Sparkles className="w-6 h-6" />
             </div>
             <h2 className="text-3xl font-black text-white mb-2">Tu Plan de Entrenamiento</h2>
@@ -276,37 +484,65 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               Hemos generado {generatedTemplates.length} rutinas basadas en tus preferencias.
             </p>
 
-            <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
-              {generatedTemplates.map((template) => (
-                <div
-                  key={template.id}
-                  className="p-4 rounded-xl border border-gray-700 bg-background/50 hover:border-purple-500/50 transition-colors"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-white font-bold">{template.name}</h3>
-                    <span className="text-xs px-2 py-1 bg-purple-500/10 text-purple-400 rounded-full font-bold">
-                      {template.exercises.length} ejercicios
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {template.muscleFocus.map(m => (
-                      <span key={m} className="text-[10px] px-2 py-0.5 bg-white/10 rounded-full text-gray-300 font-medium">{m}</span>
+            {(injuries.length > 0 || formData.limitations) && (
+              <div className="mb-6 p-4 rounded-xl border border-danger/30 bg-danger/5">
+                <p className="text-xs uppercase tracking-wider font-bold text-danger mb-2 flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4" aria-hidden="true" />
+                  Lo que nos has contado
+                </p>
+                {injuries.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {injuries.map(area => (
+                      <span key={area} className="text-xs px-3 py-1 rounded-full bg-danger/10 text-danger font-bold">{area}</span>
                     ))}
                   </div>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-text-muted">
-                    <span>{template.duration}</span>
-                    <span>{template.difficulty}</span>
+                )}
+                {formData.limitations && (
+                  <p className="text-sm text-text-secondary">{formData.limitations}</p>
+                )}
+                <p className="text-sm text-text-muted mt-2">
+                  Revisa los ejercicios que carguen estas zonas y cambialos si te molestan.
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2">
+              {generatedTemplates.map((template) => {
+                const isRun = template.muscleFocus.includes('Cardio');
+                return (
+                  <div
+                    key={template.id}
+                    className="p-4 rounded-xl border border-divider bg-background/50 hover:border-mobility/50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2 gap-2">
+                      <h3 className="text-white font-bold flex items-center gap-2">
+                        {isRun
+                          ? <Footprints className="w-4 h-4 text-cardio" aria-hidden="true" />
+                          : <Dumbbell className="w-4 h-4 text-strength" aria-hidden="true" />}
+                        {template.name}
+                      </h3>
+                      <span className="text-xs px-2 py-1 bg-mobility/10 text-mobility rounded-full font-bold shrink-0">
+                        {isRun ? 'Carrera' : `${template.exercises.length} ejercicios`}
+                      </span>
+                    </div>
+                    {template.description && (
+                      <p className="text-sm text-text-muted mb-2">{template.description}</p>
+                    )}
+                    <div className="flex items-center gap-4 text-xs text-text-muted">
+                      <span>{template.duration}</span>
+                      <span>{template.difficulty}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* STEP 6: SCHEDULE */}
-        {step === 6 && (
-          <div className="animate-in fade-in slide-in-from-right-8 duration-300 flex-1">
-            <div className="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-500 mb-6">
+        {/* STEP: SCHEDULE */}
+        {step === 'schedule' && (
+          <div className="animate-fade-in-up flex-1">
+            <div className="w-12 h-12 bg-cardio/10 rounded-xl flex items-center justify-center text-cardio mb-6">
               <CalendarDays className="w-6 h-6" />
             </div>
             <h2 className="text-3xl font-black text-white mb-2">Programa Semanal</h2>
@@ -318,34 +554,40 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
               {[0, 1, 2, 3, 4, 5, 6].map(day => {
                 const templateId = schedule[day as keyof WeeklySchedule];
                 const template = templateId ? generatedTemplates.find(t => t.id === templateId) : null;
+                const isRun = !!template?.muscleFocus.includes('Cardio');
 
                 return (
                   <div key={day} className="text-center">
                     <p className="text-xs font-bold text-text-muted mb-2">{DAY_NAMES[day]}</p>
                     <div className={`p-2 rounded-xl border min-h-[80px] flex flex-col items-center justify-center transition-all ${
-                      template ? 'border-cyan-500/30 bg-cyan-500/5' : 'border-gray-700 bg-background/30'
+                      template ? 'border-cardio/30 bg-cardio/5' : 'border-divider bg-background/30'
                     }`}>
                       {template ? (
                         <>
-                          <Dumbbell className="w-4 h-4 text-cyan-500 mb-1" />
-                          <p className="text-[10px] text-white font-bold leading-tight text-center">{template.name}</p>
+                          {isRun
+                            ? <Footprints className="w-4 h-4 text-cardio mb-1" aria-hidden="true" />
+                            : <Dumbbell className="w-4 h-4 text-strength mb-1" aria-hidden="true" />}
+                          <p className="text-2xs text-white font-bold leading-tight text-center">{template.name}</p>
                           <button
-                            className="mt-1 text-[10px] text-red-400 hover:text-red-300"
+                            className="mt-1 min-w-11 min-h-11 flex items-center justify-center text-danger hover:text-danger/80"
+                            aria-label={`Quitar ${template.name} del ${DAY_NAMES[day]}`}
                             onClick={() => toggleScheduleDay(day, null)}
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-3 h-3" aria-hidden="true" />
                           </button>
                         </>
                       ) : (
                         <>
-                          <Coffee className="w-4 h-4 text-gray-400 mb-1" />
-                          <p className="text-[10px] text-gray-400">Rest</p>
+                          <Coffee className="w-4 h-4 text-text-muted mb-1" aria-hidden="true" />
+                          <p className="text-2xs text-text-muted">Rest</p>
                         </>
                       )}
                     </div>
                     {/* Dropdown to assign */}
+                    <label className="sr-only" htmlFor={`day-${day}`}>Sesion del {DAY_NAMES[day]}</label>
                     <select
-                      className="mt-1 w-full text-[10px] bg-background-card border border-gray-700 rounded text-gray-300 p-1"
+                      id={`day-${day}`}
+                      className="mt-1 w-full min-h-11 text-2xs bg-background-card border border-border-input rounded text-text-secondary p-1"
                       value={templateId || ''}
                       onChange={(e) => toggleScheduleDay(day, e.target.value || null)}
                     >
@@ -365,27 +607,48 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
           </div>
         )}
 
-        {/* STEP 7: SUMMARY / CONFIRMATION */}
-        {step === 7 && (
-          <div className="animate-in fade-in slide-in-from-right-8 duration-300 flex-1">
-            <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center text-green-500 mb-6">
+        {/* STEP: SUMMARY / CONFIRMATION */}
+        {step === 'summary' && (
+          <div className="animate-fade-in-up flex-1">
+            <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center text-success mb-6">
               <Rocket className="w-6 h-6" />
             </div>
             <h2 className="text-3xl font-black text-white mb-2">Todo Listo!</h2>
             <p className="text-text-muted mb-6">Revisa tu plan antes de comenzar.</p>
 
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-background/50 border border-gray-700">
+              <div className="p-4 rounded-xl bg-background/50 border border-divider">
+                <p className="text-xs text-text-muted uppercase tracking-wider font-bold mb-2">Disciplina</p>
+                <p className="text-white font-bold text-lg">
+                  {DISCIPLINES.find(d => d.value === discipline)?.label}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-background/50 border border-divider">
                 <p className="text-xs text-text-muted uppercase tracking-wider font-bold mb-2">Objetivo</p>
                 <p className="text-white font-bold text-lg">{formData.goal}</p>
               </div>
 
-              <div className="p-4 rounded-xl bg-background/50 border border-gray-700">
+              <div className="p-4 rounded-xl bg-background/50 border border-divider">
                 <p className="text-xs text-text-muted uppercase tracking-wider font-bold mb-2">Disponibilidad</p>
                 <p className="text-white font-bold">{formData.daysPerWeek} dias/semana · {formData.minutesPerSession} min/sesion</p>
               </div>
 
-              <div className="p-4 rounded-xl bg-background/50 border border-gray-700">
+              {(injuries.length > 0 || formData.limitations) && (
+                <div className="p-4 rounded-xl bg-background/50 border border-divider">
+                  <p className="text-xs text-text-muted uppercase tracking-wider font-bold mb-2">Lesiones</p>
+                  <div className="flex flex-wrap gap-2">
+                    {injuries.map(area => (
+                      <span key={area} className="text-xs px-3 py-1 bg-danger/10 text-danger rounded-full font-bold">{area}</span>
+                    ))}
+                  </div>
+                  {formData.limitations && (
+                    <p className="text-sm text-text-secondary mt-2">{formData.limitations}</p>
+                  )}
+                </div>
+              )}
+
+              <div className="p-4 rounded-xl bg-background/50 border border-divider">
                 <p className="text-xs text-text-muted uppercase tracking-wider font-bold mb-2">Rutinas Generadas</p>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {generatedTemplates.map(t => (
@@ -394,15 +657,15 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-background/50 border border-gray-700">
+              <div className="p-4 rounded-xl bg-background/50 border border-divider">
                 <p className="text-xs text-text-muted uppercase tracking-wider font-bold mb-2">Programa Semanal</p>
                 <div className="flex gap-2 mt-1">
                   {[0, 1, 2, 3, 4, 5, 6].map(day => {
                     const hasTemplate = !!schedule[day as keyof WeeklySchedule];
                     return (
-                      <div key={day} className={`text-center flex-1 p-2 rounded-lg ${hasTemplate ? 'bg-green-500/10 border border-green-500/30' : 'bg-gray-800/50'}`}>
-                        <p className="text-[10px] font-bold text-text-muted">{DAY_NAMES[day]}</p>
-                        <div className={`w-2 h-2 rounded-full mx-auto mt-1 ${hasTemplate ? 'bg-green-500' : 'bg-gray-600'}`} />
+                      <div key={day} className={`text-center flex-1 p-2 rounded-lg ${hasTemplate ? 'bg-success/10 border border-success/30' : 'bg-surface-raised'}`}>
+                        <p className="text-2xs font-bold text-text-muted">{DAY_NAMES[day]}</p>
+                        <div className={`w-2 h-2 rounded-full mx-auto mt-1 ${hasTemplate ? 'bg-success' : 'bg-border-input'}`} />
                       </div>
                     );
                   })}
@@ -413,12 +676,12 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
         )}
 
         {/* Footer Actions */}
-        <div className="pt-8 mt-auto border-t border-gray-800/50 flex justify-between items-center">
+        <div className="pt-8 mt-auto border-t border-divider/50 flex justify-between items-center">
           <Button
             variant="ghost"
             onClick={handleBack}
             leftIcon={<ChevronLeft className="w-5 h-5" />}
-            className={step === 1 ? 'invisible' : ''}
+            className={stepIndex === 0 ? 'invisible' : ''}
           >
             Atras
           </Button>
@@ -427,9 +690,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             onClick={handleNext}
             size="lg"
             isLoading={isFinishing}
-            rightIcon={step === totalSteps ? <CheckCircle2 className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+            rightIcon={isLastStep ? <CheckCircle2 className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
           >
-            {step === totalSteps ? 'Comenzar!' : 'Siguiente'}
+            {isLastStep ? 'Comenzar!' : 'Siguiente'}
           </Button>
         </div>
       </Card>
