@@ -249,7 +249,7 @@ const Settings: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center border-b border-divider pb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-divider pb-6">
         <div>
           <h1 className="text-3xl font-black text-white">Configuracion</h1>
           <p className="text-text-muted mt-1">Edita tu perfil y preferencias de entrenamiento.</p>
@@ -259,6 +259,7 @@ const Settings: React.FC = () => {
           disabled={!hasChanges}
           isLoading={isSaving}
           leftIcon={<Save className="w-5 h-5" />}
+          className="w-full sm:w-auto shrink-0"
         >
           Guardar
         </Button>
@@ -288,9 +289,9 @@ const Settings: React.FC = () => {
             <p className="text-xs text-text-muted">Nivel</p>
             <p className="text-xl font-bold text-white mt-1">{user.level}</p>
           </div>
-          <div className="bg-background rounded-xl p-4 border border-divider">
+          <div className="bg-background rounded-xl p-4 border border-divider min-w-0">
             <p className="text-xs text-text-muted">Tier</p>
-            <p className="text-xl font-bold text-primary mt-1">{user.tier}</p>
+            <p className="text-lg sm:text-xl font-bold text-primary mt-1 truncate" title={user.tier}>{user.tier}</p>
           </div>
           <div className="bg-background rounded-xl p-4 border border-divider">
             <p className="text-xs text-text-muted">XP Total</p>
